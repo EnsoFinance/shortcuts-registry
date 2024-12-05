@@ -3,7 +3,7 @@ import { Transaction } from "@ensofinance/shortcuts-builder/types";
 export interface Shortcut {
   name: string;
   description: string;
-  supportedChains: number[]; // Chain IDs
+  supportedChains: number[];
   getTransaction(inputs: any): Promise<Transaction>;
   simulate(inputs: any): Promise<SimulationResult>;
 }

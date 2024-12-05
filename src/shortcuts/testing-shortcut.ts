@@ -37,12 +37,12 @@ export class IporShortcut implements Shortcut {
 
   async simulate(inputs: IporShortcutInputs): Promise<SimulationResult> {
     const transaction = await this.getTransaction(inputs);
-    // Simulate the transaction
+
     const simulationResult = await simulateTransactionOnTenderly(
       transaction,
       inputs.chainId
     );
-    // Prepare and verify the response
+
     const result = await prepareResponse(simulationResult, transaction, inputs);
     return result;
   }
@@ -51,11 +51,6 @@ export class IporShortcut implements Shortcut {
     builder: Builder,
     inputs: IporShortcutInputs
   ): Promise<Transaction> {
-    // Implement the logic from your getShortcut method
-    // This includes building the transaction steps using the builder
-    // For brevity, the detailed implementation is omitted
-    // ...
-
     const payload = await builder.build({
       requireWeiroll: true,
       returnWeirollScript: true,
