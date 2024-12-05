@@ -56,7 +56,10 @@ export class IporShortcut implements Shortcut {
     // For brevity, the detailed implementation is omitted
     // ...
 
-    const payload = await builder.build({ requireWeiroll: true });
+    const payload = await builder.build({
+      requireWeiroll: true,
+      returnWeirollScript: true,
+    });
     return payload.shortcut as Transaction;
   }
 }
