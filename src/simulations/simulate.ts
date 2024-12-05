@@ -2,6 +2,12 @@ import { Transaction } from "@ensofinance/shortcuts-builder/types";
 import { BigNumberish } from "@ethersproject/bignumber";
 import axios from "axios";
 
+export const TENDERLY_CONFIG = {
+  tenderlyApiKey: process.env.TENDERLY_ACCESS_KEY as string,
+  tenderlyProject: process.env.TENDERLY_PROJECT as string,
+  tenderlyUser: process.env.TENDERLY_USER as string,
+};
+
 export type TenderlyOptions = {
   tenderlyApiKey: string;
   tenderlyUser: string;
@@ -114,8 +120,14 @@ export function prepareTransactionForSimulation(
 
 export async function simulateTransactionOnTenderly(
   transaction: Transaction,
-  options: TenderlyOptions
+  chainId: number
 ): Promise<SimulationResponseTenderly> {
+  const options = {
+    chainId: chainId,
+    ...TENDERLY_CONFIG,
+    saveSimulation: true,
+  };
+
   const transactionPreparedToSimulation = prepareTransactionForSimulation(
     transaction,
     options
