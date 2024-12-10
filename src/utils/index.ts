@@ -6,9 +6,6 @@ export async function prepareResponse(
   transaction: Transaction,
   inputs: any
 ): Promise<SimulationResult> {
-  // Process simulation logs, verify events, etc.
-  // TBD if needed
-
   return {
     logs: simulationResult.logs,
     simulationURL: simulationResult.simulationURL,

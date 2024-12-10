@@ -1,41 +1,46 @@
 import { Shortcut, SimulationResult } from "../types";
 import { Builder } from "@ensofinance/shortcuts-builder";
 import { getStandardByProtocol } from "@ensofinance/shortcuts-standards";
-import { Transaction } from "@ensofinance/shortcuts-builder/types";
+import { AddressArg, Transaction } from "@ensofinance/shortcuts-builder/types";
 import { simulateTransactionOnTenderly } from "../simulations/simulate";
 import { prepareResponse } from "../utils";
 import getShortcutClient, {
   ShortcutClientTypes,
 } from "@ensofinance/shortcuts-builder/client";
 
-interface IporShortcutInputs {
+interface HoneyShortcutInputs {
   chainId: number;
-  tokenIn: string;
-  amountIn: string;
-  tokenBToBuy: string;
-  percentageForTokenB: string;
-  slippage: string;
-  simulate?: boolean;
-  isRouter?: boolean;
+  tokensIn: AddressArg[];
+  tokensOut: AddressArg[];
 }
 
-export class IporShortcut implements Shortcut {
-  name = "IPOR Liquidity and Governance Shortcut";
-  description =
-    "Provides liquidity to IPOR pools and stakes governance tokens.";
-  supportedChains = [1, 42161]; // Mainnet and Arbitrum
+export class HoneyShortcut implements Shortcut {
+  name = "";
+  description = "";
+  supportedChains = [80000]; // Cartio
 
-  async getTransaction(inputs: IporShortcutInputs): Promise<Transaction> {
+  async getTransaction(inputs: HoneyShortcutInputs): Promise<Transaction> {
     const client = await getShortcutClient({
-      type: ShortcutClientTypes.Router,
+      type: ShortcutClientTypes.Royco,
     });
+    const chainId = inputs.chainId;
     const builder = new Builder(inputs.chainId, client);
+
+    const honey = getStandardByProtocol("berachain-honey", chainId);
+    const amountIn;
+
+    await honey.deposit.addToBuilder(builder, {
+      tokenIn: inputs.tokensIn[0],
+      tokenOut: inputs.tokensOut[0],
+      amountIn,
+      primaryAddress: this.getAddresses(chainId).honeyFactory,
+    });
 
     const transaction = await this.buildShortcut(builder, inputs);
     return transaction;
   }
 
-  async simulate(inputs: IporShortcutInputs): Promise<SimulationResult> {
+  async simulate(inputs: HoneyShortcutInputs): Promise<SimulationResult> {
     const transaction = await this.getTransaction(inputs);
 
     const simulationResult = await simulateTransactionOnTenderly(
@@ -47,9 +52,16 @@ export class IporShortcut implements Shortcut {
     return result;
   }
 
+  private getAddresses = (chainId: number) => {
+    const honey = getStandardByProtocol("berachain-honey", chainId);
+    return {
+      honeyFactory: honey.getAddress(chainId, "honeyFactory"),
+    };
+  };
+
   private async buildShortcut(
     builder: Builder,
-    inputs: IporShortcutInputs
+    inputs: HoneyShortcutInputs
   ): Promise<Transaction> {
     const payload = await builder.build({
       requireWeiroll: true,
