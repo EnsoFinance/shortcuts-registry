@@ -37,7 +37,7 @@ async function main() {
 
     }
     const quote = await simulateTransactionOnQuoter(request);
-    console.log('Quote: ', quote)
+    console.log('Quote: ', quote[0])
 }
 
 main();
