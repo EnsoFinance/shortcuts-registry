@@ -1,9 +1,11 @@
 import { Shortcut } from "../src/types";
-import { DolomiteDHoneyShortcut } from "../src/shortcuts/dolomite-dhoney";
 import { ChainIds } from "@ensofinance/shortcuts-builder/types";
+import { DolomiteDHoneyShortcut } from "../src/shortcuts/dolomite-dhoney";
+import { KodiakHoneyUsdcShortcut } from "./shortcuts/kodiak-honey-usdc";
 
 const shortcuts: Record<string, Shortcut> = {
     'dolomite-dhoney': new DolomiteDHoneyShortcut(),
+    'kodiak-honey-usdc': new KodiakHoneyUsdcShortcut(),
 }
 
 export async function getShortcut() {

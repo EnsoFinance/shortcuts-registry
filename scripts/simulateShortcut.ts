@@ -32,7 +32,6 @@ async function main() {
             to: weirollWalletAddress,
             data,
             value,
-            spender: weirollWalletAddress,
             receiver: weirollWalletAddress,
         }
         const quoteTokens = [...tokensOut, ...tokensIn]; //find dust
