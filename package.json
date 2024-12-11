@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "generate": "pnpm ts-node scripts/getShortcut.ts",
+    "simulate": "pnpm ts-node scripts/simulateShortcut.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -14,7 +15,8 @@
     "@ensofinance/shortcuts-builder": "^0.0.4",
     "@ensofinance/shortcuts-standards": "^1.0.6",
     "@ethersproject/abi": "^5.7.0",
-    "axios": "^1.7.9"
+    "axios": "^1.7.9",
+    "dotenv": "^16.4.7"
   },
   "devDependencies": {
     "@types/node": "^22.10.1",

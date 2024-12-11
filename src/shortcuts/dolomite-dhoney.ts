@@ -1,31 +1,26 @@
-import { Shortcut } from "../types";
+import { Input, Shortcut } from "../types";
 import { Builder } from "@ensofinance/shortcuts-builder";
 import { getStandardByProtocol } from "@ensofinance/shortcuts-standards";
-import { AddressArg, WeirollScript } from "@ensofinance/shortcuts-builder/types";
+import { ChainIds, WeirollScript } from "@ensofinance/shortcuts-builder/types";
 import { balanceOf } from "../utils";
 import { RoycoClient } from "@ensofinance/shortcuts-builder/client/implementations/roycoClient";
 import { walletAddress } from "@ensofinance/shortcuts-builder/helpers";
 
-interface DolomiteDHoneyShortcutInputs {
-  chainId: number;
-  tokensIn: AddressArg[];
-  tokensOut: AddressArg[];
-}
-
 export class DolomiteDHoneyShortcut implements Shortcut {
   name = 'dolomite-dhoney';
   description = '';
-  supportedChains = [80000];
-  inputs: DolomiteDHoneyShortcutInputs = {
-    chainId: 80000,
-    tokensIn: ['0xd137593CDB341CcC78426c54Fb98435C60Da193c'],
-    tokensOut: ['0x7f2B60fDff1494A0E3e060532c9980d7fad0404B'],
-  };
+  supportedChains = [ChainIds.Cartio];
+  inputs: Record<number, Input> = {
+    [ChainIds.Cartio]: {
+      tokensIn: ['0xd137593CDB341CcC78426c54Fb98435C60Da193c'],
+      tokensOut: ['0x7f2B60fDff1494A0E3e060532c9980d7fad0404B'],
+    }
+  }
 
-  async build(): Promise<WeirollScript> {
+  async build(chainId: number): Promise<WeirollScript> {
     const client = new RoycoClient();
 
-    const inputs = this.inputs;
+    const inputs = this.inputs[chainId];
 
     const { tokensIn, tokensOut } = inputs;
     const marketMetadata = {
@@ -33,8 +28,7 @@ export class DolomiteDHoneyShortcut implements Shortcut {
       tokensOut,
     };
 
-    const chainId = inputs.chainId;
-    const builder = new Builder(inputs.chainId, client, marketMetadata);
+    const builder = new Builder(chainId, client, marketMetadata);
 
     const { honey, dhoney } = this.getAddresses(inputs);
 
@@ -56,7 +50,7 @@ export class DolomiteDHoneyShortcut implements Shortcut {
     return payload.shortcut as WeirollScript;
   }
 
-  private getAddresses = (inputs: DolomiteDHoneyShortcutInputs) => {
+  private getAddresses = (inputs: Input) => {
     const honey = inputs.tokensIn[0];
     const dhoney = inputs.tokensOut[0];
     return {
