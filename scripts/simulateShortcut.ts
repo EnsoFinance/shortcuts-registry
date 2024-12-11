@@ -7,6 +7,12 @@ const weirollWalletInterface = new Interface(['function executeWeiroll(bytes32[]
 const fromAddress = '0x93621DCA56fE26Cdee86e4F6B18E116e9758Ff11';
 const weirollWalletAddress = '0xBa8F5f80C41BF5e169d9149Cd4977B1990Fc2736';
 
+type SimulationReport = {
+    quote: Record<string, string>;
+    dust: Record<string, string>;
+    gas: string;
+}
+
 async function main() {
     try {
         const {shortcut, chainId} = await getShortcut();
@@ -29,15 +35,31 @@ async function main() {
             spender: weirollWalletAddress,
             receiver: weirollWalletAddress,
         }
+        const quoteTokens = [...tokensOut, ...tokensIn]; //find dust
         const request: QuoteRequest = {
             chainId,
             transactions: [tx],
             tokenIn: tokensIn,
-            tokenOut: tokensOut,
+            tokenOut: quoteTokens,
             amountIn: amountsIn,
         }
-        const quote = await simulateTransactionOnQuoter(request);
-        console.log('Quote: ', quote[0])
+        
+        const quote = (await simulateTransactionOnQuoter(request))[0];
+        if (quote.status === 'Error') throw quote.error;
+        const report: SimulationReport = {
+            quote: {},
+            dust: {},
+            gas: quote.gas,
+        }
+        tokensOut.forEach(t => {
+            const index = quoteTokens.findIndex(q => q === t);
+            report.quote[t] = quote.amountOut[index];
+        });
+        tokensIn.forEach(t => {
+            const index = quoteTokens.findIndex(q => q === t);
+            report.dust[t] = quote.amountOut[index];
+        })
+        console.log('Simulation: ', report);
     } catch (e) {
         console.log(e);
     }
