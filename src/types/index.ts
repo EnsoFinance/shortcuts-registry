@@ -1,10 +1,11 @@
-import { Transaction } from "@ensofinance/shortcuts-builder/types";
+import { Transaction, WeirollScript } from "@ensofinance/shortcuts-builder/types";
 
 export interface Shortcut {
   name: string;
   description: string;
   supportedChains: number[];
-  build(inputs: any): Promise<Transaction>;
+  inputs: any;
+  build(): Promise<WeirollScript>;
 }
 
 export interface SimulationResult {

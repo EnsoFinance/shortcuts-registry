@@ -1,11 +1,9 @@
 import { Shortcut } from "../types";
 import { Builder } from "@ensofinance/shortcuts-builder";
 import { getStandardByProtocol } from "@ensofinance/shortcuts-standards";
-import { AddressArg, Transaction } from "@ensofinance/shortcuts-builder/types";
+import { AddressArg, WeirollScript } from "@ensofinance/shortcuts-builder/types";
 import { balanceOf } from "../utils";
-import getShortcutClient, {
-  ShortcutClientTypes,
-} from "@ensofinance/shortcuts-builder/client";
+import { RoycoClient } from "@ensofinance/shortcuts-builder/client/implementations/roycoClient";
 import { walletAddress } from "@ensofinance/shortcuts-builder/helpers";
 
 interface DolomiteDHoneyShortcutInputs {
@@ -15,19 +13,17 @@ interface DolomiteDHoneyShortcutInputs {
 }
 
 export class DolomiteDHoneyShortcut implements Shortcut {
-  name = "";
-  description = "";
+  name = 'dolomite-dhoney';
+  description = '';
   supportedChains = [80000];
   inputs: DolomiteDHoneyShortcutInputs = {
     chainId: 80000,
-    tokensIn: ["0xHoneyTokenAddress..."], // Replace with actual tokenIn address
-    tokensOut: ["0xDHoneyTokenAddress..."], // Replace with actual tokenOut address
+    tokensIn: ['0xd137593CDB341CcC78426c54Fb98435C60Da193c'],
+    tokensOut: ['0x7f2B60fDff1494A0E3e060532c9980d7fad0404B'],
   };
 
-  async build(): Promise<Transaction> {
-    const client = await getShortcutClient({
-      type: ShortcutClientTypes.Royco,
-    });
+  async build(): Promise<WeirollScript> {
+    const client = new RoycoClient();
 
     const inputs = this.inputs;
 
@@ -58,7 +54,7 @@ export class DolomiteDHoneyShortcut implements Shortcut {
     });
 
     console.log(payload);
-    return payload.shortcut as Transaction;
+    return payload.shortcut as WeirollScript;
   }
 
   private getAddresses = (inputs: DolomiteDHoneyShortcutInputs) => {
