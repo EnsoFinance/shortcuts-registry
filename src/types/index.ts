@@ -4,8 +4,7 @@ export interface Shortcut {
   name: string;
   description: string;
   supportedChains: number[];
-  getTransaction(inputs: any): Promise<Transaction>;
-  simulate(inputs: any): Promise<SimulationResult>;
+  build(inputs: any): Promise<Transaction>;
 }
 
 export interface SimulationResult {

@@ -10,8 +10,9 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@ensofinance/shortcuts-builder": "^0.0.3",
-    "@ensofinance/shortcuts-standards": "^1.0.4",
+    "@ensofinance/shortcuts-builder": "^0.0.4",
+    "@ensofinance/shortcuts-standards": "^1.0.6",
+    "@ethersproject/abi": "^5.7.0",
     "axios": "^1.7.9"
   },
   "devDependencies": {

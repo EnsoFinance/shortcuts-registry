@@ -6,11 +6,14 @@ settings:
 
 dependencies:
   '@ensofinance/shortcuts-builder':
-    specifier: ^0.0.3
-    version: 0.0.3
+    specifier: ^0.0.4
+    version: 0.0.4
   '@ensofinance/shortcuts-standards':
-    specifier: ^1.0.4
-    version: 1.0.4(@ethersproject/abi@5.7.0)(@ethersproject/providers@5.7.2)(ethers@5.7.2)(lodash@4.17.21)
+    specifier: ^1.0.6
+    version: 1.0.6(@ethersproject/abi@5.7.0)(@ethersproject/providers@5.7.2)(ethers@5.7.2)(lodash@4.17.21)
+  '@ethersproject/abi':
+    specifier: ^5.7.0
+    version: 5.7.0
   axios:
     specifier: ^1.7.9
     version: 1.7.9
@@ -18,10 +21,10 @@ dependencies:
 devDependencies:
   '@types/node':
     specifier: ^22.10.1
-    version: 22.10.1
+    version: 22.10.2
   ts-node:
     specifier: ^10.9.2
-    version: 10.9.2(@types/node@22.10.1)(typescript@5.7.2)
+    version: 10.9.2(@types/node@22.10.2)(typescript@5.7.2)
   typescript:
     specifier: ^5.7.2
     version: 5.7.2
@@ -35,8 +38,8 @@ packages:
       '@jridgewell/trace-mapping': 0.3.9
     dev: true
 
-  /@ensofinance/shortcuts-builder@0.0.2:
-    resolution: {integrity: sha512-Q5AYC8Cx9fc428Bi3otZKqa7briGrTOyRbEZTp5MlExwjgh4r77eaBWqqDdPkJEU8p8nKQka4KwD5Olqdn/Haw==}
+  /@ensofinance/shortcuts-builder@0.0.4:
+    resolution: {integrity: sha512-pMGiYaSoCpG7t3q5+Yt33BXAgu7WLf2yUp5uDcZZmY+pG5elF/v9gYgm9bA/tNeGlONdIDSxtYWyG1Jek9k5tQ==}
     dependencies:
       '@ensofinance/weiroll.js': 0.4.1
       '@ethersproject/abi': 5.7.0
@@ -53,29 +56,11 @@ packages:
       - utf-8-validate
     dev: false
 
-  /@ensofinance/shortcuts-builder@0.0.3:
-    resolution: {integrity: sha512-/cTZx6ppRQBGZWwMWLcK1bjHJqB3j9JxaZ4W0/15b5ed6UQw5xSbVqi8jFW4/kcs0+JBa+ofa3n++q1tpcY3TA==}
-    dependencies:
-      '@ensofinance/weiroll.js': 0.4.1
-      '@ethersproject/abi': 5.7.0
-      '@ethersproject/address': 5.7.0
-      '@ethersproject/bignumber': 5.7.0
-      '@ethersproject/bytes': 5.7.0
-      '@ethersproject/keccak256': 5.7.0
-      '@ethersproject/solidity': 5.7.0
-      '@ethersproject/strings': 5.7.0
-      axios: 1.7.9
-    transitivePeerDependencies:
-      - bufferutil
-      - debug
-      - utf-8-validate
-    dev: false
-
-  /@ensofinance/shortcuts-standards@1.0.4(@ethersproject/abi@5.7.0)(@ethersproject/providers@5.7.2)(ethers@5.7.2)(lodash@4.17.21):
-    resolution: {integrity: sha512-wZxT6XeVBdQ8M8vXl2ABIGxAMIDczC19DbMX9Od5KSObB2T/neOIamIB8Qeb7Q3CWrpTBSqXvofFBY7raNEheg==}
+  /@ensofinance/shortcuts-standards@1.0.6(@ethersproject/abi@5.7.0)(@ethersproject/providers@5.7.2)(ethers@5.7.2)(lodash@4.17.21):
+    resolution: {integrity: sha512-zMI5flem4T3p8w/EUXh1RcR4RQjEF2r1Mpw9khPgTGYPcSdyEJIpsfeKtDoH4TvgTXZ5V/9p0O8QHUksmZdkxg==}
     engines: {node: '>=18.0.0'}
     dependencies:
-      '@ensofinance/shortcuts-builder': 0.0.2
+      '@ensofinance/shortcuts-builder': 0.0.4
       '@ethersproject/address': 5.7.0
       '@ethersproject/bignumber': 5.7.0
       '@ethersproject/bytes': 5.7.0
@@ -453,8 +438,8 @@ packages:
     resolution: {integrity: sha512-vxhUy4J8lyeyinH7Azl1pdd43GJhZH/tP2weN8TntQblOY+A0XbT8DJk1/oCPuOOyg/Ja757rG0CgHcWC8OfMA==}
     dev: true
 
-  /@types/node@22.10.1:
-    resolution: {integrity: sha512-qKgsUwfHZV2WCWLAnVP1JqnpE6Im6h3Y0+fYgMTasNQ7V++CBX5OT1as0g0f+OyubbFqhf6XVNIsmN4IIhEgGQ==}
+  /@types/node@22.10.2:
+    resolution: {integrity: sha512-Xxr6BBRCAOQixvonOye19wnzyDiUtTeqldOOmj3CkeblonbccA12PFwlufvRdrpjXxqnmUaeiU5EOA+7s5diUQ==}
     dependencies:
       undici-types: 6.20.0
     dev: true
@@ -694,7 +679,7 @@ packages:
     resolution: {integrity: sha512-cdwTTnqPu0Hyvf5in5asVdZocVDTNRmR7XEcJuIzMjJeSHybHl7vpB66AzwTaIg6CLSbtjcxc8fqcySfnTkccA==}
     dev: false
 
-  /ts-node@10.9.2(@types/node@22.10.1)(typescript@5.7.2):
+  /ts-node@10.9.2(@types/node@22.10.2)(typescript@5.7.2):
     resolution: {integrity: sha512-f0FFpIdcHgn8zcPSbf1dRevwt047YMnaiJM3u2w2RewrB+fob/zePZcrOyQoLMMO7aBIddLcQIEK5dYjkLnGrQ==}
     hasBin: true
     peerDependencies:
@@ -713,7 +698,7 @@ packages:
       '@tsconfig/node12': 1.0.11
       '@tsconfig/node14': 1.0.3
       '@tsconfig/node16': 1.0.4
-      '@types/node': 22.10.1
+      '@types/node': 22.10.2
       acorn: 8.14.0
       acorn-walk: 8.3.4
       arg: 4.1.3
