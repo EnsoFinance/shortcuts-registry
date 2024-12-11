@@ -53,7 +53,6 @@ export class DolomiteDHoneyShortcut implements Shortcut {
       returnWeirollScript: true,
     });
 
-    console.log(payload);
     return payload.shortcut as WeirollScript;
   }
 
