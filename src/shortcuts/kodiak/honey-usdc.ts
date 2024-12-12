@@ -8,8 +8,8 @@ import {
 } from "@ensofinance/shortcuts-standards";
 import { TokenAddresses } from "@ensofinance/shortcuts-standards/addresses";
 import { div } from "@ensofinance/shortcuts-standards/helpers/math";
-import { Input, Shortcut } from "../types";
-import { balanceOf, mintHoney } from "../utils";
+import { Input, Shortcut } from "../../types";
+import { balanceOf, mintHoney } from "../../utils";
 
 export class KodiakHoneyUsdcShortcut implements Shortcut {
   name = "kodiak-honey-usdc";

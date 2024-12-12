@@ -22,15 +22,12 @@ export class DolomiteDHoneyShortcut implements Shortcut {
     const client = new RoycoClient();
 
     const inputs = this.inputs[chainId];
-
     const { tokensIn, tokensOut } = inputs;
     const marketMetadata = {
       tokensIn,
       tokensOut,
     };
-
     const builder = new Builder(chainId, client, marketMetadata);
-
     const { usdc, honey, dhoney } = this.getAddresses(inputs);
 
     // Get the amount of USDC in the wallet, used to mint Honey
