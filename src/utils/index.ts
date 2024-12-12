@@ -37,7 +37,7 @@ export function balanceOf(token: AddressArg, owner: WalletAddressArg) {
 
 export async function mintHoney(
   asset: AddressArg,
-  amount: NumberArg | FromContractCallArg,
+  amount: NumberArg,
   builder: Builder
 ) {
   const honey = getStandardByProtocol("berachain-honey", builder.chainId);

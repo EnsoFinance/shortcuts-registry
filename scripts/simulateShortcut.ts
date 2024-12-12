@@ -17,15 +17,19 @@ async function main() {
     try {
         const {shortcut, chainId} = await getShortcut();
 
-        const args: string[] = process.argv.slice(4);
+        const args: string[] = process.argv.slice(5);
         if (args.length != 1) throw 'Error: Please pass amounts (use commas for multiple values)';
         const amountsIn = args[0].split(',');
     
-        const { tokensIn, tokensOut } = shortcut.inputs[chainId];
-    
-        if (amountsIn.length != tokensIn.length) throw `Error: Incorrect number of amounts for shortcut. Expected ${tokensIn.length}`;
         
-        const { commands, state, value } = await shortcut.build(chainId);
+        
+        const { script, metadata } = await shortcut.build(chainId);
+
+        const { tokensIn, tokensOut } = metadata;
+        if (!tokensIn || !tokensOut) throw 'Error: Invalid builder metadata';
+        if (amountsIn.length != tokensIn.length) throw `Error: Incorrect number of amounts for shortcut. Expected ${tokensIn.length}`;
+
+        const { commands, state, value } = script;
         const data = weirollWalletInterface.encodeFunctionData('executeWeiroll', [commands, state]);
         const tx: APITransaction = {
             from: fromAddress,
