@@ -1,11 +1,25 @@
-# shortcuts-registry
+![cover](cover.jpg)
 
-## generate
+# Shortcuts Registry
+
+This is a registry of shortcuts (weiroll scripts) used in Royco Campaigns.
+
+## Setup
+
+Request an NPM token from the Enso team.
+
+Install dependencies
+
+`pnpm install`
+
+## Generate
+
 pass the chain name followed by the shortcut name
 
 `pnpm generate cartio dolomite-dhoney`
 
-## simulate
+## Simulate
+
 pass the amount(s) that you want to simulate. if you shortcut that takes multiple tokens, pass the amounts as comma separated values: e.g. 100,100
 
 `pnpm simulate cartio dolomite-dhoney 1000000`
