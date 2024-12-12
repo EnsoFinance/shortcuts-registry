@@ -8,7 +8,7 @@ import {
 } from "@ensofinance/shortcuts-standards";
 import { TokenAddresses } from "@ensofinance/shortcuts-standards/addresses";
 import { div } from "@ensofinance/shortcuts-standards/helpers/math";
-import { Input, Shortcut } from "../../types";
+import { Input, Output, Shortcut } from "../../types";
 import { balanceOf, mintHoney } from "../../utils";
 
 export class KodiakHoneyUsdcShortcut implements Shortcut {
@@ -17,39 +17,33 @@ export class KodiakHoneyUsdcShortcut implements Shortcut {
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
-      tokensIn: [TokenAddresses.cartio.usdc],
-      tokensOut: [
-        Standards.Kodiak_Islands.protocol.addresses!.cartio!.honeyUsdcIsland,
-      ],
+      usdc: TokenAddresses.cartio.usdc,
+      honey: TokenAddresses.cartio.honey,
+      island: Standards.Kodiak_Islands.protocol.addresses!.cartio!.honeyUsdcIsland,
+      primary: Standards.Kodiak_Islands.protocol.addresses!.cartio!.router,
     },
   };
 
-  async build(chainId: number): Promise<WeirollScript> {
+  async build(chainId: number): Promise<Output> {
     const client = new RoycoClient();
 
     const inputs = this.inputs[chainId];
+    const { usdc, honey, island, primary } = inputs;
 
-    const { tokensIn, tokensOut } = inputs;
-    const usdc = tokensIn[0];
-    const marketMetadata = {
-      tokensIn,
-      tokensOut,
-    };
-
-    const builder = new Builder(chainId, client, marketMetadata);
+    const builder = new Builder(chainId, client, {
+      tokensIn: [usdc],
+      tokensOut: [island],
+    });
     const kodiak = getStandardByProtocol("kodiak-islands", chainId);
-    const amountIn0 = await builder.add(balanceOf(usdc, walletAddress()));
-    const amountToMint = await div(amountIn0, 2, builder);
-    const mintedAmount = await mintHoney(usdc, amountToMint, builder);
-
-    const usdcAmountToDeposit = builder.add(balanceOf(usdc, walletAddress()));
+    const amountIn = await builder.add(balanceOf(usdc, walletAddress()));
+    const halfAmount = await div(amountIn, 2, builder);
+    const mintedAmount = await mintHoney(usdc, halfAmount, builder);
 
     await kodiak.deposit.addToBuilder(builder, {
-      tokenIn: [usdc, TokenAddresses.cartio.honey],
-      tokenOut: tokensOut,
-      amountIn: [usdcAmountToDeposit, mintedAmount],
-      primaryAddress:
-        Standards.Kodiak_Islands.protocol.addresses!.cartio!.router,
+      tokenIn: [usdc, honey],
+      tokenOut: island,
+      amountIn: [halfAmount, mintedAmount],
+      primaryAddress: primary,
     });
 
     const payload = await builder.build({
@@ -57,6 +51,9 @@ export class KodiakHoneyUsdcShortcut implements Shortcut {
       returnWeirollScript: true,
     });
 
-    return payload.shortcut as WeirollScript;
+    return {
+      script: payload.shortcut as WeirollScript,
+      metadata: builder.metadata,
+    };
   }
 }

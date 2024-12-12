@@ -3,8 +3,8 @@ import { RoycoClient } from "@ensofinance/shortcuts-builder/client/implementatio
 import { walletAddress } from "@ensofinance/shortcuts-builder/helpers";
 import { ChainIds, WeirollScript } from "@ensofinance/shortcuts-builder/types";
 import { getStandardByProtocol } from "@ensofinance/shortcuts-standards";
-import { Input, Shortcut } from "../types";
-import { balanceOf, mintHoney } from "../utils";
+import { Input, Output, Shortcut } from "../../types";
+import { balanceOf, mintHoney } from "../../utils";
 import { TokenAddresses } from "@ensofinance/shortcuts-standards/addresses";
 
 export class DolomiteDHoneyShortcut implements Shortcut {
@@ -13,22 +13,22 @@ export class DolomiteDHoneyShortcut implements Shortcut {
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
-      tokensIn: [TokenAddresses.cartio.usdc],
-      tokensOut: ["0x7f2B60fDff1494A0E3e060532c9980d7fad0404B"],
+      usdc: TokenAddresses.cartio.usdc,
+      honey: TokenAddresses.cartio.honey,
+      dhoney: "0x7f2B60fDff1494A0E3e060532c9980d7fad0404B",
     },
   };
 
-  async build(chainId: number): Promise<WeirollScript> {
+  async build(chainId: number): Promise<Output> {
     const client = new RoycoClient();
 
     const inputs = this.inputs[chainId];
-    const { tokensIn, tokensOut } = inputs;
-    const marketMetadata = {
-      tokensIn,
-      tokensOut,
-    };
-    const builder = new Builder(chainId, client, marketMetadata);
-    const { usdc, honey, dhoney } = this.getAddresses(inputs);
+    const { usdc, honey, dhoney } = inputs;
+
+    const builder = new Builder(chainId, client, {
+      tokensIn: [usdc],
+      tokensOut: [dhoney]
+    });
 
     // Get the amount of USDC in the wallet, used to mint Honey
     const amountToMint = await builder.add(balanceOf(usdc, walletAddress()));
@@ -49,17 +49,9 @@ export class DolomiteDHoneyShortcut implements Shortcut {
       returnWeirollScript: true,
     });
 
-    return payload.shortcut as WeirollScript;
-  }
-
-  private getAddresses = (inputs: Input) => {
-    const usdc = inputs.tokensIn[0];
-    const honey = TokenAddresses.cartio.honey;
-    const dhoney = inputs.tokensOut[0];
     return {
-      usdc,
-      honey,
-      dhoney,
+      script: payload.shortcut as WeirollScript,
+      metadata: builder.metadata,
     };
-  };
+  }
 }

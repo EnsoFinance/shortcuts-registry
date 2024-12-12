@@ -1,5 +1,6 @@
 import {
   AddressArg,
+  ShortcutMetadata,
   Transaction,
   WeirollScript,
 } from "@ensofinance/shortcuts-builder/types";
@@ -9,13 +10,15 @@ export interface Shortcut {
   description: string;
   supportedChains: number[];
   inputs: Record<number, Input>;
-  build(chainId: number): Promise<WeirollScript>;
+  build(chainId: number): Promise<Output>;
 }
 
-export interface Input {
-  tokensIn: AddressArg[];
-  tokensOut: AddressArg[];
+export type Output = {
+  script: WeirollScript,
+  metadata: ShortcutMetadata,
 }
+
+export type Input = Record<string, AddressArg>;
 
 export interface SimulationResult {
   logs: any[];
