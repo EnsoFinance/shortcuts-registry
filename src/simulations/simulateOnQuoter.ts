@@ -1,6 +1,6 @@
-import { OperationTypes } from "@ensofinance/shortcuts-builder/types";
-import axios from "axios";
-import dotenv from "dotenv";
+import { OperationTypes } from '@ensofinance/shortcuts-builder/types';
+import axios from 'axios';
+import dotenv from 'dotenv';
 
 dotenv.config();
 
@@ -56,4 +56,5 @@ export async function simulateTransactionOnQuoter(
     throw "Failed while trying to quote transactions";
   }
   return response.data;
+
 }

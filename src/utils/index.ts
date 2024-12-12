@@ -14,25 +14,26 @@ import {
   Standards,
 } from "@ensofinance/shortcuts-standards";
 
+
 export async function prepareResponse(
-  /* eslint-disable @typescript-eslint/no-explicit-any */
-  simulationResult: any,
-  transaction: Transaction,
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    simulationResult: any,
+    transaction: Transaction,
 ): Promise<SimulationResult> {
-  return {
-    logs: simulationResult.logs,
-    simulationURL: simulationResult.simulationURL,
-    transaction,
-  };
+    return {
+        logs: simulationResult.logs,
+        simulationURL: simulationResult.simulationURL,
+        transaction,
+    };
 }
 
 export function balanceOf(token: AddressArg, owner: WalletAddressArg) {
-  return contractCall({
-    address: token,
-    functionName: "balanceOf",
-    abi: ["function balanceOf(address) external view returns (uint256)"],
-    args: [owner],
-  });
+    return contractCall({
+        address: token,
+        functionName: 'balanceOf',
+        abi: ['function balanceOf(address) external view returns (uint256)'],
+        args: [owner],
+    });
 }
 
 export async function mintHoney(

@@ -37,7 +37,8 @@ pnpm generate cartio dolomite dhoney
 
 ## Simulate
 
-Simulation supported modes are: `forge`, and `quoter`. Simulation mode is set via `--mode=<simulationMode>`. By default simulation is done via the `quoter`.
+Simulation supported modes are: `forge`, and `quoter`. Simulation mode is set via `--mode=<simulationMode>`. By default
+simulation is done via the `quoter`.
 
 ### Forge
 
@@ -57,7 +58,8 @@ pnpm simulate cartio dolomite dhoney --mode=forge --block=1835295
 
 Please set `QUOTER_URL` in the .env file.
 
-Pass the amount(s) that you want to simulate (e.g., 1000000). If you shortcut that takes multiple tokens, pass the amounts as comma separated values (e.g., 100,100).
+Pass the amount(s) that you want to simulate (e.g., 1000000). If you shortcut that takes multiple tokens, pass the
+amounts as comma separated values (e.g., 100,100).
 
 ```sh
 pnpm simulate cartio dolomite dhoney 1000000

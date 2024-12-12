@@ -1,3 +1,4 @@
+<<<<<<< HEAD:src/shortcuts/dolomite/dhoney.ts
 import { Builder } from "@ensofinance/shortcuts-builder";
 import { RoycoClient } from "@ensofinance/shortcuts-builder/client/implementations/roycoClient";
 import { walletAddress } from "@ensofinance/shortcuts-builder/helpers";

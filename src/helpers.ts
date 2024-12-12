@@ -45,58 +45,55 @@ export async function getShortcut() {
 }
 
 function getChainId(chainName: string) {
-  chainName = chainName.toLowerCase(); // ensure consistent
-  const key = (chainName.charAt(0).toUpperCase() +
-    chainName.slice(1)) as keyof typeof ChainIds;
-  return ChainIds[key];
+    chainName = chainName.toLowerCase(); // ensure consistent
+    const key = (chainName.charAt(0).toUpperCase() + chainName.slice(1)) as keyof typeof ChainIds;
+    return ChainIds[key];
 }
 
 export function getRpcUrlByChainId(chainId: number) {
-  const chainName = Object.keys(ChainIds).find(
-    (key) => ChainIds[key as keyof typeof ChainIds] === chainId
-  );
-  if (!chainName) throw new Error(`Unsupported 'chainId': ${chainId}`);
+    const chainName = Object.keys(ChainIds).find((key) => ChainIds[key as keyof typeof ChainIds] === chainId);
+    if (!chainName) throw new Error(`Unsupported 'chainId': ${chainId}`);
 
-  return chainName.toUpperCase();
+    return chainName.toUpperCase();
 }
 
 function getForgePath(): string {
-  return execSync("which forge", { encoding: "utf-8" }).trim();
+    return execSync('which forge', { encoding: 'utf-8' }).trim();
 }
 
 export function validateAndGetForgePath(): string {
-  const forgePath = getForgePath();
-  if (!forgePath) {
-    throw new Error(
-      `missing 'forge' binary on the system. Make sure 'foundry' is properly installed  (test it via '$ which forge')`
-    );
-  }
-  return forgePath;
+    const forgePath = getForgePath();
+    if (!forgePath) {
+        throw new Error(
+            `missing 'forge' binary on the system. Make sure 'foundry' is properly installed  (test it via '$ which forge')`,
+        );
+    }
+    return forgePath;
 }
 
 export function getSimulationModeFromArgs(args: string[]): SimulationMode {
-  const simulationModeIdx = args.findIndex((arg) => arg.startsWith("--mode="));
-  let simulationMode: SimulationMode;
-  if (simulationModeIdx === -1) {
-    simulationMode = SimulationMode.QUOTER;
-  } else {
-    simulationMode = args[simulationModeIdx].split("=")[1] as SimulationMode;
-    args.splice(simulationModeIdx, 1);
-  }
-  return simulationMode;
+    const simulationModeIdx = args.findIndex((arg) => arg.startsWith('--mode='));
+    let simulationMode: SimulationMode;
+    if (simulationModeIdx === -1) {
+        simulationMode = SimulationMode.QUOTER;
+    } else {
+        simulationMode = args[simulationModeIdx].split('=')[1] as SimulationMode;
+        args.splice(simulationModeIdx, 1);
+    }
+    return simulationMode;
 }
 
 export function getBlockNumberFromArgs(args: string[]): number {
-  const blockNumberIdx = args.findIndex((arg) => arg.startsWith("--block="));
-  let blockNumber: number;
-  if (blockNumberIdx === -1) {
-    blockNumber = blockNumberIdx;
-  } else {
-    blockNumber = parseInt(args[blockNumberIdx].split("=")[1]);
-    args.splice(blockNumberIdx, 1);
-  }
+    const blockNumberIdx = args.findIndex((arg) => arg.startsWith('--block='));
+    let blockNumber: number;
+    if (blockNumberIdx === -1) {
+        blockNumber = blockNumberIdx;
+    } else {
+        blockNumber = parseInt(args[blockNumberIdx].split('=')[1]);
+        args.splice(blockNumberIdx, 1);
+    }
 
-  return blockNumber;
+    return blockNumber;
 }
 
 export function getAmountsInFromArgs(args: string[]): string[] {

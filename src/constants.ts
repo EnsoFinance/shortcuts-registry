@@ -1,6 +1,6 @@
 export enum SimulationMode {
-  ANVIL = "anvil",
-  FORGE = "forge",
-  QUOTER = "quoter",
-  TENDERLY = "tenderly",
+    ANVIL = 'anvil',
+    FORGE = 'forge',
+    QUOTER = 'quoter',
+    TENDERLY = 'tenderly',
 }
