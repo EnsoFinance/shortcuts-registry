@@ -1,4 +1,4 @@
-![cover](cover.png)
+![cover](cover.webp)
 
 # Shortcuts Registry
 

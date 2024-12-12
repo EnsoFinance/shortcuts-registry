@@ -1,14 +1,14 @@
+import { Input, Shortcut } from "../types";
 import { Builder } from "@ensofinance/shortcuts-builder";
-import { RoycoClient } from "@ensofinance/shortcuts-builder/client/implementations/roycoClient";
-import { walletAddress } from "@ensofinance/shortcuts-builder/helpers";
-import { ChainIds, WeirollScript } from "@ensofinance/shortcuts-builder/types";
 import {
   getStandardByProtocol,
   Standards,
 } from "@ensofinance/shortcuts-standards";
 import { TokenAddresses } from "@ensofinance/shortcuts-standards/addresses";
-import { Input, Shortcut } from "../types";
+import { ChainIds, WeirollScript } from "@ensofinance/shortcuts-builder/types";
 import { balanceOf } from "../utils";
+import { RoycoClient } from "@ensofinance/shortcuts-builder/client/implementations/roycoClient";
+import { walletAddress } from "@ensofinance/shortcuts-builder/helpers";
 
 export class KodiakHoneyUsdcShortcut implements Shortcut {
   name = "kodiak-honey-usdc";
