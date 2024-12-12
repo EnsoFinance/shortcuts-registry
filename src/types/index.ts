@@ -1,4 +1,8 @@
-import { AddressArg, Transaction, WeirollScript } from "@ensofinance/shortcuts-builder/types";
+import {
+  AddressArg,
+  Transaction,
+  WeirollScript,
+} from "@ensofinance/shortcuts-builder/types";
 
 export interface Shortcut {
   name: string;
