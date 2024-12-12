@@ -3,11 +3,17 @@ import { ChainIds } from "@ensofinance/shortcuts-builder/types";
 import { DolomiteDHoneyShortcut } from "./shortcuts/dolomite/dhoney";
 import { KodiakHoneyUsdcShortcut } from "./shortcuts/kodiak/honey-usdc";
 import { DolomiteDUsdcShortcut } from "./shortcuts/dolomite/dusdc";
+import { DolomiteDEthShortcut } from "./shortcuts/dolomite/deth";
+import { DolomiteDUsdtShortcut } from "./shortcuts/dolomite/dusdt";
+import { DolomiteDWbtcShortcut } from "./shortcuts/dolomite/dwbtc";
 
 const shortcuts: Record<string, Record<string, Shortcut>> = {
   "dolomite": {
+    "deth": new DolomiteDEthShortcut(),
     "dhoney": new DolomiteDHoneyShortcut(),
     "dusdc": new DolomiteDUsdcShortcut(),
+    "dusdt": new DolomiteDUsdtShortcut(),
+    "dwbtc": new DolomiteDWbtcShortcut(),
   },
   "kodiak": {
     "honey-usdc": new KodiakHoneyUsdcShortcut(),
@@ -20,10 +26,13 @@ export async function getShortcut() {
   const chain = args[0];
   const protocol = args[1];
   const market = args[2];
-  const shortcut = shortcuts[protocol]?.[market];
-  if (!shortcut) throw "Error: Unknown shortcut";
+
   const chainId = getChainId(chain);
   if (!chainId) throw "Error: Unknown chain";
+  
+  const shortcut = shortcuts[protocol]?.[market];
+  if (!shortcut) throw "Error: Unknown shortcut";
+  
   return { shortcut, chainId };
 }
 
