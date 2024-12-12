@@ -4,7 +4,8 @@ import { walletAddress } from "@ensofinance/shortcuts-builder/helpers";
 import { ChainIds, WeirollScript } from "@ensofinance/shortcuts-builder/types";
 import { getStandardByProtocol } from "@ensofinance/shortcuts-standards";
 import { Input, Shortcut } from "../types";
-import { balanceOf } from "../utils";
+import { balanceOf, mintHoney } from "../utils";
+import { TokenAddresses } from "@ensofinance/shortcuts-standards/addresses";
 
 export class DolomiteDHoneyShortcut implements Shortcut {
   name = "dolomite-dhoney";
@@ -12,7 +13,7 @@ export class DolomiteDHoneyShortcut implements Shortcut {
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
-      tokensIn: ["0xd137593CDB341CcC78426c54Fb98435C60Da193c"],
+      tokensIn: [TokenAddresses.cartio.usdc],
       tokensOut: ["0x7f2B60fDff1494A0E3e060532c9980d7fad0404B"],
     },
   };
@@ -30,15 +31,19 @@ export class DolomiteDHoneyShortcut implements Shortcut {
 
     const builder = new Builder(chainId, client, marketMetadata);
 
-    const { honey, dhoney } = this.getAddresses(inputs);
+    const { usdc, honey, dhoney } = this.getAddresses(inputs);
 
+    // Get the amount of USDC in the wallet, used to mint Honey
+    const amountToMint = await builder.add(balanceOf(usdc, walletAddress()));
+    // Mint Honey
+    const mintedAmount = await mintHoney(usdc, amountToMint, builder);
+
+    //Mint dHoney
     const dHoney = getStandardByProtocol("dolomite-erc4626", chainId);
-
-    const amountIn = await builder.add(balanceOf(tokensIn[0], walletAddress()));
     await dHoney.deposit.addToBuilder(builder, {
       tokenIn: honey,
       tokenOut: dhoney,
-      amountIn,
+      amountIn: mintedAmount,
       primaryAddress: dhoney,
     });
 
@@ -51,9 +56,11 @@ export class DolomiteDHoneyShortcut implements Shortcut {
   }
 
   private getAddresses = (inputs: Input) => {
-    const honey = inputs.tokensIn[0];
+    const usdc = inputs.tokensIn[0];
+    const honey = TokenAddresses.cartio.honey;
     const dhoney = inputs.tokensOut[0];
     return {
+      usdc,
       honey,
       dhoney,
     };
