@@ -1,0 +1,6 @@
+# Ignore existing files
+# **/*.ts
+
+# Prettify files
+!/src/constants.ts
+!/src/scripts/simulateShortcut.ts
