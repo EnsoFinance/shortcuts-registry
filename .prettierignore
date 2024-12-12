@@ -1,6 +1,29 @@
-# Ignore existing files
-# **/*.ts
+# directories
+.coverage_artifacts/
+.coverage_cache/
+.coverage_contracts/
+artifacts/
+build/
+cache/
+contracts/
+coverage/
+dependencies/
+dist/
+foundry-cache/
+foundry-out/
+node_modules/
+types/
 
-# Prettify files
-!/src/constants.ts
-!/src/scripts/simulateShortcut.ts
+# files
+*.env
+*.log
+.DS_Store
+.pnp.*
+coverage.json
+package-lock.json
+pnpm-lock.yaml
+repos
+reports
+scope.txt
+soldeer.lock
+yarn.lock

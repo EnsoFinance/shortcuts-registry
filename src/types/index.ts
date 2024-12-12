@@ -21,6 +21,7 @@ export type Output = {
 export type Input = Record<string, AddressArg>;
 
 export interface SimulationResult {
+  /* eslint-disable @typescript-eslint/no-explicit-any */
   logs: any[];
   simulationURL: string;
   transaction: Transaction;

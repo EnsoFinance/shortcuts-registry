@@ -89,7 +89,7 @@ async function simulateOnForge(
 
   // NB: read `result.stdout` instead of writing it in a JSON file
   // NB: calling forge with `-vvv` instead of `-vvvv` to avoid too much verbosity (i.e. `setUp` steps)
-  const result = spawnSync(
+  spawnSync(
     "forge",
     ["test", "--match-contract", "EnsoWeirollWallet_Fork_Cartio_Test", "-vvv"],
     d{
@@ -117,14 +117,16 @@ async function main() {
     const simulatonMode = getSimulationModeFromArgs(args);
 
     switch (simulatonMode) {
-      case SimulationMode.FORGE:
+      case SimulationMode.FORGE: {
         const blockNumber = getBlockNumberFromArgs(args);
         await simulateOnForge(shortcut, chainId, blockNumber);
         break;
-      case SimulationMode.QUOTER:
+      }
+      case SimulationMode.QUOTER:{
         const amountsIn = getAmountsInFromArgs(args);
         await simulateShortcutOnQuoter(shortcut, chainId, amountsIn);
         break;
+      }
       default:
         throw new Error(`Unsupported simulaton 'mode': ${simulatonMode}. `);
     }

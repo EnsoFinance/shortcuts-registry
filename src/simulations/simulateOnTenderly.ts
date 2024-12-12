@@ -14,7 +14,7 @@ export type TenderlyOptions = {
   tenderlyProject: string;
   chainId: number;
   saveSimulation?: boolean;
-  state_objects?: { [address: string]: {} };
+  state_objects?: { [address: string]: object };
 };
 
 export type TenderlySimulationCallTrace = {
@@ -80,7 +80,7 @@ export type TenderlyRawSimulationResponse = {
 };
 
 export type SimulationResponseTenderly = {
-  status: Boolean;
+  status: boolean;
   simulationId?: string;
   simulationUrl?: string;
   sharableSimulationUrl?: string;

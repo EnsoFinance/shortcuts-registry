@@ -5,6 +5,9 @@
   "main": "index.js",
   "scripts": {
     "generate": "pnpm ts-node scripts/getShortcut.ts",
+    "lint": "eslint .",
+    "prettier:check": "prettier --check \"**/*.{js,json,md,ts,yml}\"",
+    "prettier:write": "prettier --write \"**/*.{js,json,md,ts,yml}\"",
     "registryup": "pnpm install && forge install && forge remappings",
     "simulate": "pnpm ts-node scripts/simulateShortcut.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -20,8 +23,15 @@
     "dotenv": "^16.4.7"
   },
   "devDependencies": {
+    "@eslint/js": "^9.16.0",
+    "@trivago/prettier-plugin-sort-imports": "^5.2.0",
     "@types/node": "^22.10.1",
+    "eslint": "^9.16.0",
+    "eslint-config-prettier": "^9.1.0",
+    "globals": "^15.13.0",
+    "prettier": "3.4.2",
     "ts-node": "^10.9.2",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "typescript-eslint": "^8.18.0"
   }
 }

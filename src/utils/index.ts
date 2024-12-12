@@ -15,9 +15,9 @@ import {
 } from "@ensofinance/shortcuts-standards";
 
 export async function prepareResponse(
+  /* eslint-disable @typescript-eslint/no-explicit-any */
   simulationResult: any,
   transaction: Transaction,
-  inputs: any
 ): Promise<SimulationResult> {
   return {
     logs: simulationResult.logs,
