@@ -1,23 +1,27 @@
-import { Input, Shortcut } from "../types";
 import { Builder } from "@ensofinance/shortcuts-builder";
-import { getStandardByProtocol, Standards } from "@ensofinance/shortcuts-standards";
-import { TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
-import { ChainIds, WeirollScript } from "@ensofinance/shortcuts-builder/types";
-import { balanceOf } from "../utils";
 import { RoycoClient } from "@ensofinance/shortcuts-builder/client/implementations/roycoClient";
 import { walletAddress } from "@ensofinance/shortcuts-builder/helpers";
-
+import { ChainIds, WeirollScript } from "@ensofinance/shortcuts-builder/types";
+import {
+  getStandardByProtocol,
+  Standards,
+} from "@ensofinance/shortcuts-standards";
+import { TokenAddresses } from "@ensofinance/shortcuts-standards/addresses";
+import { Input, Shortcut } from "../types";
+import { balanceOf } from "../utils";
 
 export class KodiakHoneyUsdcShortcut implements Shortcut {
-  name = 'kodiak-honey-usdc';
-  description = '';
+  name = "kodiak-honey-usdc";
+  description = "";
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
       tokensIn: [TokenAddresses.cartio.usdc, TokenAddresses.cartio.honey],
-      tokensOut: [Standards.Kodiak_Islands.protocol.addresses!.cartio!.honeyUsdcIsland],
-    }
-  }
+      tokensOut: [
+        Standards.Kodiak_Islands.protocol.addresses!.cartio!.honeyUsdcIsland,
+      ],
+    },
+  };
 
   async build(chainId: number): Promise<WeirollScript> {
     const client = new RoycoClient();
@@ -34,13 +38,18 @@ export class KodiakHoneyUsdcShortcut implements Shortcut {
 
     const kodiak = getStandardByProtocol("kodiak-islands", chainId);
 
-    const amountIn0 = await builder.add(balanceOf(tokensIn[0], walletAddress()));
-    const amountIn1 = await builder.add(balanceOf(tokensIn[1], walletAddress()));
+    const amountIn0 = await builder.add(
+      balanceOf(tokensIn[0], walletAddress())
+    );
+    const amountIn1 = await builder.add(
+      balanceOf(tokensIn[1], walletAddress())
+    );
     await kodiak.deposit.addToBuilder(builder, {
       tokenIn: tokensIn,
       tokenOut: tokensOut,
       amountIn: [amountIn0, amountIn1],
-      primaryAddress: Standards.Kodiak_Islands.protocol.addresses!.cartio!.router,
+      primaryAddress:
+        Standards.Kodiak_Islands.protocol.addresses!.cartio!.router,
     });
 
     const payload = await builder.build({

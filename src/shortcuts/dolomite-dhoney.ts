@@ -1,21 +1,21 @@
-import { Input, Shortcut } from "../types";
 import { Builder } from "@ensofinance/shortcuts-builder";
-import { getStandardByProtocol } from "@ensofinance/shortcuts-standards";
-import { ChainIds, WeirollScript } from "@ensofinance/shortcuts-builder/types";
-import { balanceOf } from "../utils";
 import { RoycoClient } from "@ensofinance/shortcuts-builder/client/implementations/roycoClient";
 import { walletAddress } from "@ensofinance/shortcuts-builder/helpers";
+import { ChainIds, WeirollScript } from "@ensofinance/shortcuts-builder/types";
+import { getStandardByProtocol } from "@ensofinance/shortcuts-standards";
+import { Input, Shortcut } from "../types";
+import { balanceOf } from "../utils";
 
 export class DolomiteDHoneyShortcut implements Shortcut {
-  name = 'dolomite-dhoney';
-  description = '';
+  name = "dolomite-dhoney";
+  description = "";
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
-      tokensIn: ['0xd137593CDB341CcC78426c54Fb98435C60Da193c'],
-      tokensOut: ['0x7f2B60fDff1494A0E3e060532c9980d7fad0404B'],
-    }
-  }
+      tokensIn: ["0xd137593CDB341CcC78426c54Fb98435C60Da193c"],
+      tokensOut: ["0x7f2B60fDff1494A0E3e060532c9980d7fad0404B"],
+    },
+  };
 
   async build(chainId: number): Promise<WeirollScript> {
     const client = new RoycoClient();
