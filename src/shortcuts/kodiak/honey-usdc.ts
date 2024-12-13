@@ -30,7 +30,7 @@ export class KodiakHoneyUsdcShortcut implements Shortcut {
 
     const builder = new Builder(chainId, client, {
       tokensIn: [usdc],
-      tokensOut: [island],
+      tokensOut: [island, honey],
     });
     const kodiak = getStandardByProtocol('kodiak-islands', chainId);
     const amountIn = await builder.add(balanceOf(usdc, walletAddress()));
