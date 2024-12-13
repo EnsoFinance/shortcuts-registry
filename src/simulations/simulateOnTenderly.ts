@@ -1,6 +1,6 @@
-import { Transaction } from "@ensofinance/shortcuts-builder/types";
-import { BigNumberish } from "@ethersproject/bignumber";
-import axios from "axios";
+import { Transaction } from '@ensofinance/shortcuts-builder/types';
+import { BigNumberish } from '@ethersproject/bignumber';
+import axios from 'axios';
 
 export const TENDERLY_CONFIG = {
   tenderlyApiKey: process.env.TENDERLY_ACCESS_KEY as string,
@@ -14,7 +14,7 @@ export type TenderlyOptions = {
   tenderlyProject: string;
   chainId: number;
   saveSimulation?: boolean;
-  state_objects?: { [address: string]: {} };
+  state_objects?: { [address: string]: object };
 };
 
 export type TenderlySimulationCallTrace = {
@@ -80,7 +80,7 @@ export type TenderlyRawSimulationResponse = {
 };
 
 export type SimulationResponseTenderly = {
-  status: Boolean;
+  status: boolean;
   simulationId?: string;
   simulationUrl?: string;
   sharableSimulationUrl?: string;
@@ -96,10 +96,7 @@ export type SimulationResponseTenderly = {
   rawResponse?: TenderlyRawSimulationResponse;
 };
 
-export function prepareTransactionForSimulation(
-  transaction: Transaction,
-  options: TenderlyOptions
-) {
+export function prepareTransactionForSimulation(transaction: Transaction, options: TenderlyOptions) {
   const { data, value, from, to } = transaction;
 
   const transactionReadyForSimulation = {
@@ -108,7 +105,7 @@ export function prepareTransactionForSimulation(
     to,
     input: data,
     gas: 0,
-    gas_price: "0",
+    gas_price: '0',
     value: value,
     save_if_fails: true,
     save: options.saveSimulation ?? false,
@@ -120,7 +117,7 @@ export function prepareTransactionForSimulation(
 
 export async function simulateTransactionOnTenderly(
   transaction: Transaction,
-  chainId: number
+  chainId: number,
 ): Promise<SimulationResponseTenderly> {
   const options = {
     chainId: chainId,
@@ -128,26 +125,19 @@ export async function simulateTransactionOnTenderly(
     saveSimulation: true,
   };
 
-  const transactionPreparedToSimulation = prepareTransactionForSimulation(
-    transaction,
-    options
-  );
+  const transactionPreparedToSimulation = prepareTransactionForSimulation(transaction, options);
 
   try {
     const URL = `https://api.tenderly.co/api/v1/account/${options.tenderlyUser}/project/${options.tenderlyProject}/simulate`;
 
     const headers = {
       headers: {
-        "X-Access-Key": options.tenderlyApiKey,
-        "content-type": "application/JSON",
+        'X-Access-Key': options.tenderlyApiKey,
+        'content-type': 'application/JSON',
       },
     };
 
-    const tenderlyResponse = await axios.post(
-      URL,
-      transactionPreparedToSimulation,
-      headers
-    );
+    const tenderlyResponse = await axios.post(URL, transactionPreparedToSimulation, headers);
 
     const response = tenderlyResponse.data;
 
@@ -165,7 +155,7 @@ export async function simulateTransactionOnTenderly(
 
     if (axios.isAxiosError(error)) {
       errorResponse.error = {
-        type: "Axios Error",
+        type: 'Axios Error',
         data: error.response?.data,
       };
     }
@@ -176,7 +166,7 @@ export async function simulateTransactionOnTenderly(
 
 export function tenderlySimulationToResult(
   response: TenderlyRawSimulationResponse,
-  options: TenderlyOptions
+  options: TenderlyOptions,
 ): SimulationResponseTenderly {
   return {
     status: response.simulation.status,

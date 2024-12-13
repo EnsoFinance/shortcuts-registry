@@ -1,19 +1,17 @@
-import { Builder } from "@ensofinance/shortcuts-builder";
-import { RoycoClient } from "@ensofinance/shortcuts-builder/client/implementations/roycoClient";
-import { walletAddress } from "@ensofinance/shortcuts-builder/helpers";
-import { ChainIds, WeirollScript } from "@ensofinance/shortcuts-builder/types";
-import {
-  getStandardByProtocol,
-  Standards,
-} from "@ensofinance/shortcuts-standards";
-import { TokenAddresses } from "@ensofinance/shortcuts-standards/addresses";
-import { div } from "@ensofinance/shortcuts-standards/helpers/math";
-import { Input, Output, Shortcut } from "../../types";
-import { balanceOf, mintHoney } from "../../utils";
+import { Builder } from '@ensofinance/shortcuts-builder';
+import { RoycoClient } from '@ensofinance/shortcuts-builder/client/implementations/roycoClient';
+import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
+import { ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
+import { Standards, getStandardByProtocol } from '@ensofinance/shortcuts-standards';
+import { TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
+import { div } from '@ensofinance/shortcuts-standards/helpers/math';
+
+import { Input, Output, Shortcut } from '../../types';
+import { balanceOf, mintHoney } from '../../utils';
 
 export class KodiakHoneyUsdcShortcut implements Shortcut {
-  name = "kodiak-honey-usdc";
-  description = "";
+  name = 'kodiak-honey-usdc';
+  description = '';
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
@@ -34,7 +32,7 @@ export class KodiakHoneyUsdcShortcut implements Shortcut {
       tokensIn: [usdc],
       tokensOut: [island],
     });
-    const kodiak = getStandardByProtocol("kodiak-islands", chainId);
+    const kodiak = getStandardByProtocol('kodiak-islands', chainId);
     const amountIn = await builder.add(balanceOf(usdc, walletAddress()));
     const halfAmount = await div(amountIn, 2, builder);
     const mintedAmount = await mintHoney(usdc, halfAmount, builder);

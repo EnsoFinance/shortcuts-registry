@@ -1,14 +1,15 @@
-import { Builder } from "@ensofinance/shortcuts-builder";
-import { RoycoClient } from "@ensofinance/shortcuts-builder/client/implementations/roycoClient";
-import { walletAddress } from "@ensofinance/shortcuts-builder/helpers";
-import { ChainIds, WeirollScript } from "@ensofinance/shortcuts-builder/types";
-import { getStandardByProtocol } from "@ensofinance/shortcuts-standards";
-import { Input, Output, Shortcut } from "../../types";
-import { balanceOf } from "../../utils";
+import { Builder } from '@ensofinance/shortcuts-builder';
+import { RoycoClient } from '@ensofinance/shortcuts-builder/client/implementations/roycoClient';
+import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
+import { ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
+import { getStandardByProtocol } from '@ensofinance/shortcuts-standards';
+
+import { Input, Output, Shortcut } from '../../types';
+import { balanceOf } from '../../utils';
 
 export class DolomiteDEthShortcut implements Shortcut {
-  name = "dolomite-deth";
-  description = "";
+  name = 'dolomite-deth';
+  description = '';
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
@@ -24,15 +25,15 @@ export class DolomiteDEthShortcut implements Shortcut {
     const { base, vault } = inputs;
 
     const builder = new Builder(chainId, client, {
-        tokensIn: [base],
-        tokensOut: [vault],
+      tokensIn: [base],
+      tokensOut: [vault],
     });
-    
+
     // Get the amount of token in wallet
     const amountIn = await builder.add(balanceOf(base, walletAddress()));
-    
+
     //Mint
-    const dolomite = getStandardByProtocol("dolomite-erc4626", chainId);
+    const dolomite = getStandardByProtocol('dolomite-erc4626', chainId);
     await dolomite.deposit.addToBuilder(builder, {
       tokenIn: base,
       tokenOut: vault,
@@ -46,8 +47,8 @@ export class DolomiteDEthShortcut implements Shortcut {
     });
 
     return {
-        script: payload.shortcut as WeirollScript,
-        metadata: builder.metadata,
+      script: payload.shortcut as WeirollScript,
+      metadata: builder.metadata,
     };
   }
 }

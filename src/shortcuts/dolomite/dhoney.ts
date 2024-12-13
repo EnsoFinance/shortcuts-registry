@@ -1,21 +1,22 @@
-import { Builder } from "@ensofinance/shortcuts-builder";
-import { RoycoClient } from "@ensofinance/shortcuts-builder/client/implementations/roycoClient";
-import { walletAddress } from "@ensofinance/shortcuts-builder/helpers";
-import { ChainIds, WeirollScript } from "@ensofinance/shortcuts-builder/types";
-import { getStandardByProtocol } from "@ensofinance/shortcuts-standards";
-import { Input, Output, Shortcut } from "../../types";
-import { balanceOf, mintHoney } from "../../utils";
-import { TokenAddresses } from "@ensofinance/shortcuts-standards/addresses";
+import { Builder } from '@ensofinance/shortcuts-builder';
+import { RoycoClient } from '@ensofinance/shortcuts-builder/client/implementations/roycoClient';
+import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
+import { ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
+import { getStandardByProtocol } from '@ensofinance/shortcuts-standards';
+import { TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
+
+import { Input, Output, Shortcut } from '../../types';
+import { balanceOf, mintHoney } from '../../utils';
 
 export class DolomiteDHoneyShortcut implements Shortcut {
-  name = "dolomite-dhoney";
-  description = "";
+  name = 'dolomite-dhoney';
+  description = '';
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
       usdc: TokenAddresses.cartio.usdc,
       honey: TokenAddresses.cartio.honey,
-      dhoney: "0x7f2B60fDff1494A0E3e060532c9980d7fad0404B",
+      dhoney: '0x7f2B60fDff1494A0E3e060532c9980d7fad0404B',
     },
   };
 
@@ -27,7 +28,7 @@ export class DolomiteDHoneyShortcut implements Shortcut {
 
     const builder = new Builder(chainId, client, {
       tokensIn: [usdc],
-      tokensOut: [dhoney]
+      tokensOut: [dhoney],
     });
 
     // Get the amount of USDC in the wallet, used to mint Honey
@@ -36,7 +37,7 @@ export class DolomiteDHoneyShortcut implements Shortcut {
     const mintedAmount = await mintHoney(usdc, amountToMint, builder);
 
     //Mint dHoney
-    const dHoney = getStandardByProtocol("dolomite-erc4626", chainId);
+    const dHoney = getStandardByProtocol('dolomite-erc4626', chainId);
     await dHoney.deposit.addToBuilder(builder, {
       tokenIn: honey,
       tokenOut: dhoney,
