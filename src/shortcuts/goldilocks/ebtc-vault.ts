@@ -1,12 +1,18 @@
-import { Builder } from '@ensofinance/shortcuts-builder';
-import { RoycoClient } from '@ensofinance/shortcuts-builder/client/implementations/roycoClient';
-import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
-import { ChainIds, NumberArg, WeirollScript } from '@ensofinance/shortcuts-builder/types';
-import { Standards, getStandardByProtocol } from '@ensofinance/shortcuts-standards';
-import { div } from '@ensofinance/shortcuts-standards/helpers/math';
-
-import { Input, Output, Shortcut } from '../../types';
-import { balanceOf } from '../../utils';
+import { Builder } from "@ensofinance/shortcuts-builder";
+import { RoycoClient } from "@ensofinance/shortcuts-builder/client/implementations/roycoClient";
+import { walletAddress } from "@ensofinance/shortcuts-builder/helpers";
+import {
+  ChainIds,
+  NumberArg,
+  WeirollScript,
+} from "@ensofinance/shortcuts-builder/types";
+import {
+  getStandardByProtocol,
+  Standards,
+} from "@ensofinance/shortcuts-standards";
+import { Input, Output, Shortcut } from "../../types";
+import { balanceOf } from "../../utils";
+import { div } from "@ensofinance/shortcuts-standards/helpers/math";
 
 export class GoldilocksEbtcShortcut implements Shortcut {
   name = 'goldilocks-ebtc';
@@ -14,11 +20,11 @@ export class GoldilocksEbtcShortcut implements Shortcut {
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
-      base: '0x888d15E66b5eb410ea5Df520Fc46f030BBa31299', //ebtc
-      ot: '0xC8Cea1238Ab50d6669995c4621F57334DdE3A22a', //ebtc-ot
-      yt: '0x3f33F2F068C6457B5719241ad7aef4131cC21e1F', //ebtc-yt
-      vault: '0x299D37afEcfDA294448Ae24029b5Ee1c56a3F2D8',
-      island: '0x',
+      base: "0x888d15E66b5eb410ea5Df520Fc46f030BBa31299", //ebtc
+      ot: "0xC8Cea1238Ab50d6669995c4621F57334DdE3A22a", //ebtc-ot
+      yt: "0x3f33F2F068C6457B5719241ad7aef4131cC21e1F", //ebtc-yt
+      vault: "0x299D37afEcfDA294448Ae24029b5Ee1c56a3F2D8",
+      island: "0x",
     },
   };
 
@@ -38,6 +44,7 @@ export class GoldilocksEbtcShortcut implements Shortcut {
     const halfAmount = await div(amountIn, 2, builder);
 
     const goldilocks = getStandardByProtocol('goldilocks', chainId);
+
     const { amountOut } = await goldilocks.deposit.addToBuilder(
       builder,
       {
@@ -53,6 +60,7 @@ export class GoldilocksEbtcShortcut implements Shortcut {
     const [otAmount] = amountOut as NumberArg[];
 
     const kodiak = getStandardByProtocol('kodiak-islands', chainId);
+
     await kodiak.deposit.addToBuilder(builder, {
       tokenIn: [base, ot],
       tokenOut: island,
