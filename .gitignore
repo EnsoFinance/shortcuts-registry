@@ -13,3 +13,13 @@ logs
 
 # Environment variables
 .env
+
+# IDE files
+.vscode/
+
+# Foundry
+foundry-cache/
+foundry-out/
+
+## Soldeer
+/dependencies

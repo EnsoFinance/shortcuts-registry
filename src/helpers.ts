@@ -6,6 +6,7 @@ import { DolomiteDUsdcShortcut } from "./shortcuts/dolomite/dusdc";
 import { DolomiteDEthShortcut } from "./shortcuts/dolomite/deth";
 import { DolomiteDUsdtShortcut } from "./shortcuts/dolomite/dusdt";
 import { DolomiteDWbtcShortcut } from "./shortcuts/dolomite/dwbtc";
+import { OrigamiBoycoHoneyShortcut } from "./shortcuts/origami/oboy-HONEY-a";
 
 const shortcuts: Record<string, Record<string, Shortcut>> = {
   "dolomite": {
@@ -18,6 +19,9 @@ const shortcuts: Record<string, Record<string, Shortcut>> = {
   "kodiak": {
     "honey-usdc": new KodiakHoneyUsdcShortcut(),
   },
+  "origami": {
+    "oboy-honey": new OrigamiBoycoHoneyShortcut(),
+  }
 };
 
 export async function getShortcut() {
@@ -29,7 +33,7 @@ export async function getShortcut() {
 
   const chainId = getChainId(chain);
   if (!chainId) throw "Error: Unknown chain";
-  
+
   const shortcut = shortcuts[protocol]?.[market];
   if (!shortcut) throw "Error: Unknown shortcut";
   
