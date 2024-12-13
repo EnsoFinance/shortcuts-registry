@@ -2,7 +2,7 @@
 pragma solidity 0.8.27;
 
 import { IERC20 } from "@openzeppelin-contracts-5.1.0/interfaces/IERC20.sol";
-import { Test } from "forge-std-1.9.4//Test.sol";
+import { Test, console2 } from "forge-std-1.9.4//Test.sol";
 import { IWeirollWallet } from "test-helpers/interfaces/IWeirollWallet.sol";
 
 contract EnsoWeirollWallet_Fork_Cartio_Test is Test {
@@ -22,6 +22,7 @@ contract EnsoWeirollWallet_Fork_Cartio_Test is Test {
     string private constant SIMULATION_JSON_CALLDATA_KEY_VALUE = ".value";
     string private constant SIMULATION_JSON_CALLDATA_TOKENS_IN = ".tokensIn";
     string private constant SIMULATION_JSON_CALLDATA_AMOUNTS_IN = ".amountsIn";
+    string private constant SIMULATION_JSON_CALLDATA_TOKENS_OUT = ".tokensOut";
 
     // --- Known addresses ---
     // Enso accounts
@@ -59,6 +60,7 @@ contract EnsoWeirollWallet_Fork_Cartio_Test is Test {
     uint256 private s_value;
     address[] private s_tokensIn;
     uint256[] private s_amountsIn;
+    address[] private s_tokensOut;
 
     // --- Players ---
     address private constant WHALE_1 = 0xCACa41c458f48D4d7c710F2E62AEe931E149A37d; // USDC, aUSDT
@@ -91,6 +93,8 @@ contract EnsoWeirollWallet_Fork_Cartio_Test is Test {
 
         address[] memory tokensIn = vm.parseJsonAddressArray(simulationCalldata, SIMULATION_JSON_CALLDATA_TOKENS_IN);
         uint256[] memory amountsIn = vm.parseJsonUintArray(simulationCalldata, SIMULATION_JSON_CALLDATA_AMOUNTS_IN);
+        address[] memory tokensOut = vm.parseJsonAddressArray(simulationCalldata, SIMULATION_JSON_CALLDATA_TOKENS_OUT);
+
         if (tokensIn.length != amountsIn.length) {
             revert EnsoWeirollWallet_Fork_Cartio_Test__ArrayLengthsAreNotEq(
                 "s_tokensIn", s_tokensIn.length, "s_amountsIn", s_amountsIn.length
@@ -99,6 +103,7 @@ contract EnsoWeirollWallet_Fork_Cartio_Test is Test {
 
         s_tokensIn = tokensIn;
         s_amountsIn = amountsIn;
+        s_tokensOut = tokensOut;
 
         // --- Set labels ---
         // Enso EOA
@@ -163,9 +168,32 @@ contract EnsoWeirollWallet_Fork_Cartio_Test is Test {
     }
 
     function test_executeWeiroll_1() public {
-        vm.prank(ENSO_EOA_1);
-        bytes[] memory data = ENSO_WEIROLL_WALLET_1.executeWeiroll{ value: s_value }(s_commands, s_state);
+        address[] memory tokensOut = s_tokensOut;
+        uint256[] memory balancesPre = new uint256[](tokensOut.length);
+        uint256[] memory balancesPost = new uint256[](tokensOut.length);
 
-        assertTrue(data.length > 0);
+        // Calculate balances before
+        for (uint256 i = 0; i < tokensOut.length; i++) {
+            balancesPre[i] = IERC20(tokensOut[i]).balanceOf(address(ENSO_WEIROLL_WALLET_1));
+        }
+
+        vm.prank(ENSO_EOA_1);
+        uint256 gasStart = gasleft();
+        // gas before
+        bytes[] memory data = ENSO_WEIROLL_WALLET_1.executeWeiroll{ value: s_value }(s_commands, s_state);
+        uint256 gasEnd = gasleft();
+        // gas after
+
+        for (uint256 i = 0; i < tokensOut.length; i++) {
+            uint256 balancePost = IERC20(tokensOut[i]).balanceOf(address(ENSO_WEIROLL_WALLET_1));
+            console2.log("**************************");
+            console2.log("*** SIMULATION RESULTS ***");
+            console2.log("**************************");
+            console2.log("* TokenOut: ", tokensOut[i]);
+            console2.log("* amountOut: ", balancePost - balancesPre[i]);
+            console2.log("--------------------------");
+        }
+        console2.log("* Gas used: ", gasStart - gasEnd);
+        console2.log("**************************");
     }
 }

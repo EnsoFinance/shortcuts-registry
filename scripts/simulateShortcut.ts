@@ -88,7 +88,18 @@ async function simulateOnForge(
 
   const { commands, state, value } = script;
 
-  simulateTransactionOnForge(commands, state, value, tokensIn, amountsIn, forgePath, chainId, rpcUrl, blockNumber);
+  simulateTransactionOnForge(
+    commands,
+    state,
+    value,
+    tokensIn,
+    amountsIn,
+    tokensOut,
+    forgePath,
+    chainId,
+    rpcUrl,
+    blockNumber,
+  );
 }
 
 async function main() {
