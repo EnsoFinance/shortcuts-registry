@@ -143,7 +143,7 @@ contract EnsoWeirollWallet_Fork_Cartio_Test is Test {
         for (uint256 i = 0; i < tokensIn.length; i++) {
             address tokenIn = tokensIn[i];
             uint256 amountIn = amountsIn[i];
-            uint256 balancePre = IERC20(tokenIn).balanceOf(ENSO_EOA_1);
+            uint256 balancePre = IERC20(tokenIn).balanceOf(address(ENSO_WEIROLL_WALLET_1));
             address tokenInWhale = s_tokenToWhale[IERC20(tokenIn)];
 
             if (tokenInWhale == address(0)) {
@@ -151,8 +151,8 @@ contract EnsoWeirollWallet_Fork_Cartio_Test is Test {
             }
 
             vm.prank(tokenInWhale);
-            IERC20(tokenIn).transfer(ENSO_EOA_1, amountIn);
-            uint256 balancePost = IERC20(tokenIn).balanceOf(ENSO_EOA_1);
+            IERC20(tokenIn).transfer(address(ENSO_WEIROLL_WALLET_1), amountIn);
+            uint256 balancePost = IERC20(tokenIn).balanceOf(address(ENSO_WEIROLL_WALLET_1));
 
             if (balancePost - balancePre != amountIn) {
                 revert EnsoWeirollWallet_Fork_Cartio_Test__BalancePostIsNotAmountIn(

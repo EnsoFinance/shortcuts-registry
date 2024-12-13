@@ -7,6 +7,7 @@ solc = "0.8.27"
 scripts = "foundry-scripts"
 src = "foundry-src"
 test = "test/foundry"
+evm_version = "cancun"
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
 
 [fmt]
