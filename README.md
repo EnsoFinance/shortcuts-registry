@@ -29,10 +29,10 @@ pnpm registryup
 
 ## Generate
 
-Pass the chain name (e.g., cartio), the protocol (e.g., dolomite), and the market (e.g., dhoney):
+Pass the chain name (e.g., cartio), the protocol (e.g., dolomite), the market (e.g., dhoney), and the amounts in (e.g., 1000000):
 
 ```sh
-pnpm generate cartio dolomite dhoney
+pnpm generate cartio dolomite dhoney 1000000
 ```
 
 ## Simulate
@@ -45,13 +45,13 @@ simulation is done via the `quoter`.
 Please set `RPC_URL_<network_name>` in the .env file.
 
 ```sh
-pnpm simulate cartio dolomite dhoney --mode=forge
+pnpm simulate cartio dolomite dhoney 1000000 --mode=forge
 ```
 
 Optionally set the fork block number via `--block=`:
 
 ```sh
-pnpm simulate cartio dolomite dhoney --mode=forge --block=1835295
+pnpm simulate cartio dolomite dhoney 1000000 --mode=forge --block=1835295
 ```
 
 ### Quoter
@@ -63,10 +63,6 @@ amounts as comma separated values (e.g., 100,100).
 
 ```sh
 pnpm simulate cartio dolomite dhoney 1000000
-```
-
-```sh
-pnpm simulate cartio dolomite dhoney 100,100
 ```
 
 ```sh
