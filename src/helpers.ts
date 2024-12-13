@@ -50,19 +50,18 @@ function getChainId(chainName: string) {
     return ChainIds[key];
 }
 
-export function getRpcUrlByChainId(chainId: number) {
+export function getRpcUrlByChainId(chainId: number): string {
     const chainName = Object.keys(ChainIds).find((key) => ChainIds[key as keyof typeof ChainIds] === chainId);
     if (!chainName) throw new Error(`Unsupported 'chainId': ${chainId}`);
 
-    return chainName.toUpperCase();
+    const rpcUrl = process.env[`RPC_URL_${chainName.toUpperCase()}`];
+    if (!rpcUrl) throw new Error(`Missing 'RPC_URL_${chainName.toUpperCase()}' environment variable`);
+
+    return rpcUrl;
 }
 
-function getForgePath(): string {
-    return execSync('which forge', { encoding: 'utf-8' }).trim();
-}
-
-export function validateAndGetForgePath(): string {
-    const forgePath = getForgePath();
+export function getForgePath(): string {
+    const forgePath = execSync('which forge', { encoding: 'utf-8' }).trim();
     if (!forgePath) {
         throw new Error(
             `missing 'forge' binary on the system. Make sure 'foundry' is properly installed  (test it via '$ which forge')`,

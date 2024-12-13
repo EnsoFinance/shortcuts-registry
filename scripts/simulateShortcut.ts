@@ -1,16 +1,16 @@
 import { ChainIds } from '@ensofinance/shortcuts-builder/types';
 import { Interface } from '@ethersproject/abi';
-import { spawnSync } from 'node:child_process';
 
 import { SimulationMode } from '../src/constants';
 import { getShortcut } from '../src/helpers';
 import {
     getAmountsInFromArgs,
     getBlockNumberFromArgs,
+    getForgePath,
     getRpcUrlByChainId,
     getSimulationModeFromArgs,
-    validateAndGetForgePath,
 } from '../src/helpers';
+import { simulateTransactionOnForge } from '../src/simulations/simulateOnForge';
 import { APITransaction, QuoteRequest, simulateTransactionOnQuoter } from '../src/simulations/simulateOnQuoter';
 import { Shortcut } from '../src/types';
 
@@ -74,26 +74,16 @@ async function simulateShortcutOnQuoter(
   console.log('Simulation: ', report);
 }
 
-async function simulateOnForge(shortcut: Shortcut, chainId: ChainIds, blockNumber: number): Promise<void> {
+async function simulateOnForge(
+    shortcut: Shortcut,
+    chainId: ChainIds,
+    forgePath: string,
+    rpcUrl: string,
+    blockNumber: number,
+): Promise<void> {
     const { commands, state, value } = await shortcut.build(chainId);
 
-    const forgePath = validateAndGetForgePath();
-
-    // NB: read `result.stdout` instead of writing it in a JSON file
-    // NB: calling forge with `-vvv` instead of `-vvvv` to avoid too much verbosity (i.e. `setUp` steps)
-    spawnSync('forge', ['test', '--match-contract', 'EnsoWeirollWallet_Fork_Cartio_Test', '-vvv'], {
-        encoding: 'utf-8',
-        env: {
-            PATH: `${process.env.PATH}:${forgePath}"`,
-            SIMULATION_CHAIN_ID: chainId.toString(),
-            SIMULATION_RPC_URL: process.env[`RPC_URL_${getRpcUrlByChainId(chainId)}`],
-            SIMULATION_BLOCK_NUMBER: blockNumber.toString(),
-            SIMULATION_JSON_CALLDATA: JSON.stringify({ commands, state, value }),
-            TERM: process.env.TER || 'xterm-256color',
-            FORCE_COLOR: '1',
-        },
-        stdio: 'inherit',
-    });
+    simulateTransactionOnForge(commands, state, value, forgePath, chainId, rpcUrl, blockNumber);
 }
 
 async function main() {
@@ -106,7 +96,9 @@ async function main() {
         switch (simulatonMode) {
             case SimulationMode.FORGE: {
                 const blockNumber = getBlockNumberFromArgs(args);
-                await simulateOnForge(shortcut, chainId, blockNumber);
+                const rpcUrl = getRpcUrlByChainId(chainId);
+                const forgePath = getForgePath();
+                await simulateOnForge(shortcut, chainId, forgePath, rpcUrl, blockNumber);
                 break;
             }
             case SimulationMode.QUOTER: {
