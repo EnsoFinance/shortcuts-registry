@@ -9,7 +9,7 @@ dependencies:
     specifier: ^0.0.4
     version: 0.0.4
   '@ensofinance/shortcuts-standards':
-    specifier: ^1.0.7
+    specifier: ^1.0.6
     version: 1.0.7(@ethersproject/abi@5.7.0)(@ethersproject/providers@5.7.2)(ethers@5.7.2)(lodash@4.17.21)
   '@ethersproject/abi':
     specifier: ^5.7.0

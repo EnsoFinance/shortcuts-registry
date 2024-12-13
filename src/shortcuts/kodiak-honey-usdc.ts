@@ -9,45 +9,45 @@ import { Input, Shortcut } from '../types';
 import { balanceOf } from '../utils';
 
 export class KodiakHoneyUsdcShortcut implements Shortcut {
-    name = 'kodiak-honey-usdc';
-    description = '';
-    supportedChains = [ChainIds.Cartio];
-    inputs: Record<number, Input> = {
-        [ChainIds.Cartio]: {
-            tokensIn: [TokenAddresses.cartio.usdc, TokenAddresses.cartio.honey],
-            tokensOut: [Standards.Kodiak_Islands.protocol.addresses!.cartio!.honeyUsdcIsland],
-        },
+  name = 'kodiak-honey-usdc';
+  description = '';
+  supportedChains = [ChainIds.Cartio];
+  inputs: Record<number, Input> = {
+    [ChainIds.Cartio]: {
+      tokensIn: [TokenAddresses.cartio.usdc, TokenAddresses.cartio.honey],
+      tokensOut: [Standards.Kodiak_Islands.protocol.addresses!.cartio!.honeyUsdcIsland],
+    },
+  };
+
+  async build(chainId: number): Promise<WeirollScript> {
+    const client = new RoycoClient();
+
+    const inputs = this.inputs[chainId];
+
+    const { tokensIn, tokensOut } = inputs;
+    const marketMetadata = {
+      tokensIn,
+      tokensOut,
     };
 
-    async build(chainId: number): Promise<WeirollScript> {
-        const client = new RoycoClient();
+    const builder = new Builder(chainId, client, marketMetadata);
 
-        const inputs = this.inputs[chainId];
+    const kodiak = getStandardByProtocol('kodiak-islands', chainId);
 
-        const { tokensIn, tokensOut } = inputs;
-        const marketMetadata = {
-            tokensIn,
-            tokensOut,
-        };
+    const amountIn0 = await builder.add(balanceOf(tokensIn[0], walletAddress()));
+    const amountIn1 = await builder.add(balanceOf(tokensIn[1], walletAddress()));
+    await kodiak.deposit.addToBuilder(builder, {
+      tokenIn: tokensIn,
+      tokenOut: tokensOut,
+      amountIn: [amountIn0, amountIn1],
+      primaryAddress: Standards.Kodiak_Islands.protocol.addresses!.cartio!.router,
+    });
 
-        const builder = new Builder(chainId, client, marketMetadata);
+    const payload = await builder.build({
+      requireWeiroll: true,
+      returnWeirollScript: true,
+    });
 
-        const kodiak = getStandardByProtocol('kodiak-islands', chainId);
-
-        const amountIn0 = await builder.add(balanceOf(tokensIn[0], walletAddress()));
-        const amountIn1 = await builder.add(balanceOf(tokensIn[1], walletAddress()));
-        await kodiak.deposit.addToBuilder(builder, {
-            tokenIn: tokensIn,
-            tokenOut: tokensOut,
-            amountIn: [amountIn0, amountIn1],
-            primaryAddress: Standards.Kodiak_Islands.protocol.addresses!.cartio!.router,
-        });
-
-        const payload = await builder.build({
-            requireWeiroll: true,
-            returnWeirollScript: true,
-        });
-
-        return payload.shortcut as WeirollScript;
-    }
+    return payload.shortcut as WeirollScript;
+  }
 }

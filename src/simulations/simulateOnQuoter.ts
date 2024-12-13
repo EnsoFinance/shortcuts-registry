@@ -31,30 +31,25 @@ export interface QuoteResult {
 }
 
 export type QuoteErrorResponse = {
-  status: "Error";
+  status: 'Error';
   error: string;
 };
 
 export type QuoteSuccessResponse<T> = {
-  status: "Success";
+  status: 'Success';
 } & T;
 
-export type QuoteResponse<T = QuoteResult> =
-  | QuoteSuccessResponse<T>
-  | QuoteErrorResponse;
+export type QuoteResponse<T = QuoteResult> = QuoteSuccessResponse<T> | QuoteErrorResponse;
 
-export async function simulateTransactionOnQuoter(
-  request: QuoteRequest
-): Promise<QuoteResponse[]> {
+export async function simulateTransactionOnQuoter(request: QuoteRequest): Promise<QuoteResponse[]> {
   const response = await axios.post(`${QUOTER_URL}/api/quote`, request, {
     headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
+      Accept: 'application/json',
+      'Content-Type': 'application/json',
     },
   });
   if (response.status !== 200) {
-    throw "Failed while trying to quote transactions";
+    throw 'Failed while trying to quote transactions';
   }
   return response.data;
-
 }
