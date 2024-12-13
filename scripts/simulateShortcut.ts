@@ -74,14 +74,21 @@ async function simulateShortcutOnQuoter(shortcut: Shortcut, chainId: ChainIds, a
 async function simulateOnForge(
   shortcut: Shortcut,
   chainId: ChainIds,
+  amountsIn: string[],
   forgePath: string,
   rpcUrl: string,
   blockNumber: number,
 ): Promise<void> {
-  const { script } = await shortcut.build(chainId);
+  const { script, metadata } = await shortcut.build(chainId);
+
+  const { tokensIn, tokensOut } = metadata;
+  if (!tokensIn || !tokensOut) throw 'Error: Invalid builder metadata';
+  if (amountsIn.length != tokensIn.length)
+    throw `Error: Incorrect number of amounts for shortcut. Expected ${tokensIn.length}`;
+
   const { commands, state, value } = script;
 
-  simulateTransactionOnForge(commands, state, value, forgePath, chainId, rpcUrl, blockNumber);
+  simulateTransactionOnForge(commands, state, value, tokensIn, amountsIn, forgePath, chainId, rpcUrl, blockNumber);
 }
 
 async function main() {
@@ -90,17 +97,17 @@ async function main() {
 
     const args: string[] = process.argv;
     const simulatonMode = getSimulationModeFromArgs(args);
+    const blockNumber = getBlockNumberFromArgs(args);
+    const amountsIn = getAmountsInFromArgs(args);
 
     switch (simulatonMode) {
       case SimulationMode.FORGE: {
-        const blockNumber = getBlockNumberFromArgs(args);
         const rpcUrl = getRpcUrlByChainId(chainId);
         const forgePath = getForgePath();
-        await simulateOnForge(shortcut, chainId, forgePath, rpcUrl, blockNumber);
+        await simulateOnForge(shortcut, chainId, amountsIn, forgePath, rpcUrl, blockNumber);
         break;
       }
       case SimulationMode.QUOTER: {
-        const amountsIn = getAmountsInFromArgs(args);
         await simulateShortcutOnQuoter(shortcut, chainId, amountsIn);
         break;
       }
