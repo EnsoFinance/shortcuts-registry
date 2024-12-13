@@ -17,7 +17,7 @@ pnpm install
 Setup foundry:
 
 ```sh
-forge install
+forge soldeer update
 forge remappings
 ```
 

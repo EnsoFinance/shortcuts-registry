@@ -8,7 +8,7 @@
     "lint": "eslint .",
     "prettier:check": "prettier --check \"**/*.{js,json,md,ts,yml}\"",
     "prettier:write": "prettier --write \"**/*.{js,json,md,ts,yml}\"",
-    "registryup": "pnpm install && forge install && forge remappings",
+    "registryup": "pnpm install && forge soldeer update && forge remappings",
     "simulate": "pnpm ts-node scripts/simulateShortcut.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
