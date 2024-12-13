@@ -68,3 +68,14 @@ pnpm simulate cartio dolomite dhoney 1000000
 ```sh
 pnpm simulate cartio kodiak honey-usdc 10000 --mode=quoter
 ```
+
+### Execute
+To actually execute on-chain you can use the following command:
+
+```sh
+pnpm execute cartio dolomite dhoney 0x0a26df1d9EE5e99dF92552979E83BEeA54653E8a
+```
+
+Where the address passed is the wallet that will be executing the call. You must set the private key to `PRIVATE_KEY` in the .env file or pass it directly via `--privateKey=`
+
+The script will only work if the wallet is already deployed and funded.
