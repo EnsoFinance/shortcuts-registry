@@ -98,7 +98,6 @@ export function getBlockNumberFromArgs(args: string[]): number {
 
 export function getAmountsInFromArgs(args: string[]): string[] {
   const filteredArgs = args.slice(5);
-  console.log('Filtered args: ', filteredArgs);
   if (filteredArgs.length != 1) throw 'Error: Please pass amounts (use commas for multiple values)';
 
   return filteredArgs[0].split(',');
