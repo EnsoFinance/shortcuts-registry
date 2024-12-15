@@ -1,8 +1,7 @@
 import { ChainIds } from '@ensofinance/shortcuts-builder/types';
-import { Interface } from '@ethersproject/abi';
 
 import { SimulationMode } from '../src/constants';
-import { getShortcut } from '../src/helpers';
+import { getEncodedData, getShortcut } from '../src/helpers';
 import {
   getAmountsInFromArgs,
   getBlockNumberFromArgs,
@@ -12,20 +11,12 @@ import {
 } from '../src/helpers';
 import { simulateTransactionOnForge } from '../src/simulations/simulateOnForge';
 import { APITransaction, QuoteRequest, simulateTransactionOnQuoter } from '../src/simulations/simulateOnQuoter';
-import { Shortcut } from '../src/types';
+import { Shortcut, Report } from '../src/types';
 
-const weirollWalletInterface = new Interface([
-  'function executeWeiroll(bytes32[] calldata commands, bytes[] calldata state) external payable returns (bytes[] memory)',
-]);
+
 
 const fromAddress = '0x93621DCA56fE26Cdee86e4F6B18E116e9758Ff11';
 const weirollWalletAddress = '0xBa8F5f80C41BF5e169d9149Cd4977B1990Fc2736';
-
-type SimulationReport = {
-  quote: Record<string, string>;
-  dust: Record<string, string>;
-  gas: string;
-};
 
 async function simulateShortcutOnQuoter(shortcut: Shortcut, chainId: ChainIds, amountsIn: string[]): Promise<void> {
   const { script, metadata } = await shortcut.build(chainId);
@@ -36,7 +27,7 @@ async function simulateShortcutOnQuoter(shortcut: Shortcut, chainId: ChainIds, a
     throw `Error: Incorrect number of amounts for shortcut. Expected ${tokensIn.length}`;
 
   const { commands, state, value } = script;
-  const data = weirollWalletInterface.encodeFunctionData('executeWeiroll', [commands, state]);
+  const data = getEncodedData(commands, state);
   const tx: APITransaction = {
     from: fromAddress,
     to: weirollWalletAddress,
@@ -55,7 +46,7 @@ async function simulateShortcutOnQuoter(shortcut: Shortcut, chainId: ChainIds, a
 
   const quote = (await simulateTransactionOnQuoter(request))[0];
   if (quote.status === 'Error') throw quote.error;
-  const report: SimulationReport = {
+  const report: Report = {
     quote: {},
     dust: {},
     gas: quote.gas,

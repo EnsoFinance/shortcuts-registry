@@ -3,8 +3,8 @@ import { getShortcut } from '../src/helpers';
 async function main() {
   try {
     const { shortcut, chainId } = await getShortcut();
-    const weirollScript = await shortcut.build(chainId);
-    console.log('Weiroll: ', weirollScript);
+    const { script } = await shortcut.build(chainId);
+    console.log('Weiroll: ', script);
   } catch (e) {
     console.log(e);
   }

@@ -26,3 +26,9 @@ export interface SimulationResult {
   simulationURL: string;
   transaction: Transaction;
 }
+
+export type Report = {
+  quote: Record<string, string>;
+  dust: Record<string, string>;
+  gas: string;
+};

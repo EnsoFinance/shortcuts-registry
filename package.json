@@ -10,6 +10,7 @@
     "prettier:write": "prettier --write \"**/*.{js,json,md,ts,yml}\"",
     "registryup": "pnpm install && forge soldeer update && forge remappings",
     "simulate": "pnpm ts-node scripts/simulateShortcut.ts",
+    "execute": "pnpm ts-node scripts/executeShortcut.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -19,6 +20,8 @@
     "@ensofinance/shortcuts-builder": "^0.0.4",
     "@ensofinance/shortcuts-standards": "^1.0.6",
     "@ethersproject/abi": "^5.7.0",
+    "@ethersproject/providers": "^5.7.2",
+    "@ethersproject/wallet": "^5.7.0",
     "axios": "^1.7.9",
     "dotenv": "^16.4.7"
   },
