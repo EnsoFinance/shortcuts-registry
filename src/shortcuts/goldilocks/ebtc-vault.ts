@@ -38,6 +38,7 @@ export class GoldilocksEbtcShortcut implements Shortcut {
     const halfAmount = await div(amountIn, 2, builder);
 
     const goldilocks = getStandardByProtocol('goldilocks', chainId);
+
     const { amountOut } = await goldilocks.deposit.addToBuilder(
       builder,
       {
@@ -53,6 +54,7 @@ export class GoldilocksEbtcShortcut implements Shortcut {
     const [otAmount] = amountOut as NumberArg[];
 
     const kodiak = getStandardByProtocol('kodiak-islands', chainId);
+
     await kodiak.deposit.addToBuilder(builder, {
       tokenIn: [base, ot],
       tokenOut: island,

@@ -1,15 +1,16 @@
-import { Builder } from "@ensofinance/shortcuts-builder";
-import { RoycoClient } from "@ensofinance/shortcuts-builder/client/implementations/roycoClient";
-import { walletAddress } from "@ensofinance/shortcuts-builder/helpers";
-import { ChainIds, WeirollScript } from "@ensofinance/shortcuts-builder/types";
-import { getStandardByProtocol } from "@ensofinance/shortcuts-standards";
-import { Input, Output, Shortcut } from "../../types";
-import { balanceOf } from "../../utils";
-import { TokenAddresses } from "@ensofinance/shortcuts-standards/addresses";
+import { Builder } from '@ensofinance/shortcuts-builder';
+import { RoycoClient } from '@ensofinance/shortcuts-builder/client/implementations/roycoClient';
+import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
+import { ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
+import { getStandardByProtocol } from '@ensofinance/shortcuts-standards';
+import { TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
+
+import { Input, Output, Shortcut } from '../../types';
+import { balanceOf } from '../../utils';
 
 export class OrigamiBoycoHoneyShortcut implements Shortcut {
-  name = "origami-oboy-honey";
-  description = "";
+  name = 'origami-oboy-honey';
+  description = '';
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
@@ -25,15 +26,15 @@ export class OrigamiBoycoHoneyShortcut implements Shortcut {
     const { base, vault } = inputs;
 
     const builder = new Builder(chainId, client, {
-        tokensIn: [base],
-        tokensOut: [vault],
+      tokensIn: [base],
+      tokensOut: [vault],
     });
-    
+
     // Get the amount of token in wallet
     const amountIn = await builder.add(balanceOf(base, walletAddress()));
-    
+
     //Mint
-    const origami = getStandardByProtocol("erc4626", chainId);
+    const origami = getStandardByProtocol('erc4626', chainId);
     await origami.deposit.addToBuilder(builder, {
       tokenIn: base,
       tokenOut: vault,
@@ -47,8 +48,8 @@ export class OrigamiBoycoHoneyShortcut implements Shortcut {
     });
 
     return {
-        script: payload.shortcut as WeirollScript,
-        metadata: builder.metadata,
+      script: payload.shortcut as WeirollScript,
+      metadata: builder.metadata,
     };
   }
 }

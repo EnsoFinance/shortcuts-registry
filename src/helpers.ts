@@ -1,22 +1,26 @@
-import { Shortcut } from "../src/types";
-import { Interface } from "@ethersproject/abi";
-import { ChainIds } from "@ensofinance/shortcuts-builder/types";
-import { getChainName } from "@ensofinance/shortcuts-builder/helpers";
-import { DolomiteDHoneyShortcut } from "./shortcuts/dolomite/dhoney";
-import { KodiakHoneyUsdcShortcut } from "./shortcuts/kodiak/honey-usdc";
-import { DolomiteDUsdcShortcut } from "./shortcuts/dolomite/dusdc";
-import { DolomiteDEthShortcut } from "./shortcuts/dolomite/deth";
-import { DolomiteDUsdtShortcut } from "./shortcuts/dolomite/dusdt";
-import { DolomiteDWbtcShortcut } from "./shortcuts/dolomite/dwbtc";
-import { OrigamiBoycoHoneyShortcut } from "./shortcuts/origami/oboy-HONEY-a";
-
-import { SimulationMode } from "../src/constants";
-import { execSync } from "node:child_process";
+import { getChainName } from '@ensofinance/shortcuts-builder/helpers';
+import { ChainIds } from '@ensofinance/shortcuts-builder/types';
+import { Interface } from '@ethersproject/abi';
 import dotenv from 'dotenv';
+import { execSync } from 'node:child_process';
+
+import { SimulationMode } from '../src/constants';
+import { Shortcut } from '../src/types';
+import { BeraborrowMintNectLpShortcut } from './shortcuts/beraborrow/mint-nect-lp';
+import { DolomiteDEthShortcut } from './shortcuts/dolomite/deth';
+import { DolomiteDHoneyShortcut } from './shortcuts/dolomite/dhoney';
+import { DolomiteDUsdcShortcut } from './shortcuts/dolomite/dusdc';
+import { DolomiteDUsdtShortcut } from './shortcuts/dolomite/dusdt';
+import { DolomiteDWbtcShortcut } from './shortcuts/dolomite/dwbtc';
+import { KodiakHoneyUsdcShortcut } from './shortcuts/kodiak/honey-usdc';
+import { OrigamiBoycoHoneyShortcut } from './shortcuts/origami/oboy-HONEY-a';
 
 dotenv.config();
 
 const shortcuts: Record<string, Record<string, Shortcut>> = {
+  beraborrow: {
+    'mint-nect-lp': new BeraborrowMintNectLpShortcut(),
+  },
   dolomite: {
     deth: new DolomiteDEthShortcut(),
     dhoney: new DolomiteDHoneyShortcut(),
@@ -25,10 +29,10 @@ const shortcuts: Record<string, Record<string, Shortcut>> = {
     dwbtc: new DolomiteDWbtcShortcut(),
   },
   kodiak: {
-    "honey-usdc": new KodiakHoneyUsdcShortcut(),
+    'honey-usdc': new KodiakHoneyUsdcShortcut(),
   },
   origami: {
-    "oboy-honey": new OrigamiBoycoHoneyShortcut(),
+    'oboy-honey': new OrigamiBoycoHoneyShortcut(),
   },
 };
 
@@ -127,7 +131,7 @@ export function getWalletFromArgs(args: string[]): string {
 
   const address = filteredArgs[0];
 
-  if (!address.startsWith('0x') || address.length !== 42) throw 'Error: Invalid address'
+  if (!address.startsWith('0x') || address.length !== 42) throw 'Error: Invalid address';
 
   return address;
 }

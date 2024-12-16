@@ -1,4 +1,4 @@
-import { ChainIds } from '@ensofinance/shortcuts-builder/types';
+import { AddressArg, ChainIds } from '@ensofinance/shortcuts-builder/types';
 
 import { SimulationMode } from '../src/constants';
 import { getEncodedData, getShortcut } from '../src/helpers';
@@ -11,9 +11,7 @@ import {
 } from '../src/helpers';
 import { simulateTransactionOnForge } from '../src/simulations/simulateOnForge';
 import { APITransaction, QuoteRequest, simulateTransactionOnQuoter } from '../src/simulations/simulateOnQuoter';
-import { Shortcut, Report } from '../src/types';
-
-
+import { Report, Shortcut } from '../src/types';
 
 const fromAddress = '0x93621DCA56fE26Cdee86e4F6B18E116e9758Ff11';
 const weirollWalletAddress = '0xBa8F5f80C41BF5e169d9149Cd4977B1990Fc2736';
@@ -77,6 +75,32 @@ async function simulateOnForge(
   if (amountsIn.length != tokensIn.length)
     throw `Error: Incorrect number of amounts for shortcut. Expected ${tokensIn.length}`;
 
+  // Addresses labels & Dust tokens data
+  const tokensDust: AddressArg[] = [];
+  const addressToLabel: Map<AddressArg, string> = new Map();
+  if (shortcut.getLabelsData) {
+    const labelsData = shortcut.getLabelsData(chainId);
+    for (const [address, data] of labelsData.tokenToData) {
+      if (data.isTokenDust) tokensDust.push(address);
+    }
+    // Map protocols to labels
+    for (const [address, data] of labelsData.protocolToData) {
+      addressToLabel.set(address, data.label);
+    }
+    // Map tokens to labels
+    for (const [address, data] of labelsData.tokenToData) {
+      addressToLabel.set(address, data.label);
+    }
+  }
+  // TokensIn holders
+  const tokensInHolders: AddressArg[] = [];
+  if (shortcut.getTokenTholder) {
+    const tokenToHolder = shortcut.getTokenTholder(chainId);
+    for (let i = 0; i < tokensIn.length; i++) {
+      tokensInHolders.push(tokenToHolder.get(tokensIn[i]) as AddressArg);
+    }
+  }
+
   const { commands, state, value } = script;
 
   simulateTransactionOnForge(
@@ -85,7 +109,10 @@ async function simulateOnForge(
     value,
     tokensIn,
     amountsIn,
+    tokensInHolders,
     tokensOut,
+    tokensDust,
+    addressToLabel,
     forgePath,
     chainId,
     rpcUrl,
