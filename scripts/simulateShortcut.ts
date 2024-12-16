@@ -1,5 +1,4 @@
 import { AddressArg, ChainIds } from '@ensofinance/shortcuts-builder/types';
-import { Interface } from '@ethersproject/abi';
 
 import { SimulationMode } from '../src/constants';
 import { getEncodedData, getShortcut } from '../src/helpers';
@@ -12,9 +11,7 @@ import {
 } from '../src/helpers';
 import { simulateTransactionOnForge } from '../src/simulations/simulateOnForge';
 import { APITransaction, QuoteRequest, simulateTransactionOnQuoter } from '../src/simulations/simulateOnQuoter';
-import { Shortcut, Report } from '../src/types';
-
-
+import { Report, Shortcut } from '../src/types';
 
 const fromAddress = '0x93621DCA56fE26Cdee86e4F6B18E116e9758Ff11';
 const weirollWalletAddress = '0xBa8F5f80C41BF5e169d9149Cd4977B1990Fc2736';
