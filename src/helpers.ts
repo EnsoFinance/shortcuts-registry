@@ -19,7 +19,7 @@ dotenv.config();
 
 const shortcuts: Record<string, Record<string, Shortcut>> = {
   beraborrow: {
-    "mint-nect-lp": new BeraborrowMintNectLpShortcut(),
+    'mint-nect-lp': new BeraborrowMintNectLpShortcut(),
   },
   dolomite: {
     deth: new DolomiteDEthShortcut(),
@@ -29,10 +29,10 @@ const shortcuts: Record<string, Record<string, Shortcut>> = {
     dwbtc: new DolomiteDWbtcShortcut(),
   },
   kodiak: {
-    "honey-usdc": new KodiakHoneyUsdcShortcut(),
+    'honey-usdc': new KodiakHoneyUsdcShortcut(),
   },
   origami: {
-    "oboy-honey": new OrigamiBoycoHoneyShortcut(),
+    'oboy-honey': new OrigamiBoycoHoneyShortcut(),
   },
 };
 
