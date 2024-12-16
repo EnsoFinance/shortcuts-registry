@@ -9,6 +9,7 @@ import { DolomiteDEthShortcut } from "./shortcuts/dolomite/deth";
 import { DolomiteDUsdtShortcut } from "./shortcuts/dolomite/dusdt";
 import { DolomiteDWbtcShortcut } from "./shortcuts/dolomite/dwbtc";
 import { OrigamiBoycoHoneyShortcut } from "./shortcuts/origami/oboy-HONEY-a";
+import { BeraborrowMintNectLpShortcut} from "./shortcuts/beraborrow/mint-nect-lp";
 
 import { SimulationMode } from "../src/constants";
 import { execSync } from "node:child_process";
@@ -17,6 +18,9 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const shortcuts: Record<string, Record<string, Shortcut>> = {
+  beraborrow: {
+    "mint-nect-lp": new BeraborrowMintNectLpShortcut(),
+  },
   dolomite: {
     deth: new DolomiteDEthShortcut(),
     dhoney: new DolomiteDHoneyShortcut(),

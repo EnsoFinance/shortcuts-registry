@@ -1,32 +1,25 @@
-import { Builder } from "@ensofinance/shortcuts-builder";
-import { RoycoClient } from "@ensofinance/shortcuts-builder/client/implementations/roycoClient";
-import { walletAddress } from "@ensofinance/shortcuts-builder/helpers";
-import {
-  ChainIds,
-  WeirollScript,
-  FromContractCallArg,
-} from "@ensofinance/shortcuts-builder/types";
-import {
-  getStandardByProtocol,
-  Standards,
-} from "@ensofinance/shortcuts-standards";
-import { TokenAddresses } from "@ensofinance/shortcuts-standards/addresses";
-import { div } from "@ensofinance/shortcuts-standards/helpers/math";
-import { Input, Output, Shortcut } from "../../types";
-import { balanceOf, mintHoney } from "../../utils";
+import { Builder } from '@ensofinance/shortcuts-builder';
+import { RoycoClient } from '@ensofinance/shortcuts-builder/client/implementations/roycoClient';
+import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
+import { ChainIds, FromContractCallArg, WeirollScript } from '@ensofinance/shortcuts-builder/types';
+import { Standards, getStandardByProtocol } from '@ensofinance/shortcuts-standards';
+import { TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
+import { div } from '@ensofinance/shortcuts-standards/helpers/math';
 
-export class MintNectLpShortcut implements Shortcut {
-  name = "mint-nect-lp";
-  description = "";
+import { Input, Output, Shortcut } from '../../types';
+import { balanceOf, mintHoney } from '../../utils';
+
+export class BeraborrowMintNectLpShortcut implements Shortcut {
+  name = 'mint-nect-lp';
+  description = '';
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
       honey: TokenAddresses.cartio.honey,
       nect: TokenAddresses.cartio.nect,
       usdc: TokenAddresses.cartio.usdc,
-      usdcPsmBond: Standards.ERC4626.protocol.addresses!.cartio!.usdcPsmBond,
-      island:
-        Standards.Kodiak_Islands.protocol.addresses!.cartio!.nectUsdcIsland,
+      usdcPsmBond: '0xd064C80776497821313b1Dc0E3192d1a67b2a9fa',
+      island: Standards.Kodiak_Islands.protocol.addresses!.cartio!.nectUsdcIsland,
       primary: Standards.Kodiak_Islands.protocol.addresses!.cartio!.router,
     },
   };
@@ -41,22 +34,19 @@ export class MintNectLpShortcut implements Shortcut {
       tokensIn: [usdc],
       tokensOut: [island],
     });
-    const kodiak = getStandardByProtocol("kodiak-islands", chainId);
+    const kodiak = getStandardByProtocol('kodiak-islands', chainId);
     const amountIn = builder.add(balanceOf(usdc, walletAddress()));
     const halfAmount = div(amountIn, 2, builder);
     // Get HONEY
     const mintedAmountHoney = await mintHoney(usdc, halfAmount, builder);
     // Get NECT
-    const erc4626 = getStandardByProtocol("erc4626", chainId);
-    const { amountOut: mintedAmountNect } = await erc4626.deposit.addToBuilder(
-      builder,
-      {
-        tokenIn: [usdc],
-        tokenOut: nect,
-        amountIn: [halfAmount],
-        primaryAddress: primary,
-      }
-    );
+    const erc4626 = getStandardByProtocol('usdc-psm-bond-erc4626', chainId);
+    const { amountOut: mintedAmountNect } = await erc4626.deposit.addToBuilder(builder, {
+      tokenIn: [usdc],
+      tokenOut: nect,
+      amountIn: [halfAmount],
+      primaryAddress: usdcPsmBond,
+    });
 
     await kodiak.deposit.addToBuilder(builder, {
       tokenIn: [nect, honey],
