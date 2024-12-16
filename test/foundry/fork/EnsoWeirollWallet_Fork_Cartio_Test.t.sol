@@ -22,7 +22,11 @@ contract EnsoWeirollWallet_Fork_Cartio_Test is Test {
     string private constant SIMULATION_JSON_CALLDATA_KEY_VALUE = ".value";
     string private constant SIMULATION_JSON_CALLDATA_TOKENS_IN = ".tokensIn";
     string private constant SIMULATION_JSON_CALLDATA_AMOUNTS_IN = ".amountsIn";
+    string private constant SIMULATION_JSON_CALLDATA_TOKENS_IN_HOLDERS = ".tokensInHolders";
     string private constant SIMULATION_JSON_CALLDATA_TOKENS_OUT = ".tokensOut";
+    string private constant SIMULATION_JSON_CALLDATA_TOKENS_DUST = ".tokensDust";
+    string private constant SIMULATION_JSON_CALLDATA_LABEL_KEYS = ".labelKeys";
+    string private constant SIMULATION_JSON_CALLDATA_LABEL_VALUES = ".labelValues";
 
     // --- Known addresses ---
     // Enso accounts
@@ -34,26 +38,6 @@ contract EnsoWeirollWallet_Fork_Cartio_Test is Test {
     address private constant ROYCO_WALLET_HELPERS_1 = 0x07899ac8BE7462151d6515FCd4773DD9267c9911;
     IWeirollWallet private constant ENSO_WEIROLL_WALLET_1 = IWeirollWallet(0xBa8F5f80C41BF5e169d9149Cd4977B1990Fc2736);
 
-    // --- Tokens (more at: https://80000.testnet.routescan.io/tokens) ---
-    // Single tokens
-    IERC20 private constant ERC20_aUSDT = IERC20(0x164A2dE1bc5dc56F329909F7c97Bae929CaE557B);
-    IERC20 private constant ERC20_BGT = IERC20(0x289274787bAF083C15A45a174b7a8e44F0720660);
-    IERC20 private constant ERC20_BURR = IERC20(0x1aF00782F74DdC4c7fCEFe8752113084FEBCDA45);
-    IERC20 private constant ERC20_HONEY = IERC20(0xd137593CDB341CcC78426c54Fb98435C60Da193c);
-    IERC20 private constant ERC20_MIM = IERC20(0x08B918dD18E087893bb9d711d9E0BBaA7a63Ef63);
-    IERC20 private constant ERC20_NECTAR = IERC20(0xefEeD4d987F6d1dE0f23D116a578402456819C28);
-    IERC20 private constant ERC20_rUSD = IERC20(0x254e3D5F964E770F3a51a19d809bcE36308d797d);
-    IERC20 private constant ERC20_STONE = IERC20(0x1da4dF975FE40dde074cBF19783928Da7246c515);
-    IERC20 private constant ERC20_USDC = IERC20(0x015fd589F4f1A33ce4487E12714e1B15129c9329);
-    IERC20 private constant ERC20_WBERA = IERC20(0x6969696969696969696969696969696969696969);
-    IERC20 private constant ERC20_WBTC = IERC20(0xFa5bf670A92AfF186E5176aA55690E0277010040);
-    IERC20 private constant ERC20_WETH = IERC20(0x2d93FbcE4CffC15DD385A80B3f4CC1D4E76C38b3);
-    // LP tokens
-    IERC20 private constant ERC20_50WBERA_50HONEY_WEIGHTED = IERC20(0x3aD1699779eF2c5a4600e649484402DFBd3c503C);
-    IERC20 private constant ERC20_80WBERA_20USDC_WEIGHTED = IERC20(0x4f9D20770732F10dF42921EFfA62eb843920a48A);
-    IERC20 private constant ERC20_USDC_HONEY_COMPOSABLESTABLE = IERC20(0xF7F214A9543c1153eF5DF2edCd839074615F248c);
-    IERC20 private constant ERC20_USDT_HONEY_COMPOSABLESTABLE = IERC20(0xA694a92a1e23b8AaEE6b81EdF5302f7227e7F274);
-
     // --- Shortcut ---
     bytes32[] private s_commands;
     bytes[] private s_state;
@@ -61,10 +45,8 @@ contract EnsoWeirollWallet_Fork_Cartio_Test is Test {
     address[] private s_tokensIn;
     uint256[] private s_amountsIn;
     address[] private s_tokensOut;
-
-    // --- Players ---
-    address private constant WHALE_1 = 0xCACa41c458f48D4d7c710F2E62AEe931E149A37d; // USDC, aUSDT
-    mapping(IERC20 token => address whale) private s_tokenToWhale;
+    address[] private s_tokensDust;
+    mapping(address address_ => string label) private s_addressToLabel;
 
     // --- Custom Errors ---
     error EnsoWeirollWallet_Fork_Cartio_Test__ArrayLengthsAreNotEq(
@@ -73,7 +55,7 @@ contract EnsoWeirollWallet_Fork_Cartio_Test is Test {
     error EnsoWeirollWallet_Fork_Cartio_Test__BalancePostIsNotAmountIn(
         address tokenIn, uint256 amountIn, uint256 balancePre, uint256 balancePost
     );
-    error EnsoWeirollWallet_Fork_Cartio_Test__TokenInWhaleNotFound(address tokenIn);
+    error EnsoWeirollWallet_Fork_Cartio_Test__TokenInHolderNotFound(address tokenIn);
 
     function setUp() public {
         // --- Fork network ---
@@ -95,15 +77,22 @@ contract EnsoWeirollWallet_Fork_Cartio_Test is Test {
         uint256[] memory amountsIn = vm.parseJsonUintArray(simulationCalldata, SIMULATION_JSON_CALLDATA_AMOUNTS_IN);
         address[] memory tokensOut = vm.parseJsonAddressArray(simulationCalldata, SIMULATION_JSON_CALLDATA_TOKENS_OUT);
 
+        address[] memory tokensInHolders =
+            vm.parseJsonAddressArray(simulationCalldata, SIMULATION_JSON_CALLDATA_TOKENS_IN_HOLDERS);
+        address[] memory tokensDust = vm.parseJsonAddressArray(simulationCalldata, SIMULATION_JSON_CALLDATA_TOKENS_DUST);
+        address[] memory labelKeys = vm.parseJsonAddressArray(simulationCalldata, SIMULATION_JSON_CALLDATA_LABEL_KEYS);
+        string[] memory labelValues = vm.parseJsonStringArray(simulationCalldata, SIMULATION_JSON_CALLDATA_LABEL_VALUES);
+
         if (tokensIn.length != amountsIn.length) {
             revert EnsoWeirollWallet_Fork_Cartio_Test__ArrayLengthsAreNotEq(
-                "s_tokensIn", s_tokensIn.length, "s_amountsIn", s_amountsIn.length
+                "tokensIn", tokensIn.length, "amountsIn", amountsIn.length
             );
         }
 
         s_tokensIn = tokensIn;
         s_amountsIn = amountsIn;
         s_tokensOut = tokensOut;
+        s_tokensDust = tokensDust;
 
         // --- Set labels ---
         // Enso EOA
@@ -114,33 +103,16 @@ contract EnsoWeirollWallet_Fork_Cartio_Test is Test {
         vm.label(ENSO_DELEGATE_1, "Enso_Delegate_1");
         vm.label(ROYCO_WALLET_HELPERS_1, "Royco_Wallet_Helpers_1");
         vm.label(address(ENSO_WEIROLL_WALLET_1), "Enso_Weiroll_Wallet_1");
-        // Tokens
-        vm.label(address(ERC20_BGT), "ERC20:BGT");
-        vm.label(address(ERC20_HONEY), "ERC20:HONEY");
-        vm.label(address(ERC20_USDC), "ERC20:USDC");
-        vm.label(address(ERC20_WETH), "ERC20:WETH");
-        // Players
-        vm.label(WHALE_1, "Whale_1"); // Tokens: USDC, aUSDT
-
-        // --- Track token whales ---
-        // Single tokens
-        s_tokenToWhale[ERC20_aUSDT] = 0xCACa41c458f48D4d7c710F2E62AEe931E149A37d;
-        s_tokenToWhale[ERC20_BGT] = 0x211bE45338B7C6d5721B5543Eb868547088Aca39;
-        s_tokenToWhale[ERC20_BURR] = 0x5B34eBA09e567d37884c0AA58509119c87Bfb589;
-        s_tokenToWhale[ERC20_HONEY] = 0x3869E8A2A1432D09666f87b9E61FBf6f71eb6c75;
-        s_tokenToWhale[ERC20_MIM] = 0xB734c264F83E39Ef6EC200F99550779998cC812d;
-        s_tokenToWhale[ERC20_NECTAR] = 0xFcfFb8913d44D21fEF23a3fEA04271919f25fBE1;
-        s_tokenToWhale[ERC20_rUSD] = 0xA51C5F0007d8C506E9F7132dF10d637379a07be0;
-        s_tokenToWhale[ERC20_STONE] = 0xAfa6405c1ea4727a0f9AF9096bD20A1E6d19C153;
-        s_tokenToWhale[ERC20_USDC] = 0xCACa41c458f48D4d7c710F2E62AEe931E149A37d;
-        s_tokenToWhale[ERC20_WBERA] = 0x9C8a5c82e797e074Fe3f121B326b140CEC4bcb33;
-        s_tokenToWhale[ERC20_WBTC] = 0x603C6152DF404CB5250Ce8E6FE01e4294254F728;
-        s_tokenToWhale[ERC20_WETH] = 0x8a73D1380345942F1cb32541F1b19C40D8e6C94B;
-        // LP tokens
-        s_tokenToWhale[ERC20_50WBERA_50HONEY_WEIGHTED] = 0x0cc03066a3a06F3AC68D3A0D36610F52f7C20877;
-        s_tokenToWhale[ERC20_80WBERA_20USDC_WEIGHTED] = 0x3869E8A2A1432D09666f87b9E61FBf6f71eb6c75;
-        s_tokenToWhale[ERC20_USDC_HONEY_COMPOSABLESTABLE] = 0x9C8a5c82e797e074Fe3f121B326b140CEC4bcb33;
-        s_tokenToWhale[ERC20_USDT_HONEY_COMPOSABLESTABLE] = 0x9C8a5c82e797e074Fe3f121B326b140CEC4bcb33;
+        // Simulation labels
+        if (labelKeys.length != labelValues.length) {
+            revert EnsoWeirollWallet_Fork_Cartio_Test__ArrayLengthsAreNotEq(
+                "labelKeys", labelKeys.length, "labelValues", labelValues.length
+            );
+        }
+        for (uint256 i = 0; i < labelKeys.length; i++) {
+            s_addressToLabel[labelKeys[i]] = labelValues[i];
+            vm.label(labelKeys[i], labelValues[i]);
+        }
 
         // --- Fund addresses ---
         vm.deal(ENSO_EOA_1, 1000 ether);
@@ -148,14 +120,14 @@ contract EnsoWeirollWallet_Fork_Cartio_Test is Test {
         for (uint256 i = 0; i < tokensIn.length; i++) {
             address tokenIn = tokensIn[i];
             uint256 amountIn = amountsIn[i];
-            uint256 balancePre = IERC20(tokenIn).balanceOf(address(ENSO_WEIROLL_WALLET_1));
-            address tokenInWhale = s_tokenToWhale[IERC20(tokenIn)];
-
-            if (tokenInWhale == address(0)) {
-                revert EnsoWeirollWallet_Fork_Cartio_Test__TokenInWhaleNotFound(tokenIn);
+            address holder = tokensInHolders[i];
+            if (holder == address(0)) {
+                revert EnsoWeirollWallet_Fork_Cartio_Test__TokenInHolderNotFound(tokenIn);
             }
 
-            vm.prank(tokenInWhale);
+            uint256 balancePre = IERC20(tokenIn).balanceOf(address(ENSO_WEIROLL_WALLET_1));
+
+            vm.prank(holder);
             IERC20(tokenIn).transfer(address(ENSO_WEIROLL_WALLET_1), amountIn);
             uint256 balancePost = IERC20(tokenIn).balanceOf(address(ENSO_WEIROLL_WALLET_1));
 
@@ -169,31 +141,52 @@ contract EnsoWeirollWallet_Fork_Cartio_Test is Test {
 
     function test_executeWeiroll_1() public {
         address[] memory tokensOut = s_tokensOut;
-        uint256[] memory balancesPre = new uint256[](tokensOut.length);
-        uint256[] memory balancesPost = new uint256[](tokensOut.length);
+        uint256[] memory tokensOutBalancesPre = new uint256[](tokensOut.length);
+        address[] memory tokensDust = s_tokensDust;
+        uint256[] memory tokensDustBalancesPre = new uint256[](tokensDust.length);
 
-        // Calculate balances before
+        // --- Calculate balances before ---
+        // Tokens out
         for (uint256 i = 0; i < tokensOut.length; i++) {
-            balancesPre[i] = IERC20(tokensOut[i]).balanceOf(address(ENSO_WEIROLL_WALLET_1));
+            tokensOutBalancesPre[i] = IERC20(tokensOut[i]).balanceOf(address(ENSO_WEIROLL_WALLET_1));
+        }
+        // Tokens dust
+        for (uint256 i = 0; i < tokensDust.length; i++) {
+            tokensDustBalancesPre[i] = IERC20(tokensDust[i]).balanceOf(address(ENSO_WEIROLL_WALLET_1));
         }
 
+        // --- Execute shortcut ---
         vm.prank(ENSO_EOA_1);
         uint256 gasStart = gasleft();
-        // gas before
-        bytes[] memory data = ENSO_WEIROLL_WALLET_1.executeWeiroll{ value: s_value }(s_commands, s_state);
+        ENSO_WEIROLL_WALLET_1.executeWeiroll{ value: s_value }(s_commands, s_state);
         uint256 gasEnd = gasleft();
-        // gas after
 
+        // -- Log simulation results ---
+        console2.log("**************************");
+        console2.log("*** SIMULATION RESULTS ***");
+        console2.log("**************************");
+        // Tokens out
+        console2.log("- Tokens Out -------------");
         for (uint256 i = 0; i < tokensOut.length; i++) {
-            uint256 balancePost = IERC20(tokensOut[i]).balanceOf(address(ENSO_WEIROLL_WALLET_1));
-            console2.log("**************************");
-            console2.log("*** SIMULATION RESULTS ***");
-            console2.log("**************************");
-            console2.log("* TokenOut: ", tokensOut[i]);
-            console2.log("* amountOut: ", balancePost - balancesPre[i]);
+            uint256 tokenOutBalancePost = IERC20(tokensOut[i]).balanceOf(address(ENSO_WEIROLL_WALLET_1));
+            console2.log("* Addr: ", tokensOut[i]);
+            console2.log("* Name: ", s_addressToLabel[tokensOut[i]]);
+            console2.log("* Amount: ", tokenOutBalancePost - tokensOutBalancesPre[i]);
             console2.log("--------------------------");
         }
-        console2.log("* Gas used: ", gasStart - gasEnd);
+        console2.log("");
+
+        // Tokens dust
+        console2.log("- Tokens Dust ------------");
+        for (uint256 i = 0; i < tokensDust.length; i++) {
+            uint256 tokenDustBalancePost = IERC20(tokensDust[i]).balanceOf(address(ENSO_WEIROLL_WALLET_1));
+            console2.log("* Addr: ", tokensDust[i]);
+            console2.log("* Name: ", s_addressToLabel[tokensDust[i]]);
+            console2.log("* Amount: ", tokenDustBalancePost - tokensDustBalancesPre[i]);
+            console2.log("--------------------------");
+        }
+        console2.log("--- Gas ------------------");
+        console2.log("* Used: ", gasStart - gasEnd);
         console2.log("**************************");
     }
 }

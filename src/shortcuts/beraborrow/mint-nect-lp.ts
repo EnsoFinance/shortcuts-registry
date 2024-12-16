@@ -1,12 +1,14 @@
 import { Builder } from '@ensofinance/shortcuts-builder';
 import { RoycoClient } from '@ensofinance/shortcuts-builder/client/implementations/roycoClient';
 import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
-import { ChainIds, FromContractCallArg, WeirollScript } from '@ensofinance/shortcuts-builder/types';
+import { AddressArg, ChainIds, FromContractCallArg, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 import { Standards, getStandardByProtocol } from '@ensofinance/shortcuts-standards';
 import { TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
 import { div } from '@ensofinance/shortcuts-standards/helpers/math';
+import { getAddress } from '@ethersproject/address';
 
-import { Input, Output, Shortcut } from '../../types';
+import { chainIdToTokenHolder } from '../../constants';
+import type { Input, LabelsData, Output, Shortcut } from '../../types';
 import { balanceOf, mintHoney } from '../../utils';
 
 export class BeraborrowMintNectLpShortcut implements Shortcut {
@@ -64,5 +66,42 @@ export class BeraborrowMintNectLpShortcut implements Shortcut {
       script: payload.shortcut as WeirollScript,
       metadata: builder.metadata,
     };
+  }
+
+  getLabelsData(chainId: number): LabelsData {
+    switch (chainId) {
+      case ChainIds.Cartio:
+        return {
+          protocolToData: new Map([
+            [
+              getAddress(Standards.Kodiak_Islands.protocol.addresses!.cartio!.nectUsdcIsland) as AddressArg,
+              {
+                label: 'Kodiak:NECT/USDC',
+              },
+            ],
+            [
+              getAddress(Standards.Kodiak_Islands.protocol.addresses!.cartio!.router) as AddressArg,
+              { label: 'Kodiak:IslandRouter' },
+            ],
+            [
+              getAddress(Standards.Kodiak_Islands.protocol.addresses!.cartio!.quoterV2) as AddressArg,
+              { label: 'Kodiak:QuoterV2' },
+            ],
+          ]),
+          tokenToData: new Map([
+            [getAddress(TokenAddresses.cartio.honey) as AddressArg, { label: 'ERC20:HONEY', isTokenDust: true }],
+            [getAddress(TokenAddresses.cartio.nect) as AddressArg, { label: 'ERC20:NECT', isTokenDust: true }],
+            [getAddress(TokenAddresses.cartio.usdc) as AddressArg, { label: 'ERC20:USDC', isTokenDust: false }],
+          ]),
+        };
+      default:
+        throw new Error(`Unsupported chainId: ${chainId}`);
+    }
+  }
+  getTokenTholder(chainId: number): Map<AddressArg, AddressArg> {
+    const tokenToHolder = chainIdToTokenHolder.get(chainId);
+    if (!tokenToHolder) throw new Error(`Unsupported 'chainId': ${chainId}`);
+
+    return tokenToHolder as Map<AddressArg, AddressArg>;
   }
 }
