@@ -2,6 +2,7 @@
 .coverage_artifacts/
 .coverage_cache/
 .coverage_contracts/
+.husky/
 artifacts/
 build/
 cache/
@@ -18,10 +19,15 @@ types/
 *.env
 *.log
 .DS_Store
+.gitignore
+.gitmodules
+.nvmrc
 .pnp.*
+.prettierignore
 coverage.json
 package-lock.json
 pnpm-lock.yaml
+remappints.txt
 repos
 reports
 scope.txt
