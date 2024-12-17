@@ -14,6 +14,7 @@ import { DolomiteDUsdtShortcut } from './shortcuts/dolomite/dusdt';
 import { DolomiteDWbtcShortcut } from './shortcuts/dolomite/dwbtc';
 import { KodiakHoneyUsdcShortcut } from './shortcuts/kodiak/honey-usdc';
 import { OrigamiBoycoHoneyShortcut } from './shortcuts/origami/oboy-HONEY-a';
+import { SatlayerPumpBtcShortcut } from './shortcuts/satlayer/pumpBtc';
 
 dotenv.config();
 
@@ -34,6 +35,9 @@ const shortcuts: Record<string, Record<string, Shortcut>> = {
   origami: {
     'oboy-honey': new OrigamiBoycoHoneyShortcut(),
   },
+  satlayer: {
+    'pump-btc': new SatlayerPumpBtcShortcut(),
+  },
 };
 
 export async function getShortcut() {
@@ -47,6 +51,7 @@ export async function getShortcut() {
   const chainId = getChainId(chain);
   if (!chainId) throw 'Error: Unknown chain';
 
+  console.log(shortcuts);
   const shortcut = shortcuts[protocol]?.[market];
   if (!shortcut) throw 'Error: Unknown shortcut';
 

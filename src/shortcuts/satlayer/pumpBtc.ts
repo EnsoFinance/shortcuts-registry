@@ -13,8 +13,8 @@ export class SatlayerPumpBtcShortcut implements Shortcut {
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
-      depositToken: Standards.Satlayer_Vaults.protocol.addresses!.cartio!.pumpBtc,
-      receiptToken: Standards.Satlayer_Vaults.protocol.addresses!.cartio!.receiptToken,
+      depositToken: Standards.Satlayer_Vaults.protocol.addresses!.cartio!.pumptBtc,
+      receiptToken: Standards.Satlayer_Vaults.protocol.addresses!.cartio!.recepitToken,
       vault: Standards.Satlayer_Vaults.protocol.addresses!.cartio!.vault,
     },
   };
@@ -35,6 +35,8 @@ export class SatlayerPumpBtcShortcut implements Shortcut {
 
     //Mint
     const satlayer = getStandardByProtocol('satlayer-vaults', chainId);
+    console.log(depositToken, receiptToken, vault);
+
     await satlayer.deposit.addToBuilder(builder, {
       tokenIn: depositToken,
       tokenOut: receiptToken,
