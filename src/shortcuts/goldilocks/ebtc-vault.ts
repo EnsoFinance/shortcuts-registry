@@ -1,12 +1,12 @@
 import { Builder } from '@ensofinance/shortcuts-builder';
 import { RoycoClient } from '@ensofinance/shortcuts-builder/client/implementations/roycoClient';
 import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
-import { ChainIds, NumberArg, WeirollScript } from '@ensofinance/shortcuts-builder/types';
+import { ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 import { Standards, getStandardByProtocol } from '@ensofinance/shortcuts-standards';
 import { div } from '@ensofinance/shortcuts-standards/helpers/math';
 
 import { Input, Output, Shortcut } from '../../types';
-import { balanceOf } from '../../utils';
+import { balanceOf, burn, mintGoldilocksOtYt } from '../../utils';
 
 export class GoldilocksEbtcShortcut implements Shortcut {
   name = 'goldilocks-ebtc';
@@ -37,20 +37,11 @@ export class GoldilocksEbtcShortcut implements Shortcut {
     const amountIn = await builder.add(balanceOf(base, walletAddress()));
     const halfAmount = await div(amountIn, 2, builder);
 
-    const goldilocks = getStandardByProtocol('goldilocks', chainId);
-    const { amountOut } = await goldilocks.deposit.addToBuilder(
-      builder,
-      {
-        tokenIn: base,
-        tokenOut: [ot, yt],
-        amountIn: halfAmount,
-        primaryAddress: vault,
-      },
-      ['amountOut'],
-    );
+    await mintGoldilocksOtYt(base, ot, yt, vault, halfAmount, builder);
 
-    if (!Array.isArray(amountOut)) throw 'Error: Invalid amountOut'; // should never throw
-    const [otAmount] = amountOut as NumberArg[];
+    const otAmount = await builder.add(balanceOf(ot, walletAddress()));
+    const ytAmount = await builder.add(balanceOf(yt, walletAddress()));
+    builder.add(burn(yt, ytAmount));
 
     const kodiak = getStandardByProtocol('kodiak-islands', chainId);
     await kodiak.deposit.addToBuilder(builder, {

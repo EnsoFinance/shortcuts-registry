@@ -7,7 +7,7 @@ import { TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
 import { div } from '@ensofinance/shortcuts-standards/helpers/math';
 
 import { Input, Output, Shortcut } from '../../types';
-import { balanceOf, mintHoney } from '../../utils';
+import { balanceOf, mintHoney, redeemHoney } from '../../utils';
 
 export class KodiakHoneyUsdcShortcut implements Shortcut {
   name = 'kodiak-honey-usdc';
@@ -43,6 +43,10 @@ export class KodiakHoneyUsdcShortcut implements Shortcut {
       amountIn: [halfAmount, mintedAmount],
       primaryAddress: primary,
     });
+
+    // get honey amount and burn it for usdc
+    const honeyLeftovers = await builder.add(balanceOf(honey, walletAddress()));
+    await redeemHoney(usdc, honeyLeftovers, builder);
 
     const payload = await builder.build({
       requireWeiroll: true,
