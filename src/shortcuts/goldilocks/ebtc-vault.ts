@@ -1,11 +1,13 @@
 import { Builder } from '@ensofinance/shortcuts-builder';
 import { RoycoClient } from '@ensofinance/shortcuts-builder/client/implementations/roycoClient';
 import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
-import { ChainIds, NumberArg, WeirollScript } from '@ensofinance/shortcuts-builder/types';
+import { AddressArg, ChainIds, NumberArg, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 import { Standards, getStandardByProtocol } from '@ensofinance/shortcuts-standards';
 import { div } from '@ensofinance/shortcuts-standards/helpers/math';
+import { getAddress } from '@ethersproject/address';
 
-import { Input, Output, Shortcut } from '../../types';
+import { chainIdToTokenHolder } from '../../constants';
+import type { AddressData, Input, Output, Shortcut } from '../../types';
 import { balanceOf } from '../../utils';
 
 export class GoldilocksEbtcShortcut implements Shortcut {
@@ -14,11 +16,11 @@ export class GoldilocksEbtcShortcut implements Shortcut {
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
-      base: '0x888d15E66b5eb410ea5Df520Fc46f030BBa31299', //ebtc
-      ot: '0xC8Cea1238Ab50d6669995c4621F57334DdE3A22a', //ebtc-ot
-      yt: '0x3f33F2F068C6457B5719241ad7aef4131cC21e1F', //ebtc-yt
-      vault: '0x299D37afEcfDA294448Ae24029b5Ee1c56a3F2D8',
-      island: '0x',
+      base: getAddress('0x888d15E66b5eb410ea5Df520Fc46f030BBa31299') as AddressArg, //ebtc
+      ot: getAddress('0xC8Cea1238Ab50d6669995c4621F57334DdE3A22a') as AddressArg, //ebtc-ot
+      yt: getAddress('0x3f33F2F068C6457B5719241ad7aef4131cC21e1F') as AddressArg, //ebtc-yt
+      vault: getAddress('0x299D37afEcfDA294448Ae24029b5Ee1c56a3F2D8') as AddressArg, // Golidlock ebtc vault
+      island: getAddress('0x0000000000000000000000000000000000000000') as AddressArg, // TODO
     },
   };
 
@@ -34,8 +36,8 @@ export class GoldilocksEbtcShortcut implements Shortcut {
     });
 
     // Get the amount of the base token in the wallet, split 50/50, and deposit into vault
-    const amountIn = await builder.add(balanceOf(base, walletAddress()));
-    const halfAmount = await div(amountIn, 2, builder);
+    const amountIn = builder.add(balanceOf(base, walletAddress()));
+    const halfAmount = div(amountIn, 2, builder);
 
     const goldilocks = getStandardByProtocol('goldilocks', chainId);
 
@@ -71,5 +73,27 @@ export class GoldilocksEbtcShortcut implements Shortcut {
       script: payload.shortcut as WeirollScript,
       metadata: builder.metadata,
     };
+  }
+
+  getAddressData(chainId: number): Map<AddressArg, AddressData> {
+    switch (chainId) {
+      case ChainIds.Cartio:
+        return new Map([
+          [this.inputs[ChainIds.Cartio].base, { label: 'ERC20:eBTC' }],
+          [this.inputs[ChainIds.Cartio].ot, { label: 'ERC20:eBTC-OT' }],
+          [this.inputs[ChainIds.Cartio].yt, { label: 'ERC20:eBTC-YT' }],
+          [this.inputs[ChainIds.Cartio].vault, { label: 'PointsGoldiVault:eBTC' }],
+          [this.inputs[ChainIds.Cartio].island, { label: 'KodiakIsland:' }],
+        ]);
+      default:
+        throw new Error(`Unsupported chainId: ${chainId}`);
+    }
+  }
+
+  getTokenHolder(chainId: number): Map<AddressArg, AddressArg> {
+    const tokenToHolder = chainIdToTokenHolder.get(chainId);
+    if (!tokenToHolder) throw new Error(`Unsupported 'chainId': ${chainId}`);
+
+    return tokenToHolder as Map<AddressArg, AddressArg>;
   }
 }

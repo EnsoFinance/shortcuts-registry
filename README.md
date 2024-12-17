@@ -42,16 +42,20 @@ simulation is done via the `quoter`.
 
 ### Forge
 
-Please set `RPC_URL_<network_name>` in the .env file.
+Please set first:
+
+- `RPC_URL_<network_name>` in the .env file.
+- `Shorcut.getTokenHolder(chainId)` TypeScript implementation (responsible of Weiroll wallet funding with `tokensIn`
+  before shortcut execution). Optionally, `Shorcut.getAddressData(chainId)` (responsible of labelling addresses).
 
 ```sh
-pnpm simulate cartio dolomite dhoney 1000000 --mode=forge
+pnpm simulate cartio beraborrow mint-nect-lp 100000 --mode=forge
 ```
 
 Optionally set the fork block number via `--block=`:
 
 ```sh
-pnpm simulate cartio dolomite dhoney 1000000 --mode=forge --block=1835295
+pnpm simulate cartio beraborrow mint-nect-lp 100000 --mode=forge --block=1835295
 ```
 
 ### Quoter

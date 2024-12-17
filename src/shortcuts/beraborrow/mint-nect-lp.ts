@@ -8,7 +8,7 @@ import { div } from '@ensofinance/shortcuts-standards/helpers/math';
 import { getAddress } from '@ethersproject/address';
 
 import { chainIdToTokenHolder } from '../../constants';
-import type { Input, LabelsData, Output, Shortcut } from '../../types';
+import type { AddressData, Input, Output, Shortcut } from '../../types';
 import { balanceOf, mintHoney } from '../../utils';
 
 export class BeraborrowMintNectLpShortcut implements Shortcut {
@@ -17,12 +17,13 @@ export class BeraborrowMintNectLpShortcut implements Shortcut {
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
-      honey: TokenAddresses.cartio.honey,
-      nect: TokenAddresses.cartio.nect,
-      usdc: TokenAddresses.cartio.usdc,
-      usdcPsmBond: '0xd064C80776497821313b1Dc0E3192d1a67b2a9fa',
-      island: Standards.Kodiak_Islands.protocol.addresses!.cartio!.nectUsdcIsland,
-      primary: Standards.Kodiak_Islands.protocol.addresses!.cartio!.router,
+      honey: getAddress(TokenAddresses.cartio.honey) as AddressArg,
+      nect: getAddress(TokenAddresses.cartio.nect) as AddressArg,
+      usdc: getAddress(TokenAddresses.cartio.usdc) as AddressArg,
+      usdcPsmBond: getAddress('0xd064C80776497821313b1Dc0E3192d1a67b2a9fa') as AddressArg,
+      island: getAddress('0xaEdC80dCdc872FA7B5FB4c5EC5d8C8696BB05f5d') as AddressArg, // KODI-HONEY-NECT
+      primary: getAddress(Standards.Kodiak_Islands.protocol.addresses!.cartio!.router) as AddressArg,
+      quoterV2: getAddress(Standards.Kodiak_Islands.protocol.addresses!.cartio!.quoterV2) as AddressArg,
     },
   };
 
@@ -68,37 +69,27 @@ export class BeraborrowMintNectLpShortcut implements Shortcut {
     };
   }
 
-  getLabelsData(chainId: number): LabelsData {
+  getAddressData(chainId: number): Map<AddressArg, AddressData> {
     switch (chainId) {
       case ChainIds.Cartio:
-        return {
-          protocolToData: new Map([
-            [
-              getAddress(Standards.Kodiak_Islands.protocol.addresses!.cartio!.nectUsdcIsland) as AddressArg,
-              {
-                label: 'Kodiak:NECT/USDC',
-              },
-            ],
-            [
-              getAddress(Standards.Kodiak_Islands.protocol.addresses!.cartio!.router) as AddressArg,
-              { label: 'Kodiak:IslandRouter' },
-            ],
-            [
-              getAddress(Standards.Kodiak_Islands.protocol.addresses!.cartio!.quoterV2) as AddressArg,
-              { label: 'Kodiak:QuoterV2' },
-            ],
-          ]),
-          tokenToData: new Map([
-            [getAddress(TokenAddresses.cartio.honey) as AddressArg, { label: 'ERC20:HONEY', isTokenDust: true }],
-            [getAddress(TokenAddresses.cartio.nect) as AddressArg, { label: 'ERC20:NECT', isTokenDust: true }],
-            [getAddress(TokenAddresses.cartio.usdc) as AddressArg, { label: 'ERC20:USDC', isTokenDust: false }],
-          ]),
-        };
+        return new Map([
+          [
+            this.inputs[ChainIds.Cartio].island,
+            {
+              label: 'Kodiak Island-HONEY-NECT',
+            },
+          ],
+          [this.inputs[ChainIds.Cartio].primary, { label: 'Kodiak Island Router' }],
+          [this.inputs[ChainIds.Cartio].quoterV2, { label: 'Kodiak QuoterV2' }],
+          [this.inputs[ChainIds.Cartio].honey, { label: 'ERC20:HONEY' }],
+          [this.inputs[ChainIds.Cartio].nect, { label: 'ERC20:NECT' }],
+          [this.inputs[ChainIds.Cartio].usdc, { label: 'ERC20:USDC' }],
+        ]);
       default:
         throw new Error(`Unsupported chainId: ${chainId}`);
     }
   }
-  getTokenTholder(chainId: number): Map<AddressArg, AddressArg> {
+  getTokenHolder(chainId: number): Map<AddressArg, AddressArg> {
     const tokenToHolder = chainIdToTokenHolder.get(chainId);
     if (!tokenToHolder) throw new Error(`Unsupported 'chainId': ${chainId}`);
 
