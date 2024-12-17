@@ -24,6 +24,7 @@ types/
 .nvmrc
 .pnp.*
 .prettierignore
+**/*.sol
 coverage.json
 package-lock.json
 pnpm-lock.yaml

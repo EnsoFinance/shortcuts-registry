@@ -1,11 +1,13 @@
 import { Builder } from '@ensofinance/shortcuts-builder';
 import { RoycoClient } from '@ensofinance/shortcuts-builder/client/implementations/roycoClient';
 import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
-import { ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
+import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 import { getStandardByProtocol } from '@ensofinance/shortcuts-standards';
 import { TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
+import { getAddress } from '@ethersproject/address';
 
-import { Input, Output, Shortcut } from '../../types';
+import { chainIdToTokenHolder } from '../../constants';
+import type { AddressData, Input, Output, Shortcut } from '../../types';
 import { balanceOf, mintHoney } from '../../utils';
 
 export class DolomiteDHoneyShortcut implements Shortcut {
@@ -14,9 +16,9 @@ export class DolomiteDHoneyShortcut implements Shortcut {
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
-      usdc: TokenAddresses.cartio.usdc,
-      honey: TokenAddresses.cartio.honey,
-      dhoney: '0x7f2B60fDff1494A0E3e060532c9980d7fad0404B',
+      usdc: getAddress(TokenAddresses.cartio.usdc) as AddressArg,
+      honey: getAddress(TokenAddresses.cartio.honey) as AddressArg,
+      dhoney: getAddress('0x7f2B60fDff1494A0E3e060532c9980d7fad0404B') as AddressArg,
     },
   };
 
@@ -54,5 +56,25 @@ export class DolomiteDHoneyShortcut implements Shortcut {
       script: payload.shortcut as WeirollScript,
       metadata: builder.metadata,
     };
+  }
+
+  getAddressData(chainId: number): Map<AddressArg, AddressData> {
+    switch (chainId) {
+      case ChainIds.Cartio:
+        return new Map([
+          [this.inputs[ChainIds.Cartio].usdc, { label: 'ERC20:USDC' }],
+          [this.inputs[ChainIds.Cartio].honey, { label: 'ERC20:HONEY' }],
+          [this.inputs[ChainIds.Cartio].dhoney, { label: 'ERC20:dHONEY' }],
+        ]);
+      default:
+        throw new Error(`Unsupported chainId: ${chainId}`);
+    }
+  }
+
+  getTokenHolder(chainId: number): Map<AddressArg, AddressArg> {
+    const tokenToHolder = chainIdToTokenHolder.get(chainId);
+    if (!tokenToHolder) throw new Error(`Unsupported 'chainId': ${chainId}`);
+
+    return tokenToHolder as Map<AddressArg, AddressArg>;
   }
 }

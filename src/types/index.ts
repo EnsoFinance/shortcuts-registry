@@ -11,8 +11,8 @@ export interface Shortcut {
   supportedChains: number[];
   inputs: Record<number, Input>;
   build(chainId: number): Promise<Output>;
-  getLabelsData?(chainId: number): LabelsData;
-  getTokenTholder?(chainId: number): Map<AddressArg, AddressArg>;
+  getAddressData?(chainId: number): Map<AddressArg, AddressData>;
+  getTokenHolder?(chainId: number): Map<AddressArg, AddressArg>;
 }
 
 export type Output = {
@@ -35,16 +35,6 @@ export type Report = {
   gas: string;
 };
 
-export interface ProtocolToLabelData {
+export interface AddressData {
   label: string;
-}
-
-export interface TokenToLabelData {
-  label: string;
-  isTokenDust: boolean;
-}
-
-export interface LabelsData {
-  protocolToData: Map<AddressArg, ProtocolToLabelData>;
-  tokenToData: Map<AddressArg, TokenToLabelData>;
 }

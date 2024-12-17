@@ -7,6 +7,7 @@ import { execSync } from 'node:child_process';
 import { SimulationMode } from '../src/constants';
 import { Shortcut } from '../src/types';
 import { BeraborrowMintNectLpShortcut } from './shortcuts/beraborrow/mint-nect-lp';
+import { BeraborrowVaultStrategyShortcut } from './shortcuts/beraborrow/vault-strategy';
 import { DolomiteDEthShortcut } from './shortcuts/dolomite/deth';
 import { DolomiteDHoneyShortcut } from './shortcuts/dolomite/dhoney';
 import { DolomiteDUsdcShortcut } from './shortcuts/dolomite/dusdc';
@@ -20,6 +21,7 @@ dotenv.config();
 const shortcuts: Record<string, Record<string, Shortcut>> = {
   beraborrow: {
     'mint-nect-lp': new BeraborrowMintNectLpShortcut(),
+    'vault-strategy': new BeraborrowVaultStrategyShortcut(),
   },
   dolomite: {
     deth: new DolomiteDEthShortcut(),
@@ -28,6 +30,11 @@ const shortcuts: Record<string, Record<string, Shortcut>> = {
     dusdt: new DolomiteDUsdtShortcut(),
     dwbtc: new DolomiteDWbtcShortcut(),
   },
+  // TODO: uncomment out and move import up once Goldilocks is ready
+  // import { GoldilocksEbtcShortcut } from './shortcuts/goldilocks/ebtc-vault';
+  // goldilocks: {
+  //   ebtc: new GoldilocksEbtcShortcut(),
+  // },
   kodiak: {
     'honey-usdc': new KodiakHoneyUsdcShortcut(),
   },

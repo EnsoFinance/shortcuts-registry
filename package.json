@@ -46,7 +46,8 @@
   "lint-staged": {
     "**/*": [
       "pnpm lint:fix",
-      "pnpm prettier:write"
+      "pnpm prettier:write",
+      "forge fmt"
     ]
   },
   "husky": {
