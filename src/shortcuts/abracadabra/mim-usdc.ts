@@ -32,7 +32,7 @@ export class AbracadabraMimUsdcShortcut implements Shortcut {
 
     const builder = new Builder(chainId, client, {
       tokensIn: [mim, usdc],
-      tokensOut: [island, honey], // include honey as token out, since we want to recover dust
+      tokensOut: [island],
     });
 
     const mimAmount = builder.add(balanceOf(mim, walletAddress()));
