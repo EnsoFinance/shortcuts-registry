@@ -21,7 +21,7 @@ export class BeraborrowMintNectLpShortcut implements Shortcut {
       nect: getAddress(TokenAddresses.cartio.nect) as AddressArg,
       usdc: getAddress(TokenAddresses.cartio.usdc) as AddressArg,
       usdcPsmBond: getAddress('0xd064C80776497821313b1Dc0E3192d1a67b2a9fa') as AddressArg,
-      island: getAddress(Standards.Kodiak_Islands.protocol.addresses!.cartio!.nectUsdcIsland) as AddressArg,
+      island: getAddress('0xaEdC80dCdc872FA7B5FB4c5EC5d8C8696BB05f5d') as AddressArg, // KODI-HONEY-NECT
       primary: getAddress(Standards.Kodiak_Islands.protocol.addresses!.cartio!.router) as AddressArg,
       quoterV2: getAddress(Standards.Kodiak_Islands.protocol.addresses!.cartio!.quoterV2) as AddressArg,
     },
@@ -69,18 +69,18 @@ export class BeraborrowMintNectLpShortcut implements Shortcut {
     };
   }
 
-  getLabelsData(chainId: number): Map<AddressArg, AddressData> {
+  getAddressData(chainId: number): Map<AddressArg, AddressData> {
     switch (chainId) {
       case ChainIds.Cartio:
         return new Map([
           [
-            this.inputs[ChainIds.Cartio].nectUsdcIsland,
+            this.inputs[ChainIds.Cartio].island,
             {
-              label: 'Kodiak:NECT/USDC',
+              label: 'Kodiak Island-HONEY-NECT',
             },
           ],
-          [this.inputs[ChainIds.Cartio].primary, { label: 'Kodiak:IslandRouter' }],
-          [this.inputs[ChainIds.Cartio].quoterV2, { label: 'Kodiak:QuoterV2' }],
+          [this.inputs[ChainIds.Cartio].primary, { label: 'Kodiak Island Router' }],
+          [this.inputs[ChainIds.Cartio].quoterV2, { label: 'Kodiak QuoterV2' }],
           [this.inputs[ChainIds.Cartio].honey, { label: 'ERC20:HONEY' }],
           [this.inputs[ChainIds.Cartio].nect, { label: 'ERC20:NECT' }],
           [this.inputs[ChainIds.Cartio].usdc, { label: 'ERC20:USDC' }],
