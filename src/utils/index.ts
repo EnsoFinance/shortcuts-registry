@@ -46,3 +46,17 @@ export async function mintHoney(asset: AddressArg, amount: NumberArg, builder: B
 
   return amountOut as FromContractCallArg;
 }
+
+export async function redeemHoney(asset: AddressArg, amount: NumberArg, builder: Builder) {
+  const honey = getStandardByProtocol('berachain-honey', builder.chainId);
+  const honeyFactory = Standards.Berachain_Honey.protocol.addresses!.cartio!.honeyFactory;
+
+  const { amountOut } = await honey.redeem.addToBuilder(builder, {
+    tokenIn: TokenAddresses.cartio.honey,
+    tokenOut: asset,
+    amountIn: amount,
+    primaryAddress: honeyFactory,
+  });
+
+  return amountOut as FromContractCallArg;
+}
