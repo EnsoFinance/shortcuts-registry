@@ -30,6 +30,11 @@ const shortcuts: Record<string, Record<string, Shortcut>> = {
     dusdt: new DolomiteDUsdtShortcut(),
     dwbtc: new DolomiteDWbtcShortcut(),
   },
+  // TODO: uncomment out and move import up once Goldilocks is ready
+  // import { GoldilocksEbtcShortcut } from './shortcuts/goldilocks/ebtc-vault';
+  // goldilocks: {
+  //   ebtc: new GoldilocksEbtcShortcut(),
+  // },
   kodiak: {
     'honey-usdc': new KodiakHoneyUsdcShortcut(),
   },
