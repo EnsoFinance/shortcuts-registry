@@ -1,12 +1,14 @@
 import { Builder } from '@ensofinance/shortcuts-builder';
 import { RoycoClient } from '@ensofinance/shortcuts-builder/client/implementations/roycoClient';
 import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
-import { ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
+import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 import { Standards, getStandardByProtocol } from '@ensofinance/shortcuts-standards';
 import { TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
 import { div } from '@ensofinance/shortcuts-standards/helpers/math';
+import { getAddress } from '@ethersproject/address';
 
-import { Input, Output, Shortcut } from '../../types';
+import { chainIdToTokenHolder } from '../../constants';
+import type { AddressData, Input, Output, Shortcut } from '../../types';
 import { balanceOf, mintHoney } from '../../utils';
 
 export class KodiakHoneyUsdcShortcut implements Shortcut {
@@ -15,10 +17,10 @@ export class KodiakHoneyUsdcShortcut implements Shortcut {
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
-      usdc: TokenAddresses.cartio.usdc,
-      honey: TokenAddresses.cartio.honey,
-      island: Standards.Kodiak_Islands.protocol.addresses!.cartio!.honeyUsdcIsland,
-      primary: Standards.Kodiak_Islands.protocol.addresses!.cartio!.router,
+      usdc: getAddress(TokenAddresses.cartio.usdc) as AddressArg,
+      honey: getAddress(TokenAddresses.cartio.honey) as AddressArg,
+      island: getAddress(Standards.Kodiak_Islands.protocol.addresses!.cartio!.honeyUsdcIsland) as AddressArg,
+      primary: getAddress(Standards.Kodiak_Islands.protocol.addresses!.cartio!.router) as AddressArg,
     },
   };
 
@@ -53,5 +55,25 @@ export class KodiakHoneyUsdcShortcut implements Shortcut {
       script: payload.shortcut as WeirollScript,
       metadata: builder.metadata,
     };
+  }
+
+  getAddressData(chainId: number): Map<AddressArg, AddressData> {
+    switch (chainId) {
+      case ChainIds.Cartio:
+        return new Map([
+          [this.inputs[ChainIds.Cartio].usdc, { label: 'ERC20:USDC' }],
+          [this.inputs[ChainIds.Cartio].honey, { label: 'ERC20:HONEY' }],
+          [this.inputs[ChainIds.Cartio].island, { label: 'Kodiak Island-USDC-HONEY-0.5%' }],
+          [this.inputs[ChainIds.Cartio].primary, { label: 'Kodiak Island Router' }],
+        ]);
+      default:
+        throw new Error(`Unsupported chainId: ${chainId}`);
+    }
+  }
+  getTokenHolder(chainId: number): Map<AddressArg, AddressArg> {
+    const tokenToHolder = chainIdToTokenHolder.get(chainId);
+    if (!tokenToHolder) throw new Error(`Unsupported 'chainId': ${chainId}`);
+
+    return tokenToHolder as Map<AddressArg, AddressArg>;
   }
 }
