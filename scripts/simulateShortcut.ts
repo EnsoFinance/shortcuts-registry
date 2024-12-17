@@ -1,6 +1,7 @@
 import { AddressArg, ChainIds } from '@ensofinance/shortcuts-builder/types';
+import { getAddress } from '@ethersproject/address';
 
-import { SimulationMode } from '../src/constants';
+import { FUNCTION_ID_ERC20_APPROVE, SimulationMode } from '../src/constants';
 import { getEncodedData, getShortcut } from '../src/helpers';
 import {
   getAmountsInFromArgs,
@@ -75,33 +76,35 @@ async function simulateOnForge(
   if (amountsIn.length != tokensIn.length)
     throw `Error: Incorrect number of amounts for shortcut. Expected ${tokensIn.length}`;
 
-  // Addresses labels & Dust tokens data
-  const tokensDust: AddressArg[] = [];
+  const { commands, state, value } = script;
+
+  // Get labels for known addresses
   const addressToLabel: Map<AddressArg, string> = new Map();
-  if (shortcut.getLabelsData) {
-    const labelsData = shortcut.getLabelsData(chainId);
-    for (const [address, data] of labelsData.tokenToData) {
-      if (data.isTokenDust) tokensDust.push(address);
-    }
-    // Map protocols to labels
-    for (const [address, data] of labelsData.protocolToData) {
+  if (shortcut.getAddressData) {
+    const addressToData = shortcut.getAddressData(chainId);
+    // Map address to labels
+    for (const [address, data] of addressToData) {
       addressToLabel.set(address, data.label);
-    }
-    // Map tokens to labels
-    for (const [address, data] of labelsData.tokenToData) {
-      addressToLabel.set(address, data.label);
-    }
-  }
-  // TokensIn holders
-  const tokensInHolders: AddressArg[] = [];
-  if (shortcut.getTokenTholder) {
-    const tokenToHolder = shortcut.getTokenTholder(chainId);
-    for (let i = 0; i < tokensIn.length; i++) {
-      tokensInHolders.push(tokenToHolder.get(tokensIn[i]) as AddressArg);
     }
   }
 
-  const { commands, state, value } = script;
+  // Get addresses for dust tokens from commands
+  const tokensDust: Set<AddressArg> = new Set();
+  for (const command of commands) {
+    if (command.startsWith(FUNCTION_ID_ERC20_APPROVE)) {
+      // NB: spender address is the last 20 bytes of the data
+      tokensDust.add(getAddress(`0x${command.slice(-40)}`) as AddressArg);
+    }
+  }
+
+  // Get holder addresses for tokens In
+  const tokensInHolders: Set<AddressArg> = new Set();
+  if (shortcut.getTokenHolder) {
+    const tokenToHolder = shortcut.getTokenHolder(chainId);
+    for (let i = 0; i < tokensIn.length; i++) {
+      tokensInHolders.add(tokenToHolder.get(tokensIn[i]) as AddressArg);
+    }
+  }
 
   simulateTransactionOnForge(
     commands,

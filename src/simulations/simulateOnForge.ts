@@ -1,3 +1,4 @@
+import { AddressArg } from '@ensofinance/shortcuts-builder/types';
 import { spawnSync } from 'node:child_process';
 
 export function simulateTransactionOnForge(
@@ -6,9 +7,9 @@ export function simulateTransactionOnForge(
   value: string,
   tokensIn: string[],
   amountsIn: string[],
-  tokensInHolders: string[],
+  tokensInHolders: Set<AddressArg>,
   tokensOut: string[],
-  tokensDust: string[],
+  tokensDust: Set<AddressArg>,
   addressToLabel: Map<string, string>,
   forgePath: string,
   chainId: number,
@@ -33,9 +34,9 @@ export function simulateTransactionOnForge(
         value,
         tokensIn,
         amountsIn,
-        tokensInHolders,
+        tokensInHolders: [...tokensInHolders],
         tokensOut,
-        tokensDust,
+        tokensDust: [...tokensDust],
         labelKeys: [...addressToLabel.keys()],
         labelValues: [...addressToLabel.values()],
       }),
