@@ -1,11 +1,12 @@
 import { Builder } from '@ensofinance/shortcuts-builder';
 import { RoycoClient } from '@ensofinance/shortcuts-builder/client/implementations/roycoClient';
 import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
-import { ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
+import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 import { Standards, getStandardByProtocol } from '@ensofinance/shortcuts-standards';
 import { TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
 
-import { Input, Output, Shortcut } from '../../types';
+import { chainIdToTokenHolder } from '../../constants';
+import { AddressData, Input, Output, Shortcut } from '../../types';
 import { balanceOf, mintHoney, redeemHoney } from '../../utils';
 
 export class KodiakWethHoneyShortcut implements Shortcut {
@@ -56,5 +57,26 @@ export class KodiakWethHoneyShortcut implements Shortcut {
       script: payload.shortcut as WeirollScript,
       metadata: builder.metadata,
     };
+  }
+
+  getAddressData(chainId: number): Map<AddressArg, AddressData> {
+    switch (chainId) {
+      case ChainIds.Cartio:
+        return new Map([
+          [this.inputs[ChainIds.Cartio].usdc, { label: 'ERC20:USDC' }],
+          [this.inputs[ChainIds.Cartio].honey, { label: 'ERC20:HONEY' }],
+          [this.inputs[ChainIds.Cartio].weth, { label: 'ERC20:WETH' }],
+          [this.inputs[ChainIds.Cartio].island, { label: 'Kodiak Island-WETH-HONEY-0.3%' }],
+          [this.inputs[ChainIds.Cartio].primary, { label: 'Kodiak Island Router' }],
+        ]);
+      default:
+        throw new Error(`Unsupported chainId: ${chainId}`);
+    }
+  }
+  getTokenHolder(chainId: number): Map<AddressArg, AddressArg> {
+    const tokenToHolder = chainIdToTokenHolder.get(chainId);
+    if (!tokenToHolder) throw new Error(`Unsupported 'chainId': ${chainId}`);
+
+    return tokenToHolder as Map<AddressArg, AddressArg>;
   }
 }
