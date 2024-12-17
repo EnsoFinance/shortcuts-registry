@@ -27,6 +27,10 @@ const tokenToHolderCartio: Map<AddressArg, AddressArg> = new Map([
     getAddress('0x1aF00782F74DdC4c7fCEFe8752113084FEBCDA45') as AddressArg,
     getAddress('0x5B34eBA09e567d37884c0AA58509119c87Bfb589') as AddressArg,
   ], // BURR
+  // [
+  //   getAddress('0x2d93FbcE4CffC15DD385A80B3f4CC1D4E76C38b3') as AddressArg,
+  //   getAddress('0x0000000000000000000000000000000000000000') as AddressArg,
+  // ], // dWETH (no holder found)
   [
     getAddress('0xd137593CDB341CcC78426c54Fb98435C60Da193c') as AddressArg,
     getAddress('0x3869E8A2A1432D09666f87b9E61FBf6f71eb6c75') as AddressArg,
