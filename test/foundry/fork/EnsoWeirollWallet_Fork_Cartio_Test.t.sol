@@ -131,6 +131,7 @@ contract EnsoWeirollWallet_Fork_Cartio_Test is Test {
 
     function test_executeWeiroll_1() public {
         address[] memory tokensIn = s_tokensIn;
+        uint256[] memory tokensInBalancesPre = new uint256[](tokensIn.length);
         uint256[] memory amountsIn = s_amountsIn;
         address[] memory tokensInHolders = s_tokensInHolders;
         address[] memory tokensOut = s_tokensOut;
@@ -139,6 +140,10 @@ contract EnsoWeirollWallet_Fork_Cartio_Test is Test {
         uint256[] memory tokensDustBalancesPre = new uint256[](tokensDust.length);
 
         // --- Calculate balances before ---
+        // Tokens in (before funding them)
+        for (uint256 i = 0; i < tokensIn.length; i++) {
+            tokensInBalancesPre[i] = IERC20(tokensIn[i]).balanceOf(address(ENSO_WEIROLL_WALLET_1));
+        }
         // Tokens out
         for (uint256 i = 0; i < tokensOut.length; i++) {
             tokensOutBalancesPre[i] = IERC20(tokensOut[i]).balanceOf(address(ENSO_WEIROLL_WALLET_1));
@@ -176,54 +181,72 @@ contract EnsoWeirollWallet_Fork_Cartio_Test is Test {
         uint256 gasEnd = gasleft();
 
         // -- Log simulation results ---
-        console2.log("**************************");
-        console2.log("*** SIMULATION RESULTS ***");
-        console2.log("**************************");
-        console2.log("* Chain ID: ", block.chainid);
+        console2.log(unicode"╔══════════════════════════════════════════╗");
+        console2.log(unicode"║              SIMULATION RESULTS          ║");
+        console2.log(unicode"╚══════════════════════════════════════════╝");
+        console2.log("| Chain ID    : ", block.chainid);
         if (s_blockNumber == SIMULATION_BLOCK_NUMBER_LATEST) {
-            console2.log("* Block number (latest): ", block.number);
+            console2.log("| Block Number (Latest): ", block.number);
         } else {
-            console2.log("* Block number (fork): ", block.number);
+            console2.log("| Block Number (Fork): ", block.number);
         }
-        console2.log("--------------------------");
-        console2.log("");
+        // Tokens in
+        console2.log(unicode"|────────────────────────────────────────────");
+        console2.log("| - TOKENS IN -------------");
+        if (tokensOut.length == 0) {
+            console2.log("| No Tokens In");
+        }
+        for (uint256 i = 0; i < tokensIn.length; i++) {
+            uint256 tokenInBalancePost = IERC20(tokensIn[i]).balanceOf(address(ENSO_WEIROLL_WALLET_1));
+            console2.log("| Addr    : ", tokensIn[i]);
+            console2.log("| Name    : ", s_addressToLabel[tokensIn[i]]);
+            console2.log("| Amount  : ");
+            console2.log("|   Pre   : ", tokensInBalancesPre[i]);
+            console2.log("|   In    : ", amountsIn[i]);
+            console2.log("|   Post  : ", tokenInBalancePost);
+            if (i != tokensIn.length - 1) {
+                console2.log(unicode"|--------------------------------------------");
+            }
+        }
+
         // Tokens out
-        if (tokensOut.length > 0) {
-            console2.log("- Tokens Out -------------");
-        } else {
-            console2.log("- No Tokens Out -------------");
-            console2.log("");
+        console2.log(unicode"|────────────────────────────────────────────");
+        console2.log("| - TOKENS OUT -------------");
+        if (tokensOut.length == 0) {
+            console2.log("| No Tokens Out");
         }
         for (uint256 i = 0; i < tokensOut.length; i++) {
             uint256 tokenOutBalancePost = IERC20(tokensOut[i]).balanceOf(address(ENSO_WEIROLL_WALLET_1));
-            console2.log("* Addr: ", tokensOut[i]);
-            console2.log("* Name: ", s_addressToLabel[tokensOut[i]]);
-            console2.log("* Amount: ", tokenOutBalancePost - tokensOutBalancesPre[i]);
-            console2.log("** Pre: ", tokensOutBalancesPre[i]);
-            console2.log("** Post: ", tokenOutBalancePost);
-            console2.log("--------------------------");
+            console2.log("| Addr    : ", tokensOut[i]);
+            console2.log("| Name    : ", s_addressToLabel[tokensOut[i]]);
+            console2.log("| Amount  : ", tokenOutBalancePost - tokensOutBalancesPre[i]);
+            console2.log("|   Pre   : ", tokensOutBalancesPre[i]);
+            console2.log("|   Post  : ", tokenOutBalancePost);
+            if (i != tokensOut.length - 1) {
+                console2.log(unicode"|--------------------------------------------");
+            }
         }
-        console2.log("");
 
         // Tokens dust
-        if (tokensDust.length > 0) {
-            console2.log("- Dust Tokens ------------");
-        } else {
-            console2.log("- No Dust Tokens ---------");
-            console2.log("");
+        console2.log(unicode"|────────────────────────────────────────────");
+        console2.log("|- DUST TOKENS -------------");
+        if (tokensDust.length == 0) {
+            console2.log("| No Dust Tokens");
         }
         for (uint256 i = 0; i < tokensDust.length; i++) {
             uint256 tokenDustBalancePost = IERC20(tokensDust[i]).balanceOf(address(ENSO_WEIROLL_WALLET_1));
-            console2.log("* Addr: ", tokensDust[i]);
-            console2.log("* Name: ", s_addressToLabel[tokensDust[i]]);
-            console2.log("* Amount: ", tokenDustBalancePost - tokensDustBalancesPre[i]);
-            console2.log("** Pre: ", tokensDustBalancesPre[i]);
-            console2.log("** Post: ", tokenDustBalancePost);
-            console2.log("--------------------------");
+            console2.log("| Addr    : ", tokensDust[i]);
+            console2.log("| Name    : ", s_addressToLabel[tokensDust[i]]);
+            console2.log("| Amount  : ", tokenDustBalancePost - tokensDustBalancesPre[i]);
+            console2.log("|   Pre   : ", tokensDustBalancesPre[i]);
+            console2.log("|   Post  : ", tokenDustBalancePost);
+            if (i != tokensDust.length - 1) {
+                console2.log(unicode"|--------------------------------------------");
+            }
         }
-        console2.log("");
-        console2.log("- Gas --------------------");
-        console2.log("* Used: ", gasStart - gasEnd);
-        console2.log("**************************");
+        console2.log(unicode"|────────────────────────────────────────────");
+        console2.log("|- Gas --------------------");
+        console2.log("| Used    : ", gasStart - gasEnd);
+        console2.log(unicode"╚══════════════════════════════════════════╝");
     }
 }
