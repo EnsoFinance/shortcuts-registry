@@ -36,6 +36,10 @@ const tokenToHolderCartio: Map<AddressArg, AddressArg> = new Map([
     getAddress('0x0a26df1d9EE5e99dF92552979E83BEeA54653E8a') as AddressArg,
   ], // dHONEY
   [
+    getAddress('0x888d15E66b5eb410ea5Df520Fc46f030BBa31299') as AddressArg,
+    getAddress('0x895614c89beC7D11454312f740854d08CbF57A78') as AddressArg,
+  ], // eBTC
+  [
     getAddress('0xd137593CDB341CcC78426c54Fb98435C60Da193c') as AddressArg,
     getAddress('0x3869E8A2A1432D09666f87b9E61FBf6f71eb6c75') as AddressArg,
   ], // HONEY
