@@ -34,6 +34,7 @@ async function simulateShortcutOnQuoter(shortcut: Shortcut, chainId: ChainIds, a
     receiver: weirollWalletAddress,
   };
   const quoteTokens = [...tokensOut, ...tokensIn]; //find dust
+
   const request: QuoteRequest = {
     chainId,
     transactions: [tx],

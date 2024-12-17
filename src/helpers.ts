@@ -13,6 +13,7 @@ import { DolomiteDUsdcShortcut } from './shortcuts/dolomite/dusdc';
 import { DolomiteDUsdtShortcut } from './shortcuts/dolomite/dusdt';
 import { DolomiteDWbtcShortcut } from './shortcuts/dolomite/dwbtc';
 import { KodiakHoneyUsdcShortcut } from './shortcuts/kodiak/honey-usdc';
+import { KodiakWethHoneyShortcut } from './shortcuts/kodiak/weth-honey';
 import { OrigamiBoycoHoneyShortcut } from './shortcuts/origami/oboy-HONEY-a';
 
 dotenv.config();
@@ -30,6 +31,7 @@ const shortcuts: Record<string, Record<string, Shortcut>> = {
   },
   kodiak: {
     'honey-usdc': new KodiakHoneyUsdcShortcut(),
+    'weth-honey': new KodiakWethHoneyShortcut(),
   },
   origami: {
     'oboy-honey': new OrigamiBoycoHoneyShortcut(),

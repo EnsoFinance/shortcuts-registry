@@ -29,11 +29,10 @@ pnpm registryup
 
 ## Generate
 
-Pass the chain name (e.g., cartio), the protocol (e.g., dolomite), the market (e.g., dhoney), and the amounts in (e.g.,
-1000000):
+Pass the chain name (e.g., cartio), the protocol (e.g., dolomite) and the market (e.g., dhoney)
 
 ```sh
-pnpm generate cartio dolomite dhoney 1000000
+pnpm generate cartio dolomite dhoney
 ```
 
 ## Simulate
