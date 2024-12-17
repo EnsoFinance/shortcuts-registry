@@ -12,6 +12,7 @@
     "registryup": "pnpm install && forge soldeer update && forge remappings",
     "simulate": "pnpm ts-node scripts/simulateShortcut.ts",
     "execute": "pnpm ts-node scripts/executeShortcut.ts",
+    "set_campaign": "pnpm ts-node scripts/setCampaign.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepare": "husky"
   },
@@ -23,6 +24,7 @@
     "@ensofinance/shortcuts-standards": "^1.0.13",
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/address": "^5.7.0",
+    "@ethersproject/keccak256": "^5.7.0",
     "@ethersproject/providers": "^5.7.2",
     "@ethersproject/units": "^5.7.0",
     "@ethersproject/wallet": "^5.7.0",
