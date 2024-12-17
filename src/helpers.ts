@@ -149,6 +149,17 @@ export function getWalletFromArgs(args: string[]): string {
   return address;
 }
 
+export function getMarketIdFromArgs(args: string[]): string {
+  const filteredArgs = args.slice(5);
+  if (filteredArgs.length != 1) throw 'Error: Please pass market id';
+
+  const id = filteredArgs[0];
+
+  if (!id.startsWith('0x') || id.length !== 66) throw 'Error: Invalid id';
+
+  return id;
+}
+
 export function getEncodedData(commands: string[], state: string[]): string {
   const weirollWalletInterface = new Interface([
     'function executeWeiroll(bytes32[] calldata commands, bytes[] calldata state) external payable returns (bytes[] memory)',
