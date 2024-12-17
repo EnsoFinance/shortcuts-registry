@@ -89,13 +89,15 @@ async function simulateOnForge(
   }
 
   // Get addresses for dust tokens from commands
-  const tokensDust: Set<AddressArg> = new Set();
+  const tokensDustRaw: Set<AddressArg> = new Set();
   for (const command of commands) {
     if (command.startsWith(FUNCTION_ID_ERC20_APPROVE)) {
       // NB: spender address is the last 20 bytes of the data
-      tokensDust.add(getAddress(`0x${command.slice(-40)}`) as AddressArg);
+      tokensDustRaw.add(getAddress(`0x${command.slice(-40)}`) as AddressArg);
     }
   }
+  // NB: tokensOut shouldn't be flagged as dust
+  const tokensDust = tokensDustRaw.difference(new Set(tokensOut) as Set<AddressArg>);
 
   // Get holder addresses for tokens In
   const tokensInHolders: Set<AddressArg> = new Set();
