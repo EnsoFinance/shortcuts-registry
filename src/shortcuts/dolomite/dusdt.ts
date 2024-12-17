@@ -1,11 +1,13 @@
 import { Builder } from '@ensofinance/shortcuts-builder';
 import { RoycoClient } from '@ensofinance/shortcuts-builder/client/implementations/roycoClient';
 import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
-import { ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
+import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 import { getStandardByProtocol } from '@ensofinance/shortcuts-standards';
 import { TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
+import { getAddress } from '@ethersproject/address';
 
-import { Input, Output, Shortcut } from '../../types';
+import { chainIdToTokenHolder } from '../../constants';
+import type { AddressData, Input, Output, Shortcut } from '../../types';
 import { balanceOf } from '../../utils';
 
 export class DolomiteDUsdtShortcut implements Shortcut {
@@ -14,8 +16,8 @@ export class DolomiteDUsdtShortcut implements Shortcut {
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
-      base: TokenAddresses.cartio.usdt,
-      vault: '0xF2d2d55Daf93b0660297eaA10969eBe90ead5CE8', //dusdt
+      base: getAddress(TokenAddresses.cartio.usdt) as AddressArg,
+      vault: getAddress('0xF2d2d55Daf93b0660297eaA10969eBe90ead5CE8') as AddressArg, //dusdt
     },
   };
 
@@ -51,5 +53,24 @@ export class DolomiteDUsdtShortcut implements Shortcut {
       script: payload.shortcut as WeirollScript,
       metadata: builder.metadata,
     };
+  }
+
+  getAddressData(chainId: number): Map<AddressArg, AddressData> {
+    switch (chainId) {
+      case ChainIds.Cartio:
+        return new Map([
+          [this.inputs[ChainIds.Cartio].base, { label: 'ERC20:USDT' }],
+          [this.inputs[ChainIds.Cartio].vault, { label: 'ERC20:dUSDT' }],
+        ]);
+      default:
+        throw new Error(`Unsupported chainId: ${chainId}`);
+    }
+  }
+
+  getTokenHolder(chainId: number): Map<AddressArg, AddressArg> {
+    const tokenToHolder = chainIdToTokenHolder.get(chainId);
+    if (!tokenToHolder) throw new Error(`Unsupported 'chainId': ${chainId}`);
+
+    return tokenToHolder as Map<AddressArg, AddressArg>;
   }
 }
