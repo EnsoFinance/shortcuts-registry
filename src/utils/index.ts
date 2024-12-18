@@ -2,6 +2,7 @@ import { Builder } from '@ensofinance/shortcuts-builder';
 import { contractCall } from '@ensofinance/shortcuts-builder/helpers';
 import {
   AddressArg,
+  ChainIds,
   FromContractCallArg,
   NumberArg,
   Transaction,
@@ -10,7 +11,7 @@ import {
 import { Standards, getStandardByProtocol } from '@ensofinance/shortcuts-standards';
 import { TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
 
-import { SimulationResult } from '../types';
+import type { RoycoOutput, Shortcut, SimulationResult } from '../types';
 
 export async function prepareResponse(
   /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -59,4 +60,13 @@ export async function redeemHoney(asset: AddressArg, amount: NumberArg, builder:
   });
 
   return amountOut as FromContractCallArg;
+}
+
+export async function buildRoycoMarketShortcut(shortcut: Shortcut, chainId: ChainIds): Promise<RoycoOutput> {
+  const output = await shortcut.build(chainId);
+
+  return {
+    weirollCommands: output.script.commands,
+    weirollState: output.script.state,
+  };
 }

@@ -8,6 +8,11 @@ export enum SimulationMode {
   TENDERLY = 'tenderly',
 }
 
+export enum ShortcutOutputFormat {
+  ROYCO = 'royco',
+  FULL = 'full',
+}
+
 export const FUNCTION_ID_ERC20_APPROVE = '0x095ea7b3';
 
 const tokenToHolderCartio: Map<AddressArg, AddressArg> = new Map([

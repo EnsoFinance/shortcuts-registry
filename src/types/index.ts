@@ -20,6 +20,12 @@ export type Output = {
   metadata: ShortcutMetadata,
 }
 
+export type RoycoOutput = {
+  weirollCommands: WeirollScript['commands'];
+  weirollState: WeirollScript['state'];
+}
+
+
 export type Input = Record<string, AddressArg>;
 
 export interface SimulationResult {
