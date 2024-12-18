@@ -35,6 +35,39 @@ Pass the chain name (e.g., cartio), the protocol (e.g., dolomite) and the market
 pnpm generate cartio dolomite dhoney
 ```
 
+Default output example:
+
+```json
+{
+  "weirollCommands": [
+    "0xb65d95ec01ffffffffffff0507899ac8be7462151d6515fcd4773dd9267c9911",
+    "0x2e1cc2f601ffffffffffff0607899ac8be7462151d6515fcd4773dd9267c9911",
+    "0x095ea7b3010600ffffffffff015fd589f4f1a33ce4487e12714e1b15129c9329",
+    "0x095ea7b3010600ffffffffff7f2b60fdff1494a0e3e060532c9980d7fad0404b",
+    "0x70a082310105ffffffffff06015fd589f4f1a33ce4487e12714e1b15129c9329",
+    "0x095ea7b3010106ffffffffff015fd589f4f1a33ce4487e12714e1b15129c9329",
+    "0x328ebaf70102060503ffff06a81f0019d442f19f66880bcf2698b4e5d5ec249a",
+    "0x095ea7b3010406ffffffffffd137593cdb341ccc78426c54fb98435c60da193c",
+    "0x6e553f65010605ffffffffff7f2b60fdff1494a0e3e060532c9980d7fad0404b"
+  ],
+  "weirollState": [
+    "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "0x000000000000000000000000a81f0019d442f19f66880bcf2698b4e5d5ec249a",
+    "0x000000000000000000000000015fd589f4f1a33ce4487e12714e1b15129c9329",
+    "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "0x0000000000000000000000007f2b60fdff1494a0e3e060532c9980d7fad0404b",
+    "0x",
+    "0x"
+  ]
+}
+```
+
+Optionally, get a full output by adding `--output=full`:
+
+```sh
+pnpm generate cartio dolomite dhoney --output=full
+```
+
 ## Simulate
 
 Simulation supported modes are: `forge`, and `quoter`. Simulation mode is set via `--mode=<simulationMode>`. By default
@@ -58,6 +91,58 @@ Optionally set the fork block number via `--block=`:
 pnpm simulate cartio beraborrow mint-nect-lp 100000 --mode=forge --block=1835295
 ```
 
+Output example:
+
+```sh
+[⠊] Compiling...
+No files changed, compilation skipped
+
+Ran 1 test for test/foundry/fork/EnsoWeirollWallet_Fork_Cartio_Test.t.sol:EnsoWeirollWallet_Fork_Cartio_Test
+[PASS] test_executeWeiroll_1() (gas: 875370)
+Logs:
+  ╔══════════════════════════════════════════╗
+  ║              SIMULATION RESULTS          ║
+  ╚══════════════════════════════════════════╝
+  | Chain ID    :  80000
+  | Block Number (Latest):  2276308
+  |────────────────────────────────────────────
+  | - TOKENS IN -------------
+  | Addr    :  0x015fd589F4f1A33ce4487E12714e1B15129c9329
+  | Name    :  ERC20:USDC
+  | Amount  :
+  |   Pre   :  0
+  |   In    :  1000000
+  |   Post  :  0
+  |────────────────────────────────────────────
+  | - TOKENS OUT -------------
+  | Addr    :  0x7f2B60fDff1494A0E3e060532c9980d7fad0404B
+  | Name    :  ERC20:dHONEY
+  | Amount  :  998000000000000000
+  |   Pre   :  0
+  |   Post  :  998000000000000000
+  |────────────────────────────────────────────
+  |- DUST TOKENS -------------
+  | Addr    :  0x015fd589F4f1A33ce4487E12714e1B15129c9329
+  | Name    :  ERC20:USDC
+  | Amount  :  0
+  |   Pre   :  0
+  |   Post  :  0
+  |--------------------------------------------
+  | Addr    :  0xd137593CDB341CcC78426c54Fb98435C60Da193c
+  | Name    :  ERC20:HONEY
+  | Amount  :  0
+  |   Pre   :  0
+  |   Post  :  0
+  |────────────────────────────────────────────
+  |- Gas --------------------
+  | Used    :  865188
+  ╚══════════════════════════════════════════╝
+
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 6.17s (5.73s CPU time)
+
+Ran 1 test suite in 6.17s (6.17s CPU time): 1 tests passed, 0 failed, 0 skipped (1 total tests)
+```
+
 ### Quoter
 
 Please set `QUOTER_URL` in the .env file.
@@ -71,6 +156,18 @@ pnpm simulate cartio dolomite dhoney 1000000
 
 ```sh
 pnpm simulate cartio kodiak honey-usdc 10000 --mode=quoter
+```
+
+Output example:
+
+```sh
+Simulation:  {
+  quote: {
+    '0x7f2B60fDff1494A0E3e060532c9980d7fad0404B': '998000000000000000'
+  },
+  dust: { '0x015fd589F4f1A33ce4487E12714e1B15129c9329': '0' },
+  gas: '818424'
+}
 ```
 
 ### Execute
