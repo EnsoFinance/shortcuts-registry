@@ -17,6 +17,7 @@ import { DolomiteDWbtcShortcut } from './shortcuts/dolomite/dwbtc';
 import { KodiakHoneyUsdcShortcut } from './shortcuts/kodiak/honey-usdc';
 import { KodiakWethHoneyShortcut } from './shortcuts/kodiak/weth-honey';
 import { OrigamiBoycoHoneyShortcut } from './shortcuts/origami/oboy-HONEY-a';
+import { SatlayerPumpBtcShortcut } from './shortcuts/satlayer/pumpbtc';
 
 dotenv.config();
 
@@ -46,6 +47,9 @@ const shortcuts: Record<string, Record<string, Shortcut>> = {
   },
   origami: {
     'oboy-honey': new OrigamiBoycoHoneyShortcut(),
+  },
+  satlayer: {
+    pumpbtc: new SatlayerPumpBtcShortcut(),
   },
 };
 
