@@ -39,7 +39,7 @@ export class KodiakHoneyUsdcShortcut implements Shortcut {
     const halfAmount = await div(amountIn, 2, builder);
     const mintedAmount = await mintHoney(usdc, halfAmount, builder);
 
-    await depositKodiak(builder, [usdc, honey], [halfAmount, mintedAmount], island, primary, setter);
+    await depositKodiak(builder, [usdc, honey], [halfAmount, mintedAmount], island, primary, setter, false);
 
     const leftoverAmount = builder.add(balanceOf(honey, walletAddress()));
     await redeemHoney(usdc, leftoverAmount, builder);
