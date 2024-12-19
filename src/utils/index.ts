@@ -10,7 +10,7 @@ import {
 } from '@ensofinance/shortcuts-builder/types';
 import { PUBLIC_RPC_URLS, Standards, getStandardByProtocol } from '@ensofinance/shortcuts-standards';
 import { TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
-import { addAction, areAddressesEqual, resetApprovals } from '@ensofinance/shortcuts-standards/helpers';
+import { addAction, areAddressesEqual, percentMul, resetApprovals } from '@ensofinance/shortcuts-standards/helpers';
 import { Interface } from '@ethersproject/abi';
 import { StaticJsonRpcProvider } from '@ethersproject/providers';
 
@@ -80,6 +80,7 @@ export async function depositKodiak(
   island: AddressArg,
   primary: AddressArg,
   setter: AddressArg,
+  setMinAmount: boolean,
 ) {
   const rpcUrl = PUBLIC_RPC_URLS[builder.chainId].rpcUrls.public;
   const provider = new StaticJsonRpcProvider(rpcUrl);
@@ -97,6 +98,8 @@ export async function depositKodiak(
     amounts: amountsIn,
     spender: primary,
   };
+  const amount0Min = setMinAmount ? percentMul(amount0, 9900, builder) : 1;
+  const amount1Min = setMinAmount ? percentMul(amount1, 9900, builder) : 1;
   const amountSharesMin = builder.add({
     address: setter,
     abi: ['function getSingleValue() external view returns (uint256)'],
@@ -111,7 +114,7 @@ export async function depositKodiak(
         'function addLiquidity(address island, uint256 amount0Max, uint256 amount1Max, uint256 amount0Min, uint256 amount1Min, uint256 amountSharesMin, address receiver) returns (uint256 amount0, uint256 amount1, uint256 mintAmount)',
       ],
       functionName: 'addLiquidity',
-      args: [island, amount0, amount1, 0, 0, amountSharesMin, walletAddress()],
+      args: [island, amount0, amount1, amount0Min, amount1Min, amountSharesMin, walletAddress()],
     },
     approvals,
   });
