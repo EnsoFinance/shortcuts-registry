@@ -9,8 +9,8 @@ dependencies:
     specifier: ^0.0.5
     version: 0.0.5
   '@ensofinance/shortcuts-standards':
-    specifier: ^1.0.18
-    version: 1.0.18(@ethersproject/abi@5.7.0)(@ethersproject/providers@5.7.2)(ethers@5.7.2)(lodash@4.17.21)
+    specifier: ^1.0.19
+    version: 1.0.19(@ethersproject/abi@5.7.0)(@ethersproject/providers@5.7.2)(ethers@5.7.2)(lodash@4.17.21)
   '@ethersproject/abi':
     specifier: ^5.7.0
     version: 5.7.0
@@ -168,8 +168,8 @@ packages:
       - utf-8-validate
     dev: false
 
-  /@ensofinance/shortcuts-standards@1.0.18(@ethersproject/abi@5.7.0)(@ethersproject/providers@5.7.2)(ethers@5.7.2)(lodash@4.17.21):
-    resolution: {integrity: sha512-oS6ZQzW6yPnd20VeNelVwEO1cx0XUM7L7mpQJqTbCsYhzxnORLUl8suKZiB0yfgG/ZJm84AsWufgpxkJVyktvQ==}
+  /@ensofinance/shortcuts-standards@1.0.19(@ethersproject/abi@5.7.0)(@ethersproject/providers@5.7.2)(ethers@5.7.2)(lodash@4.17.21):
+    resolution: {integrity: sha512-uvN4wQsTDh3KXWsZAB3iz+am5jTnZUb+7BoH1JblbhelaycqzQTdMWnRbNFS3IQ5VEZMRf7Q/p8dL7Pb0X1VpA==}
     engines: {node: '>=18.0.0'}
     dependencies:
       '@ensofinance/shortcuts-builder': 0.0.5

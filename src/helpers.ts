@@ -16,6 +16,10 @@ import { DolomiteDUsdtShortcut } from './shortcuts/dolomite/dusdt';
 import { DolomiteDWbtcShortcut } from './shortcuts/dolomite/dwbtc';
 import { KodiakHoneyUsdcShortcut } from './shortcuts/kodiak/honey-usdc';
 import { KodiakWethHoneyShortcut } from './shortcuts/kodiak/weth-honey';
+import { MobyWolpHoneyShortcut } from './shortcuts/moby/wolp-honey';
+import { MobyWolpUsdcShortcut } from './shortcuts/moby/wolp-usdc';
+import { MobyWolpWbtcShortcut } from './shortcuts/moby/wolp-wbtc';
+import { MobyWolpWethShortcut } from './shortcuts/moby/wolp-weth';
 import { OrigamiBoycoHoneyShortcut } from './shortcuts/origami/oboy-HONEY-a';
 import { SatlayerPumpBtcShortcut } from './shortcuts/satlayer/pumpbtc';
 
@@ -44,6 +48,12 @@ const shortcuts: Record<string, Record<string, Shortcut>> = {
   kodiak: {
     'honey-usdc': new KodiakHoneyUsdcShortcut(),
     'weth-honey': new KodiakWethHoneyShortcut(),
+  },
+  moby: {
+    'wolp-honey': new MobyWolpHoneyShortcut(),
+    'wolp-usdc': new MobyWolpUsdcShortcut(),
+    'wolp-wbtc': new MobyWolpWbtcShortcut(),
+    'wolp-weth': new MobyWolpWethShortcut(),
   },
   origami: {
     'oboy-honey': new OrigamiBoycoHoneyShortcut(),
