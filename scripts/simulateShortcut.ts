@@ -1,5 +1,7 @@
 import { AddressArg, ChainIds } from '@ensofinance/shortcuts-builder/types';
+import { Interface } from '@ethersproject/abi';
 import { getAddress } from '@ethersproject/address';
+import { StaticJsonRpcProvider } from '@ethersproject/providers';
 
 import { FUNCTION_ID_ERC20_APPROVE, SimulationMode } from '../src/constants';
 import { getEncodedData, getShortcut } from '../src/helpers';
@@ -14,10 +16,30 @@ import { simulateTransactionOnForge } from '../src/simulations/simulateOnForge';
 import { APITransaction, QuoteRequest, simulateTransactionOnQuoter } from '../src/simulations/simulateOnQuoter';
 import { Report, Shortcut } from '../src/types';
 
-const fromAddress = '0x93621DCA56fE26Cdee86e4F6B18E116e9758Ff11';
-const weirollWalletAddress = '0xBa8F5f80C41BF5e169d9149Cd4977B1990Fc2736';
+const recipeMarketHubInterface = new Interface([
+  'function createCampaign(uint256) external view returns (address)',
+  'function executeWeiroll(bytes32[] calldata commands, bytes[] calldata state) external payable returns (bytes[] memory)',
+]);
 
-async function simulateShortcutOnQuoter(shortcut: Shortcut, chainId: ChainIds, amountsIn: string[]): Promise<void> {
+const setterInterface = new Interface([
+  'function setSingleValue(uint256 value) external',
+  'function setValue(uint256 index, uint256 value) external',
+]);
+
+const multicallInterface = new Interface([
+  'function aggregate((address, bytes)[]) public returns (uint256, bytes[] memory)',
+]);
+
+const fromAddress = '0x93621DCA56fE26Cdee86e4F6B18E116e9758Ff11';
+const recipeMarketHub = '0x65a605E074f9Efc26d9Cf28CCdbC532B94772056';
+const multicall = '0x58142bd85E67C40a7c0CCf2e1EEF6eB543617d2A';
+
+async function simulateShortcutOnQuoter(
+  shortcut: Shortcut,
+  chainId: ChainIds,
+  amountsIn: string[],
+  rpcUrl: string,
+): Promise<void> {
   const { script, metadata } = await shortcut.build(chainId);
 
   const { tokensIn, tokensOut } = metadata;
@@ -25,14 +47,35 @@ async function simulateShortcutOnQuoter(shortcut: Shortcut, chainId: ChainIds, a
   if (amountsIn.length != tokensIn.length)
     throw `Error: Incorrect number of amounts for shortcut. Expected ${tokensIn.length}`;
 
-  const { commands, state, value } = script;
-  const data = getEncodedData(commands, state);
+  // get next wallet address
+  const provider = new StaticJsonRpcProvider(rpcUrl);
+  const weirollWalletBytes = await provider.call({
+    to: recipeMarketHub,
+    data: recipeMarketHubInterface.encodeFunctionData('createCampaign', [0]),
+  });
+  const weirollWallet = '0x' + weirollWalletBytes.slice(26);
+
+  const { commands, state } = script;
+
+  const calls = [];
+  if (shortcut.inputs[chainId].setter) {
+    // set min amount out
+    const setterData = setterInterface.encodeFunctionData('setSingleValue', [1]); // for min amount out, simulation can set zero
+    calls.push([shortcut.inputs[chainId].setter, setterData]);
+  }
+  // can call executeWeiroll on recipeMarketHub it will automatically deploy a weiroll wallet
+  const weirollData = getEncodedData(commands, state);
+  calls.push([recipeMarketHub, weirollData]);
+
+  const data = multicallInterface.encodeFunctionData('aggregate', [calls]);
+
   const tx: APITransaction = {
     from: fromAddress,
-    to: weirollWalletAddress,
+    to: multicall,
     data,
-    value,
-    receiver: weirollWalletAddress,
+    value: '0',
+    receiver: weirollWallet,
+    executor: weirollWallet,
   };
   const quoteTokens = [...tokensOut, ...tokensIn]; //find dust
 
@@ -142,15 +185,15 @@ async function main() {
     const blockNumber = getBlockNumberFromArgs(args);
     const amountsIn = getAmountsInFromArgs(args);
 
+    const rpcUrl = getRpcUrlByChainId(chainId);
     switch (simulatonMode) {
       case SimulationMode.FORGE: {
-        const rpcUrl = getRpcUrlByChainId(chainId);
         const forgePath = getForgePath();
         await simulateOnForge(shortcut, chainId, amountsIn, forgePath, rpcUrl, blockNumber);
         break;
       }
       case SimulationMode.QUOTER: {
-        await simulateShortcutOnQuoter(shortcut, chainId, amountsIn);
+        await simulateShortcutOnQuoter(shortcut, chainId, amountsIn, rpcUrl);
         break;
       }
       default:
