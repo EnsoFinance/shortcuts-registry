@@ -16,10 +16,10 @@ export class GoldilocksEbtcShortcut implements Shortcut {
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
-      base: getAddress('0x888d15E66b5eb410ea5Df520Fc46f030BBa31299') as AddressArg, //ebtc
-      ot: getAddress('0xC8Cea1238Ab50d6669995c4621F57334DdE3A22a') as AddressArg, //ebtc-ot
-      yt: getAddress('0x3f33F2F068C6457B5719241ad7aef4131cC21e1F') as AddressArg, //ebtc-yt
-      vault: getAddress('0x299D37afEcfDA294448Ae24029b5Ee1c56a3F2D8') as AddressArg, // Golidlock ebtc vault
+      ebtc: getAddress(Standards.Goldilocks.protocol.addresses!.cartio!.ebtc) as AddressArg,
+      ot: getAddress(Standards.Goldilocks.protocol.addresses!.cartio!.eBtcOt) as AddressArg,
+      yt: getAddress(Standards.Goldilocks.protocol.addresses!.cartio!.eBtcYt) as AddressArg,
+      vault: getAddress(Standards.Goldilocks.protocol.addresses!.cartio!.eBtcVault) as AddressArg,
       island: getAddress('0x0000000000000000000000000000000000000000') as AddressArg, // TODO
     },
   };
@@ -56,7 +56,6 @@ export class GoldilocksEbtcShortcut implements Shortcut {
     const [otAmount] = amountOut as NumberArg[];
 
     const kodiak = getStandardByProtocol('kodiak-islands', chainId);
-
     await kodiak.deposit.addToBuilder(builder, {
       tokenIn: [base, ot],
       tokenOut: island,

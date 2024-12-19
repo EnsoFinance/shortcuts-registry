@@ -19,8 +19,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@ensofinance/shortcuts-builder": "^0.0.4",
-    "@ensofinance/shortcuts-standards": "^1.0.17",
+    "@ensofinance/shortcuts-builder": "^0.0.5",
+    "@ensofinance/shortcuts-standards": "^1.0.18",
     "@ethersproject/abi": "^5.7.0",
     "@ethersproject/address": "^5.7.0",
     "@ethersproject/providers": "^5.7.2",

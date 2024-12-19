@@ -9,7 +9,7 @@ import { getAddress } from '@ethersproject/address';
 
 import { chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
-import { balanceOf, mintHoney } from '../../utils';
+import { balanceOf, mintHoney, redeemHoney } from '../../utils';
 
 export class KodiakHoneyUsdcShortcut implements Shortcut {
   name = 'kodiak-honey-usdc';
@@ -45,6 +45,8 @@ export class KodiakHoneyUsdcShortcut implements Shortcut {
       amountIn: [halfAmount, mintedAmount],
       primaryAddress: primary,
     });
+
+    await redeemHoney(usdc, mintedAmount, builder);
 
     const payload = await builder.build({
       requireWeiroll: true,
