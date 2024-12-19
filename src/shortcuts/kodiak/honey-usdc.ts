@@ -2,14 +2,14 @@ import { Builder } from '@ensofinance/shortcuts-builder';
 import { RoycoClient } from '@ensofinance/shortcuts-builder/client/implementations/roycoClient';
 import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
-import { Standards, getStandardByProtocol } from '@ensofinance/shortcuts-standards';
+import { Standards } from '@ensofinance/shortcuts-standards';
 import { TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
 import { div } from '@ensofinance/shortcuts-standards/helpers/math';
 import { getAddress } from '@ethersproject/address';
 
 import { chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
-import { balanceOf, mintHoney, redeemHoney } from '../../utils';
+import { addresses, balanceOf, depositKodiak, mintHoney, redeemHoney } from '../../utils';
 
 export class KodiakHoneyUsdcShortcut implements Shortcut {
   name = 'kodiak-honey-usdc';
@@ -21,6 +21,7 @@ export class KodiakHoneyUsdcShortcut implements Shortcut {
       honey: getAddress(TokenAddresses.cartio.honey) as AddressArg,
       island: getAddress(Standards.Kodiak_Islands.protocol.addresses!.cartio!.honeyUsdcIsland) as AddressArg,
       primary: getAddress(Standards.Kodiak_Islands.protocol.addresses!.cartio!.router) as AddressArg,
+      setter: addresses[ChainIds.Cartio].setter, // having setter in inputs lets simulator know to set a min amount value
     },
   };
 
@@ -28,25 +29,20 @@ export class KodiakHoneyUsdcShortcut implements Shortcut {
     const client = new RoycoClient();
 
     const inputs = this.inputs[chainId];
-    const { usdc, honey, island, primary } = inputs;
+    const { usdc, honey, island, primary, setter } = inputs;
 
     const builder = new Builder(chainId, client, {
       tokensIn: [usdc],
       tokensOut: [island],
     });
-    const kodiak = getStandardByProtocol('kodiak-islands', chainId);
     const amountIn = await builder.add(balanceOf(usdc, walletAddress()));
     const halfAmount = await div(amountIn, 2, builder);
     const mintedAmount = await mintHoney(usdc, halfAmount, builder);
 
-    await kodiak.deposit.addToBuilder(builder, {
-      tokenIn: [usdc, honey],
-      tokenOut: island,
-      amountIn: [halfAmount, mintedAmount],
-      primaryAddress: primary,
-    });
+    await depositKodiak(builder, [usdc, honey], [halfAmount, mintedAmount], island, primary, setter);
 
-    await redeemHoney(usdc, mintedAmount, builder);
+    const honeyAmount = builder.add(balanceOf(honey, walletAddress()));
+    await redeemHoney(usdc, honeyAmount, builder);
 
     const payload = await builder.build({
       requireWeiroll: true,
