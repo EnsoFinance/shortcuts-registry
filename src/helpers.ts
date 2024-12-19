@@ -14,6 +14,7 @@ import { DolomiteDHoneyShortcut } from './shortcuts/dolomite/dhoney';
 import { DolomiteDUsdcShortcut } from './shortcuts/dolomite/dusdc';
 import { DolomiteDUsdtShortcut } from './shortcuts/dolomite/dusdt';
 import { DolomiteDWbtcShortcut } from './shortcuts/dolomite/dwbtc';
+import { GoldilocksEbtcShortcut } from './shortcuts/goldilocks/ebtc-vault';
 import { KodiakHoneyUsdcShortcut } from './shortcuts/kodiak/honey-usdc';
 import { KodiakWethHoneyShortcut } from './shortcuts/kodiak/weth-honey';
 import { OrigamiBoycoHoneyShortcut } from './shortcuts/origami/oboy-HONEY-a';
@@ -36,11 +37,9 @@ const shortcuts: Record<string, Record<string, Shortcut>> = {
     dusdt: new DolomiteDUsdtShortcut(),
     dwbtc: new DolomiteDWbtcShortcut(),
   },
-  // TODO: uncomment out and move import up once Goldilocks is ready
-  // import { GoldilocksEbtcShortcut } from './shortcuts/goldilocks/ebtc-vault';
-  // goldilocks: {
-  //   ebtc: new GoldilocksEbtcShortcut(),
-  // },
+  goldilocks: {
+    ebtc: new GoldilocksEbtcShortcut(),
+  },
   kodiak: {
     'honey-usdc': new KodiakHoneyUsdcShortcut(),
     'weth-honey': new KodiakWethHoneyShortcut(),
