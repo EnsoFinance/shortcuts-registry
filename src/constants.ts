@@ -57,6 +57,10 @@ const tokenToHolderCartio: Map<AddressArg, AddressArg> = new Map([
     getAddress('0xd137593CDB341CcC78426c54Fb98435C60Da193c') as AddressArg,
   ], // NECTAR
   [
+    getAddress('0x49a49AB0A048bCADB8b4E51c5c970C46bF889CCD') as AddressArg,
+    getAddress('0xD3b050b548dDfdf90d39421fC5eaaF2653165Ad6') as AddressArg,
+  ], // pumpBTC
+  [
     getAddress('0x254e3D5F964E770F3a51a19d809bcE36308d797d') as AddressArg,
     getAddress('0xA51C5F0007d8C506E9F7132dF10d637379a07be0') as AddressArg,
   ], // rUSD

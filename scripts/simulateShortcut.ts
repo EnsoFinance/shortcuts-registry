@@ -105,6 +105,13 @@ async function simulateOnForge(
   if (shortcut.getTokenHolder) {
     const tokenToHolder = shortcut.getTokenHolder(chainId);
     for (let i = 0; i < tokensIn.length; i++) {
+      const holder = tokenToHolder.get(tokensIn[i]) as AddressArg;
+      if (!holder) {
+        console.warn(
+          `simulateOnForge: no holder found for token: ${tokensIn[i]} (${addressToLabel.get(tokensIn[i])}). ` +
+            `If it is missing by mistake, please add it into 'chainIdToTokenHolder' map`,
+        );
+      }
       tokensInHolders.add(tokenToHolder.get(tokensIn[i]) as AddressArg);
     }
   }
