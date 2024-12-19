@@ -63,6 +63,15 @@ export class GoldilocksEbtcShortcut implements Shortcut {
       primaryAddress: Standards.Kodiak_Islands.protocol.addresses!.cartio!.router,
     });
 
+    const otLeftOvers = builder.add(balanceOf(ot, walletAddress()));
+
+    await goldilocks.redeem.addToBuilder(builder, {
+      tokenIn: ot,
+      tokenOut: base,
+      amountIn: otLeftOvers,
+      primaryAddress: vault,
+    });
+
     const payload = await builder.build({
       requireWeiroll: true,
       returnWeirollScript: true,
