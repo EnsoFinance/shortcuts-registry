@@ -16,6 +16,7 @@ import { DolomiteDUsdtShortcut } from './shortcuts/dolomite/dusdt';
 import { DolomiteDWbtcShortcut } from './shortcuts/dolomite/dwbtc';
 import { KodiakHoneyUsdcShortcut } from './shortcuts/kodiak/honey-usdc';
 import { KodiakWethHoneyShortcut } from './shortcuts/kodiak/weth-honey';
+import { KodiakWethWbtcShortcut } from './shortcuts/kodiak/weth-wbtc';
 import { MobyWolpHoneyShortcut } from './shortcuts/moby/wolp-honey';
 import { MobyWolpUsdcShortcut } from './shortcuts/moby/wolp-usdc';
 import { MobyWolpWbtcShortcut } from './shortcuts/moby/wolp-wbtc';
@@ -48,6 +49,7 @@ const shortcuts: Record<string, Record<string, Shortcut>> = {
   kodiak: {
     'honey-usdc': new KodiakHoneyUsdcShortcut(),
     'weth-honey': new KodiakWethHoneyShortcut(),
+    'weth-wbtc': new KodiakWethWbtcShortcut(),
   },
   moby: {
     'wolp-honey': new MobyWolpHoneyShortcut(),
