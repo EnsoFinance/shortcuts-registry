@@ -170,7 +170,7 @@ Simulation:  {
 }
 ```
 
-### Execute
+## Execute
 
 To actually execute on-chain you can use the following command:
 
