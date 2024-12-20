@@ -54,7 +54,7 @@ export const chainIdToSimulationRoles: Map<ChainIds, SimulationRoles> = new Map(
 export const chainIdToDeFiAddresses: Record<number, Record<string, AddressArg>> = {
   [ChainIds.Cartio]: {
     ausdt: getAddress(TokenAddresses.cartio.usdt) as AddressArg,
-    bgt: getAddress(TokenAddresses.cartio.bgt) as AddressArg,
+    btg: getAddress(TokenAddresses.cartio.btg) as AddressArg,
     burr: getAddress(TokenAddresses.cartio.burr) as AddressArg,
     dweth: getAddress('0x2d93FbcE4CffC15DD385A80B3f4CC1D4E76C38b3') as AddressArg,
     ebtc: getAddress(TokenAddresses.cartio.ebtc) as AddressArg,
