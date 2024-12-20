@@ -61,6 +61,7 @@ export class BeraborrowNectHoneyShortcut implements Shortcut {
       false,
     );
 
+<<<<<<< HEAD:src/shortcuts/beraborrow/nect-honey.ts
     const honeyLeftOvers = builder.add(balanceOf(honey, walletAddress()));
     await redeemHoney(usdc, honeyLeftOvers, builder);
 
@@ -84,6 +85,20 @@ export class BeraborrowNectHoneyShortcut implements Shortcut {
       approvals,
     });
 
+=======
+    /*    const nectLeftovers = builder.add(balanceOf(nect, walletAddress()));
+
+    const withdrawLeftovers = contractCall({
+      address: usdcPsmBond,
+      functionName: 'withdraw',
+      abi: ['function withdraw(uint shares, address receiver, address owner) '],
+      args: [nectLeftovers, walletAddress(), walletAddress()],
+    });
+
+    await builder.add(withdrawLeftovers);
+ */
+
+>>>>>>> a0992c8 (collect nect leftovers):src/shortcuts/beraborrow/mint-nect-lp.ts
     const payload = await builder.build({
       requireWeiroll: true,
       returnWeirollScript: true,
