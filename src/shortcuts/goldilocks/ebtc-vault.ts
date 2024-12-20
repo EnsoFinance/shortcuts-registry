@@ -28,15 +28,15 @@ export class GoldilocksEbtcShortcut implements Shortcut {
     const client = new RoycoClient();
 
     const inputs = this.inputs[chainId];
-    const { base, ot, yt, vault, island } = inputs;
+    const { ebtc, ot, yt, vault, island } = inputs;
 
     const builder = new Builder(chainId, client, {
-      tokensIn: [base],
+      tokensIn: [ebtc],
       tokensOut: [island, yt],
     });
 
     // Get the amount of the base token in the wallet, split 50/50, and deposit into vault
-    const amountIn = builder.add(balanceOf(base, walletAddress()));
+    const amountIn = builder.add(balanceOf(ebtc, walletAddress()));
     const halfAmount = div(amountIn, 2, builder);
 
     const goldilocks = getStandardByProtocol('goldilocks', chainId);
@@ -44,7 +44,7 @@ export class GoldilocksEbtcShortcut implements Shortcut {
     const { amountOut } = await goldilocks.deposit.addToBuilder(
       builder,
       {
-        tokenIn: base,
+        tokenIn: ebtc,
         tokenOut: [ot, yt],
         amountIn: halfAmount,
         primaryAddress: vault,
@@ -57,7 +57,7 @@ export class GoldilocksEbtcShortcut implements Shortcut {
 
     const kodiak = getStandardByProtocol('kodiak-islands', chainId);
     await kodiak.deposit.addToBuilder(builder, {
-      tokenIn: [base, ot],
+      tokenIn: [ebtc, ot],
       tokenOut: island,
       amountIn: [halfAmount, otAmount],
       primaryAddress: Standards.Kodiak_Islands.protocol.addresses!.cartio!.router,
@@ -67,7 +67,7 @@ export class GoldilocksEbtcShortcut implements Shortcut {
 
     await goldilocks.redeem.addToBuilder(builder, {
       tokenIn: ot,
-      tokenOut: base,
+      tokenOut: ebtc,
       amountIn: otLeftOvers,
       primaryAddress: vault,
     });
@@ -87,7 +87,7 @@ export class GoldilocksEbtcShortcut implements Shortcut {
     switch (chainId) {
       case ChainIds.Cartio:
         return new Map([
-          [this.inputs[ChainIds.Cartio].base, { label: 'ERC20:eBTC' }],
+          [this.inputs[ChainIds.Cartio].ebtc, { label: 'ERC20:eBTC' }],
           [this.inputs[ChainIds.Cartio].ot, { label: 'ERC20:eBTC-OT' }],
           [this.inputs[ChainIds.Cartio].yt, { label: 'ERC20:eBTC-YT' }],
           [this.inputs[ChainIds.Cartio].vault, { label: 'PointsGoldiVault:eBTC' }],
