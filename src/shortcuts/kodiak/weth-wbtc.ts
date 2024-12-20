@@ -16,7 +16,7 @@ export class KodiakWethWbtcShortcut implements Shortcut {
       weth: chainIdToDeFiAddresses[ChainIds.Cartio].weth,
       wbtc: chainIdToDeFiAddresses[ChainIds.Cartio].wbtc,
       island: '0x1E5FFDC9B4D69398c782608105d6e2B724063E13',
-      primary: chainIdToDeFiAddresses[ChainIds.Cartio].router,
+      primary: chainIdToDeFiAddresses[ChainIds.Cartio].kodiakRouter,
       setter: chainIdToSimulationRoles.get(ChainIds.Cartio)!.setter.address!, // having setter in inputs lets simulator know to set a min amount value
     },
   };
