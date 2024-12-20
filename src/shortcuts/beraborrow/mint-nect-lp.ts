@@ -4,12 +4,13 @@ import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, FromContractCallArg, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 import { Standards, getStandardByProtocol } from '@ensofinance/shortcuts-standards';
 import { TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
+import { addAction, addApprovals } from '@ensofinance/shortcuts-standards/helpers';
 import { div } from '@ensofinance/shortcuts-standards/helpers/math';
 import { getAddress } from '@ethersproject/address';
 
 import { chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
-import { balanceOf, mintHoney } from '../../utils';
+import { balanceOf, mintHoney, redeemHoney } from '../../utils';
 
 export class BeraborrowMintNectLpShortcut implements Shortcut {
   name = 'mint-nect-lp';
@@ -56,6 +57,29 @@ export class BeraborrowMintNectLpShortcut implements Shortcut {
       tokenOut: island,
       amountIn: [mintedAmountNect as FromContractCallArg, mintedAmountHoney],
       primaryAddress: primary,
+    });
+
+    const honeyLeftOvers = builder.add(balanceOf(honey, walletAddress()));
+    await redeemHoney(usdc, honeyLeftOvers, builder);
+
+    const nectLeftOvers = builder.add(balanceOf(nect, walletAddress()));
+
+    const approvals = {
+      tokens: [nect],
+      amounts: [nectLeftOvers],
+      spender: usdcPsmBond,
+    };
+
+    await addApprovals(builder, approvals);
+    await addAction({
+      builder,
+      action: {
+        address: usdcPsmBond,
+        abi: ['function withdraw(uint256 shares, address receiver, address owner) returns (uint256)'],
+        functionName: 'withdraw',
+        args: [nectLeftOvers, walletAddress(), walletAddress()],
+      },
+      approvals,
     });
 
     const payload = await builder.build({
