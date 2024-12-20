@@ -6,9 +6,9 @@ import { Standards } from '@ensofinance/shortcuts-standards';
 import { TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
 import { getAddress } from '@ethersproject/address';
 
-import { chainIdToTokenHolder } from '../../constants';
+import { chainIdToSimulationRoles, chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
-import { addresses, balanceOf, depositKodiak } from '../../utils';
+import { balanceOf, depositKodiak } from '../../utils';
 
 export class KodiakWethWbtcShortcut implements Shortcut {
   name = 'kodiak-weth-wbtc';
@@ -20,7 +20,7 @@ export class KodiakWethWbtcShortcut implements Shortcut {
       wbtc: getAddress(TokenAddresses.cartio.wbtc) as AddressArg,
       island: getAddress('0x1E5FFDC9B4D69398c782608105d6e2B724063E13') as AddressArg,
       primary: getAddress(Standards.Kodiak_Islands.protocol.addresses!.cartio!.router) as AddressArg,
-      setter: addresses[ChainIds.Cartio].setter, // having setter in inputs lets simulator know to set a min amount value
+      setter: chainIdToSimulationRoles.get(ChainIds.Cartio)!.setter.address!, // having setter in inputs lets simulator know to set a min amount value
     },
   };
 

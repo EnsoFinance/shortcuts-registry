@@ -1,5 +1,9 @@
 import { AddressArg, ChainIds } from '@ensofinance/shortcuts-builder/types';
+import { Standards } from '@ensofinance/shortcuts-standards';
+import { TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
 import { getAddress } from '@ethersproject/address';
+
+import type { SimulationRoles } from './types';
 
 export enum SimulationMode {
   ANVIL = 'anvil',
@@ -14,6 +18,38 @@ export enum ShortcutOutputFormat {
 }
 
 export const FUNCTION_ID_ERC20_APPROVE = '0x095ea7b3';
+
+export const chainIdToSimulationRoles: Map<ChainIds, SimulationRoles> = new Map([
+  [
+    ChainIds.Cartio,
+    {
+      caller: {
+        address: getAddress('0x93621DCA56fE26Cdee86e4F6B18E116e9758Ff11') as AddressArg,
+        label: 'Caller',
+      },
+      recipeMarketHub: {
+        address: getAddress('0x65a605E074f9Efc26d9Cf28CCdbC532B94772056') as AddressArg,
+        label: 'RecipeMarketHub',
+      },
+      multiCall: {
+        address: getAddress('0x58142bd85E67C40a7c0CCf2e1EEF6eB543617d2A') as AddressArg,
+        label: 'MultiCall',
+      },
+      roycoWalletHelpers: {
+        address: getAddress('0x07899ac8BE7462151d6515FCd4773DD9267c9911') as AddressArg,
+        label: 'RoycoWalletHelpers',
+      },
+      setter: {
+        address: getAddress('0x67D0B6e109b82B51706dC4D71B42Bf19CdFC8d1e') as AddressArg,
+        label: 'CCDMSetter',
+      },
+      nativeToken: {
+        address: getAddress('0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE') as AddressArg,
+        label: 'NativeToken',
+      },
+    },
+  ],
+]);
 
 const tokenToHolderCartio: Map<AddressArg, AddressArg> = new Map([
   [
@@ -109,3 +145,10 @@ const tokenToHolderCartio: Map<AddressArg, AddressArg> = new Map([
 export const chainIdToTokenHolder: Map<ChainIds, Map<AddressArg, AddressArg>> = new Map([
   [ChainIds.Cartio, tokenToHolderCartio],
 ]);
+
+export const chainIdToKodiakAddresses: Record<number, Record<string, AddressArg>> = {
+  [ChainIds.Cartio]: {
+    honey: TokenAddresses.cartio.honey,
+    honeyFactory: Standards.Berachain_Honey.protocol.addresses!.cartio!.honeyFactory,
+  },
+};

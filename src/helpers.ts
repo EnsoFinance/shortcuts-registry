@@ -4,8 +4,8 @@ import { Interface } from '@ethersproject/abi';
 import dotenv from 'dotenv';
 import { execSync } from 'node:child_process';
 
-import { ShortcutOutputFormat, SimulationMode } from '../src/constants';
-import { Shortcut } from '../src/types';
+import { ShortcutOutputFormat, SimulationMode, chainIdToSimulationRoles } from '../src/constants';
+import { Shortcut, SimulationRoles } from '../src/types';
 import { AbracadabraMimUsdcShortcut } from './shortcuts/abracadabra/mim-usdc';
 import { BeraborrowMintNectLpShortcut } from './shortcuts/beraborrow/mint-nect-lp';
 import { BeraborrowVaultStrategyShortcut } from './shortcuts/beraborrow/vault-strategy';
@@ -95,6 +95,16 @@ export function getRpcUrlByChainId(chainId: number): string {
   if (!rpcUrl) throw new Error(`Missing 'RPC_URL_${chainName.toUpperCase()}' environment variable`);
 
   return rpcUrl;
+}
+
+export function getSimulationRolesByChainId(chainId: number): SimulationRoles {
+  const roles = chainIdToSimulationRoles.get(chainId);
+  if (!roles)
+    throw new Error(
+      `Missing simulation roles for 'chainId': ${chainId}. Please, update 'chainIdToSimulationRoles' map`,
+    );
+
+  return roles;
 }
 
 export function getForgePath(): string {
