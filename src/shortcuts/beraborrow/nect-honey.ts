@@ -3,14 +3,13 @@ import { RoycoClient } from '@ensofinance/shortcuts-builder/client/implementatio
 import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, FromContractCallArg, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 import { Standards, getStandardByProtocol } from '@ensofinance/shortcuts-standards';
-import { TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
 import { addAction, addApprovals } from '@ensofinance/shortcuts-standards/helpers';
 import { div } from '@ensofinance/shortcuts-standards/helpers/math';
 import { getAddress } from '@ethersproject/address';
 
 import { chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
-import { balanceOf, mintHoney, redeemHoney } from '../../utils';
+import { addresses, balanceOf, depositKodiak, mintHoney, redeemHoney } from '../../utils';
 
 export class BeraborrowNectHoneyShortcut implements Shortcut {
   name = 'nect-honey';
@@ -18,13 +17,14 @@ export class BeraborrowNectHoneyShortcut implements Shortcut {
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
-      honey: getAddress(TokenAddresses.cartio.honey) as AddressArg,
-      nect: getAddress(TokenAddresses.cartio.nect) as AddressArg,
-      usdc: getAddress(TokenAddresses.cartio.usdc) as AddressArg,
+      honey: addresses[ChainIds.Cartio].honey,
+      nect: addresses[ChainIds.Cartio].nect,
+      usdc: addresses[ChainIds.Cartio].usdc,
       usdcPsmBond: getAddress('0xd064C80776497821313b1Dc0E3192d1a67b2a9fa') as AddressArg,
       island: getAddress('0xaEdC80dCdc872FA7B5FB4c5EC5d8C8696BB05f5d') as AddressArg, // KODI-HONEY-NECT
-      primary: getAddress(Standards.Kodiak_Islands.protocol.addresses!.cartio!.router) as AddressArg,
+      primary: addresses[ChainIds.Cartio].kodiakRouter,
       quoterV2: getAddress(Standards.Kodiak_Islands.protocol.addresses!.cartio!.quoterV2) as AddressArg,
+      setter: addresses[ChainIds.Cartio].setter, // having setter in inputs lets simulator know to set a min amount value
     },
   };
 
@@ -32,7 +32,7 @@ export class BeraborrowNectHoneyShortcut implements Shortcut {
     const client = new RoycoClient();
 
     const inputs = this.inputs[chainId];
-    const { honey, nect, usdc, usdcPsmBond, island, primary } = inputs;
+    const { honey, nect, usdc, usdcPsmBond, island, primary, setter } = inputs;
 
     const builder = new Builder(chainId, client, {
       tokensIn: [usdc],
@@ -51,13 +51,15 @@ export class BeraborrowNectHoneyShortcut implements Shortcut {
       primaryAddress: usdcPsmBond,
     });
 
-    const kodiak = getStandardByProtocol('kodiak-islands', chainId);
-    await kodiak.deposit.addToBuilder(builder, {
-      tokenIn: [nect, honey],
-      tokenOut: island,
-      amountIn: [mintedAmountNect as FromContractCallArg, mintedAmountHoney],
-      primaryAddress: primary,
-    });
+    await depositKodiak(
+      builder,
+      [nect, honey],
+      [mintedAmountNect as FromContractCallArg, mintedAmountHoney],
+      island,
+      primary,
+      setter,
+      false,
+    );
 
     const honeyLeftOvers = builder.add(balanceOf(honey, walletAddress()));
     await redeemHoney(usdc, honeyLeftOvers, builder);
