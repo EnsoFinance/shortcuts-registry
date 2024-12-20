@@ -4,9 +4,9 @@ import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 import { getAddress } from '@ethersproject/address';
 
-import { chainIdToTokenHolder } from '../../constants';
+import { chainIdToDeFiAddresses, chainIdToSimulationRoles, chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
-import { addresses, balanceOf, depositKodiak, mintHoney, redeemHoney } from '../../utils';
+import { balanceOf, depositKodiak, mintHoney, redeemHoney } from '../../utils';
 
 export class FortunafiRusdHoneyShortcut implements Shortcut {
   name = 'fortunafi-rusd-honey';
@@ -14,12 +14,12 @@ export class FortunafiRusdHoneyShortcut implements Shortcut {
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
-      usd: addresses[ChainIds.Cartio].usd,
-      honey: addresses[ChainIds.Cartio].honey,
-      rusd: addresses[ChainIds.Cartio].rusd,
+      usd: chainIdToDeFiAddresses[ChainIds.Cartio].usd,
+      honey: chainIdToDeFiAddresses[ChainIds.Cartio].honey,
+      rusd: chainIdToDeFiAddresses[ChainIds.Cartio].rusd,
       island: getAddress('') as AddressArg, // TO DO: ADDING ISLAND WHEN DEPLOYED
-      primary: addresses[ChainIds.Cartio].kodiakRouter,
-      setter: addresses[ChainIds.Cartio].setter,
+      primary: chainIdToDeFiAddresses[ChainIds.Cartio].kodiakRouter,
+      setter: chainIdToSimulationRoles.get(ChainIds.Cartio)!.setter.address!, // having setter in inputs lets simulator know to set a min amount value
     },
   };
 

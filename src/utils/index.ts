@@ -8,31 +8,13 @@ import {
   Transaction,
   WalletAddressArg,
 } from '@ensofinance/shortcuts-builder/types';
-import { PUBLIC_RPC_URLS, Standards, getStandardByProtocol } from '@ensofinance/shortcuts-standards';
-import { TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
-import {
-  addAction,
-  areAddressesEqual,
-  getAddress,
-  percentMul,
-  resetApprovals,
-} from '@ensofinance/shortcuts-standards/helpers';
+import { PUBLIC_RPC_URLS, getStandardByProtocol } from '@ensofinance/shortcuts-standards';
+import { addAction, areAddressesEqual, percentMul, resetApprovals } from '@ensofinance/shortcuts-standards/helpers';
 import { Interface } from '@ethersproject/abi';
 import { StaticJsonRpcProvider } from '@ethersproject/providers';
 
+import { chainIdToDeFiAddresses } from '../constants';
 import type { RoycoOutput, Shortcut, SimulationResult } from '../types';
-
-export const addresses: Record<number, Record<string, AddressArg>> = {
-  [ChainIds.Cartio]: {
-    setter: '0x67D0B6e109b82B51706dC4D71B42Bf19CdFC8d1e',
-    honey: getAddress(TokenAddresses.cartio.honey) as AddressArg,
-    usdc: getAddress(TokenAddresses.cartio.usdc) as AddressArg,
-    mim: getAddress(TokenAddresses.cartio.mim) as AddressArg,
-    nect: getAddress(TokenAddresses.cartio.nect) as AddressArg,
-    honeyFactory: Standards.Berachain_Honey.protocol.addresses!.cartio!.honeyFactory,
-    kodiakRouter: Standards.Kodiak_Islands.protocol.addresses!.cartio!.router,
-  },
-};
 
 export async function prepareResponse(
   /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -57,7 +39,7 @@ export function balanceOf(token: AddressArg, owner: WalletAddressArg) {
 
 export async function mintHoney(asset: AddressArg, amount: NumberArg, builder: Builder) {
   const berachainHoney = getStandardByProtocol('berachain-honey', builder.chainId);
-  const { honey, honeyFactory } = addresses[builder.chainId];
+  const { honey, honeyFactory } = chainIdToDeFiAddresses[builder.chainId];
 
   const { amountOut } = await berachainHoney.deposit.addToBuilder(builder, {
     tokenIn: asset,
@@ -71,7 +53,7 @@ export async function mintHoney(asset: AddressArg, amount: NumberArg, builder: B
 
 export async function redeemHoney(asset: AddressArg, amount: NumberArg, builder: Builder) {
   const berachainHoney = getStandardByProtocol('berachain-honey', builder.chainId);
-  const { honey, honeyFactory } = addresses[builder.chainId];
+  const { honey, honeyFactory } = chainIdToDeFiAddresses[builder.chainId];
 
   const { amountOut } = await berachainHoney.redeem.addToBuilder(builder, {
     tokenIn: honey,
@@ -116,7 +98,7 @@ export async function depositKodiak(
     functionName: 'getSingleValue',
     args: [],
   });
-  await addAction({
+  addAction({
     builder,
     action: {
       address: primary,
@@ -128,7 +110,7 @@ export async function depositKodiak(
     },
     approvals,
   });
-  await resetApprovals(builder, {
+  resetApprovals(builder, {
     tokens: tokensIn,
     spender: primary,
   });

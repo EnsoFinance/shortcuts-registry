@@ -5,7 +5,7 @@ import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-buil
 import { Standards, getStandardByProtocol } from '@ensofinance/shortcuts-standards';
 import { getAddress } from '@ethersproject/address';
 
-import { chainIdToTokenHolder } from '../../constants';
+import { chainIdToDeFiAddresses, chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
 import { balanceOf } from '../../utils';
 
@@ -15,7 +15,7 @@ export class SatlayerPumpBtcShortcut implements Shortcut {
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
-      depositToken: getAddress(Standards.Satlayer_Vaults.protocol.addresses!.cartio!.pumpBtc) as AddressArg,
+      depositToken: chainIdToDeFiAddresses[ChainIds.Cartio].pumpbtc,
       receiptToken: getAddress(Standards.Satlayer_Vaults.protocol.addresses!.cartio!.receiptToken) as AddressArg,
       vault: getAddress(Standards.Satlayer_Vaults.protocol.addresses!.cartio!.vault) as AddressArg,
     },
