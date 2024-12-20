@@ -10,7 +10,13 @@ import {
 } from '@ensofinance/shortcuts-builder/types';
 import { PUBLIC_RPC_URLS, Standards, getStandardByProtocol } from '@ensofinance/shortcuts-standards';
 import { TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
-import { addAction, areAddressesEqual, percentMul, resetApprovals } from '@ensofinance/shortcuts-standards/helpers';
+import {
+  addAction,
+  areAddressesEqual,
+  getAddress,
+  percentMul,
+  resetApprovals,
+} from '@ensofinance/shortcuts-standards/helpers';
 import { Interface } from '@ethersproject/abi';
 import { StaticJsonRpcProvider } from '@ethersproject/providers';
 
@@ -19,8 +25,12 @@ import type { RoycoOutput, Shortcut, SimulationResult } from '../types';
 export const addresses: Record<number, Record<string, AddressArg>> = {
   [ChainIds.Cartio]: {
     setter: '0x67D0B6e109b82B51706dC4D71B42Bf19CdFC8d1e',
-    honey: TokenAddresses.cartio.honey,
+    honey: getAddress(TokenAddresses.cartio.honey) as AddressArg,
+    usdc: getAddress(TokenAddresses.cartio.usdc) as AddressArg,
+    mim: getAddress(TokenAddresses.cartio.mim) as AddressArg,
+    nect: getAddress(TokenAddresses.cartio.nect) as AddressArg,
     honeyFactory: Standards.Berachain_Honey.protocol.addresses!.cartio!.honeyFactory,
+    kodiakRouter: Standards.Kodiak_Islands.protocol.addresses!.cartio!.router,
   },
 };
 

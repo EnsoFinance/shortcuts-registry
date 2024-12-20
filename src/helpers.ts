@@ -6,7 +6,7 @@ import { execSync } from 'node:child_process';
 
 import { ShortcutOutputFormat, SimulationMode } from '../src/constants';
 import { Shortcut } from '../src/types';
-import { AbracadabraMimUsdcShortcut } from './shortcuts/abracadabra/mim-usdc';
+import { AbracadabraHoneyMimShortcut } from './shortcuts/abracadabra/honey-mim';
 import { BeraborrowNectHoneyShortcut } from './shortcuts/beraborrow/nect-honey';
 import { BeraborrowSbtcVaultShortcut } from './shortcuts/beraborrow/sbtc';
 import { BeraborrowWethVaultShortcut } from './shortcuts/beraborrow/weth';
@@ -23,7 +23,7 @@ import { DolomiteDUsdtShortcut } from './shortcuts/dolomite/dusdt';
 import { DolomiteDWbtcShortcut } from './shortcuts/dolomite/dwbtc';
 import { InfraredWethWbtcShortcut } from './shortcuts/infrared/weth-wbtc';
 import { KodiakHoneyUsdcShortcut } from './shortcuts/kodiak/honey-usdc';
-import { KodiakWethHoneyShortcut } from './shortcuts/kodiak/weth-honey';
+import { KodiakHoneyWethShortcut } from './shortcuts/kodiak/honey-weth';
 import { KodiakWethWbtcShortcut } from './shortcuts/kodiak/weth-wbtc';
 import { MobyWolpHoneyShortcut } from './shortcuts/moby/wolp-honey';
 import { MobyWolpUsdcShortcut } from './shortcuts/moby/wolp-usdc';
@@ -37,7 +37,7 @@ dotenv.config();
 
 const shortcuts: Record<string, Record<string, Shortcut>> = {
   abracadabra: {
-    'mim-usdc': new AbracadabraMimUsdcShortcut(),
+    'honey-mim': new AbracadabraHoneyMimShortcut(),
   },
   beraborrow: {
     'nect-honey': new BeraborrowNectHoneyShortcut(),
@@ -74,7 +74,7 @@ const shortcuts: Record<string, Record<string, Shortcut>> = {
   // },
   kodiak: {
     'honey-usdc': new KodiakHoneyUsdcShortcut(),
-    'weth-honey': new KodiakWethHoneyShortcut(),
+    'honey-weth': new KodiakHoneyWethShortcut(),
     'weth-wbtc': new KodiakWethWbtcShortcut(),
   },
   moby: {
