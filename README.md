@@ -2,7 +2,8 @@
 
 # Shortcuts Registry
 
-This is a registry of shortcuts (weiroll scripts) used in **[CCDM](https://github.com/roycoprotocol/cross-chain-deposit-module)** Campaigns.
+This is a registry of shortcuts (weiroll scripts) used in
+**[CCDM](https://github.com/roycoprotocol/cross-chain-deposit-module)** Campaigns.
 
 ## Setup
 
