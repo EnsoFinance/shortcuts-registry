@@ -34,8 +34,8 @@ export class KodiakWethWbtcShortcut implements Shortcut {
       tokensIn: [weth, wbtc],
       tokensOut: [island],
     });
-    const amountInWeth = await builder.add(balanceOf(weth, walletAddress()));
-    const amountInWbtc = await builder.add(balanceOf(wbtc, walletAddress()));
+    const amountInWeth = builder.add(balanceOf(weth, walletAddress()));
+    const amountInWbtc = builder.add(balanceOf(wbtc, walletAddress()));
 
     await depositKodiak(builder, [weth, wbtc], [amountInWeth, amountInWbtc], island, primary, setter, false);
 
