@@ -2,7 +2,6 @@ import { Builder } from '@ensofinance/shortcuts-builder';
 import { RoycoClient } from '@ensofinance/shortcuts-builder/client/implementations/roycoClient';
 import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
-import { getAddress } from '@ethersproject/address';
 
 import { chainIdToDeFiAddresses, chainIdToSimulationRoles, chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
@@ -17,7 +16,7 @@ export class FortunafiRusdHoneyShortcut implements Shortcut {
       usd: chainIdToDeFiAddresses[ChainIds.Cartio].usd,
       honey: chainIdToDeFiAddresses[ChainIds.Cartio].honey,
       rusd: chainIdToDeFiAddresses[ChainIds.Cartio].rusd,
-      island: getAddress('') as AddressArg, // TO DO: ADDING ISLAND WHEN DEPLOYED
+      island: '' as AddressArg, // TO DO: ADDING ISLAND WHEN DEPLOYED
       primary: chainIdToDeFiAddresses[ChainIds.Cartio].kodiakRouter,
       setter: chainIdToSimulationRoles.get(ChainIds.Cartio)!.setter.address!, // having setter in inputs lets simulator know to set a min amount value
     },
