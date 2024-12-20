@@ -60,6 +60,18 @@ export class BeraborrowMintNectLpShortcut implements Shortcut {
       false,
     );
 
+    /*    const nectLeftovers = builder.add(balanceOf(nect, walletAddress()));
+
+    const withdrawLeftovers = contractCall({
+      address: usdcPsmBond,
+      functionName: 'withdraw',
+      abi: ['function withdraw(uint shares, address receiver, address owner) '],
+      args: [nectLeftovers, walletAddress(), walletAddress()],
+    });
+
+    await builder.add(withdrawLeftovers);
+ */
+
     const payload = await builder.build({
       requireWeiroll: true,
       returnWeirollScript: true,
