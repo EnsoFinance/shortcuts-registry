@@ -3,7 +3,6 @@ import { RoycoClient } from '@ensofinance/shortcuts-builder/client/implementatio
 import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 import { getStandardByProtocol } from '@ensofinance/shortcuts-standards';
-import { getAddress } from '@ethersproject/address';
 
 import { chainIdToDeFiAddresses, chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
@@ -16,7 +15,7 @@ export class BeraborrowSbtcVaultShortcut implements Shortcut {
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
       sBtc: chainIdToDeFiAddresses[ChainIds.Cartio].sbtc,
-      primary: getAddress('0x2A280f6769Ba2a254C3D1FeCef0280F87DB0a265') as AddressArg,
+      primary: '0x2A280f6769Ba2a254C3D1FeCef0280F87DB0a265',
     },
   };
 

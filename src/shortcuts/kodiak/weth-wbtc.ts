@@ -2,7 +2,6 @@ import { Builder } from '@ensofinance/shortcuts-builder';
 import { RoycoClient } from '@ensofinance/shortcuts-builder/client/implementations/roycoClient';
 import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
-import { getAddress } from '@ethersproject/address';
 
 import { chainIdToDeFiAddresses, chainIdToSimulationRoles, chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
@@ -16,7 +15,7 @@ export class KodiakWethWbtcShortcut implements Shortcut {
     [ChainIds.Cartio]: {
       weth: chainIdToDeFiAddresses[ChainIds.Cartio].weth,
       wbtc: chainIdToDeFiAddresses[ChainIds.Cartio].wbtc,
-      island: getAddress('0x1E5FFDC9B4D69398c782608105d6e2B724063E13') as AddressArg,
+      island: '0x1E5FFDC9B4D69398c782608105d6e2B724063E13',
       primary: chainIdToDeFiAddresses[ChainIds.Cartio].router,
       setter: chainIdToSimulationRoles.get(ChainIds.Cartio)!.setter.address!, // having setter in inputs lets simulator know to set a min amount value
     },
