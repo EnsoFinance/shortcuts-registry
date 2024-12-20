@@ -5,7 +5,7 @@ import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-buil
 import { Standards, getStandardByProtocol } from '@ensofinance/shortcuts-standards';
 import { getAddress } from '@ethersproject/address';
 
-import { chainIdToTokenHolder } from '../../constants';
+import { chainIdToDeFiAddresses, chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
 import { balanceOf } from '../../utils';
 
@@ -15,7 +15,7 @@ export class MobyWolpWethShortcut implements Shortcut {
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
-      weth: getAddress(Standards.MobyTrade_wOlp.protocol.addresses?.cartio?.weth as string) as AddressArg,
+      weth: chainIdToDeFiAddresses[ChainIds.Cartio].weth,
       wolp: getAddress(Standards.MobyTrade_wOlp.protocol.addresses?.cartio?.primary as string) as AddressArg,
     },
   };

@@ -131,6 +131,16 @@ export function getRpcUrlByChainId(chainId: number): string {
   return rpcUrl;
 }
 
+export function getSimulationRolesByChainId(chainId: number): SimulationRoles {
+  const roles = chainIdToSimulationRoles.get(chainId);
+  if (!roles)
+    throw new Error(
+      `Missing simulation roles for 'chainId': ${chainId}. Please, update 'chainIdToSimulationRoles' map`,
+    );
+
+  return roles;
+}
+
 export function getForgePath(): string {
   const forgePath = execSync('which forge', { encoding: 'utf-8' }).trim();
   if (!forgePath) {
