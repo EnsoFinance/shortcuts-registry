@@ -23,20 +23,20 @@ export class OrigamiBoycoHoneyShortcut implements Shortcut {
     const client = new RoycoClient();
 
     const inputs = this.inputs[chainId];
-    const { base, vault } = inputs;
+    const { usdc, vault } = inputs;
 
     const builder = new Builder(chainId, client, {
-      tokensIn: [base],
+      tokensIn: [usdc],
       tokensOut: [vault],
     });
 
     // Get the amount of token in wallet
-    const amountIn = builder.add(balanceOf(base, walletAddress()));
+    const amountIn = builder.add(balanceOf(usdc, walletAddress()));
 
     //Mint
     const origami = getStandardByProtocol('erc4626', chainId);
     await origami.deposit.addToBuilder(builder, {
-      tokenIn: base,
+      tokenIn: usdc,
       tokenOut: vault,
       amountIn,
       primaryAddress: vault,
@@ -57,7 +57,7 @@ export class OrigamiBoycoHoneyShortcut implements Shortcut {
     switch (chainId) {
       case ChainIds.Cartio:
         return new Map([
-          [this.inputs[ChainIds.Cartio].base, { label: 'ERC20:USDC' }],
+          [this.inputs[ChainIds.Cartio].usdc, { label: 'ERC20:USDC' }],
           [this.inputs[ChainIds.Cartio].vault, { label: 'Origami oboy-HONEY-a' }],
         ]);
       default:
