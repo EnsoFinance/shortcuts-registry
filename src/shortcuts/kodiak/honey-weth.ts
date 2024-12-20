@@ -17,7 +17,7 @@ export class KodiakHoneyWethShortcut implements Shortcut {
       usdc: chainIdToDeFiAddresses[ChainIds.Cartio].usdc,
       honey: chainIdToDeFiAddresses[ChainIds.Cartio].honey,
       island: '0xD4570a738675fB2c31e7b7b88998EE73E9E17d49',
-      primary: chainIdToDeFiAddresses[ChainIds.Cartio].router,
+      primary: chainIdToDeFiAddresses[ChainIds.Cartio].kodiakRouter,
       setter: chainIdToSimulationRoles.get(ChainIds.Cartio)!.setter.address!, // having setter in inputs lets simulator know to set a min amount value
     },
   };
