@@ -4,7 +4,6 @@ import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 import { Standards } from '@ensofinance/shortcuts-standards';
 import { div } from '@ensofinance/shortcuts-standards/helpers/math';
-import { getAddress } from '@ethersproject/address';
 
 import { chainIdToDeFiAddresses, chainIdToSimulationRoles, chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
@@ -18,7 +17,7 @@ export class KodiakHoneyUsdcShortcut implements Shortcut {
     [ChainIds.Cartio]: {
       usdc: chainIdToDeFiAddresses[ChainIds.Cartio].usdc,
       honey: chainIdToDeFiAddresses[ChainIds.Cartio].honey,
-      island: getAddress(Standards.Kodiak_Islands.protocol.addresses!.cartio!.honeyUsdcIsland) as AddressArg,
+      island: Standards.Kodiak_Islands.protocol.addresses!.cartio!.honeyUsdcIsland,
       primary: chainIdToDeFiAddresses[ChainIds.Cartio].router,
       setter: chainIdToSimulationRoles.get(ChainIds.Cartio)!.setter.address!, // having setter in inputs lets simulator know to set a min amount value
     },
@@ -34,8 +33,8 @@ export class KodiakHoneyUsdcShortcut implements Shortcut {
       tokensIn: [usdc],
       tokensOut: [island],
     });
-    const amountIn = await builder.add(balanceOf(usdc, walletAddress()));
-    const halfAmount = await div(amountIn, 2, builder);
+    const amountIn = builder.add(balanceOf(usdc, walletAddress()));
+    const halfAmount = div(amountIn, 2, builder);
     const mintedAmount = await mintHoney(usdc, halfAmount, builder);
 
     await depositKodiak(builder, [usdc, honey], [halfAmount, mintedAmount], island, primary, setter, false);

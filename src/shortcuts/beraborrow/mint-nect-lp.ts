@@ -4,7 +4,6 @@ import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, FromContractCallArg, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 import { Standards, getStandardByProtocol } from '@ensofinance/shortcuts-standards';
 import { div } from '@ensofinance/shortcuts-standards/helpers/math';
-import { getAddress } from '@ethersproject/address';
 
 import { chainIdToDeFiAddresses, chainIdToSimulationRoles, chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
@@ -19,8 +18,8 @@ export class BeraborrowMintNectLpShortcut implements Shortcut {
       honey: chainIdToDeFiAddresses[ChainIds.Cartio].honey,
       nect: chainIdToDeFiAddresses[ChainIds.Cartio].nect,
       usdc: chainIdToDeFiAddresses[ChainIds.Cartio].usdc,
-      usdcPsmBond: getAddress('0xd064C80776497821313b1Dc0E3192d1a67b2a9fa') as AddressArg,
-      island: getAddress(Standards.Kodiak_Islands.protocol.addresses!.cartio!.nectUsdcIsland) as AddressArg, // KODI-HONEY-NECT
+      usdcPsmBond: '0xd064C80776497821313b1Dc0E3192d1a67b2a9fa',
+      island: Standards.Kodiak_Islands.protocol.addresses!.cartio!.nectUsdcIsland, // KODI-HONEY-NECT
       primary: chainIdToDeFiAddresses[ChainIds.Cartio].kodiakRouter,
       quoterV2: chainIdToDeFiAddresses[ChainIds.Cartio].kodiakQuoterV2,
       setter: chainIdToSimulationRoles.get(ChainIds.Cartio)!.setter.address!, // having setter in inputs lets simulator know to set a min amount value

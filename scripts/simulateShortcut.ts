@@ -1,6 +1,5 @@
 import { AddressArg, ChainIds } from '@ensofinance/shortcuts-builder/types';
 import { Interface } from '@ethersproject/abi';
-import { getAddress } from '@ethersproject/address';
 import { StaticJsonRpcProvider } from '@ethersproject/providers';
 
 import { FUNCTION_ID_ERC20_APPROVE, SimulationMode } from '../src/constants';
@@ -162,7 +161,7 @@ async function simulateOnForge(
   for (const command of commands) {
     if (command.startsWith(FUNCTION_ID_ERC20_APPROVE)) {
       // NB: spender address is the last 20 bytes of the data
-      tokensDustRaw.add(getAddress(`0x${command.slice(-40)}`) as AddressArg);
+      tokensDustRaw.add(`0x${command.slice(-40)}`);
     }
   }
   // NB: tokensOut shouldn't be flagged as dust
@@ -173,7 +172,7 @@ async function simulateOnForge(
   if (shortcut.getTokenHolder) {
     const tokenToHolder = shortcut.getTokenHolder(chainId);
     for (let i = 0; i < tokensIn.length; i++) {
-      const holder = tokenToHolder.get(tokensIn[i]) as AddressArg;
+      const holder = tokenToHolder.get(tokensIn[i]);
       if (!holder) {
         console.warn(
           `simulateOnForge: no holder found for token: ${tokensIn[i]} (${addressToLabel.get(tokensIn[i])}). ` +

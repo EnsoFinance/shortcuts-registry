@@ -4,7 +4,6 @@ import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, NumberArg, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 import { Standards, getStandardByProtocol } from '@ensofinance/shortcuts-standards';
 import { div } from '@ensofinance/shortcuts-standards/helpers/math';
-import { getAddress } from '@ethersproject/address';
 
 import { chainIdToDeFiAddresses, chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
@@ -17,10 +16,10 @@ export class GoldilocksEbtcShortcut implements Shortcut {
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
       ebtc: chainIdToDeFiAddresses[ChainIds.Cartio].ebtc,
-      ot: getAddress(Standards.Goldilocks.protocol.addresses!.cartio!.eBtcOt) as AddressArg,
-      yt: getAddress(Standards.Goldilocks.protocol.addresses!.cartio!.eBtcYt) as AddressArg,
-      vault: getAddress(Standards.Goldilocks.protocol.addresses!.cartio!.eBtcVault) as AddressArg,
-      island: getAddress('0x0000000000000000000000000000000000000000') as AddressArg, // TODO
+      ot: Standards.Goldilocks.protocol.addresses!.cartio!.eBtcOt,
+      yt: Standards.Goldilocks.protocol.addresses!.cartio!.eBtcYt,
+      vault: Standards.Goldilocks.protocol.addresses!.cartio!.eBtcVault,
+      island: '0x0000000000000000000000000000000000000000', // TODO: add it when deployed
     },
   };
 
