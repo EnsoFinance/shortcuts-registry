@@ -69,40 +69,23 @@ contract MultiCall_Fork_Cartio_Test is Test {
             vm.createSelectFork(rpcUrl, uint256(blockNumber));
         }
 
-        address caller = vm.parseJsonAddress(jsonStr, JSON_CALLER);
-        s_caller = caller;
+        s_caller = vm.parseJsonAddress(jsonStr, JSON_CALLER);
+        s_recipeMarketHub = vm.parseJsonAddress(jsonStr, JSON_RECIPE_MARKET_HUB);
+        s_weirollWallet = vm.parseJsonAddress(jsonStr, JSON_WEIROLL_WALLET);
+        s_multiCall = vm.parseJsonAddress(jsonStr, JSON_MULTICALL);
+        s_txData = vm.parseJsonBytes(jsonStr, JSON_TX_DATA);
+        s_tokensIn = vm.parseJsonAddressArray(jsonStr, JSON_TOKENS_IN);
+        s_amountsIn = vm.parseJsonUintArray(jsonStr, JSON_AMOUNTS_IN);
 
-        address recipeMarketHub = vm.parseJsonAddress(jsonStr, JSON_RECIPE_MARKET_HUB);
-        s_recipeMarketHub = recipeMarketHub;
-
-        address weirollWallet = vm.parseJsonAddress(jsonStr, JSON_WEIROLL_WALLET);
-        s_weirollWallet = weirollWallet;
-
-        address multiCall = vm.parseJsonAddress(jsonStr, JSON_MULTICALL);
-        s_multiCall = multiCall;
-
-        bytes memory txData = vm.parseJsonBytes(jsonStr, JSON_TX_DATA);
-        s_txData = txData;
-
-        address[] memory tokensIn = vm.parseJsonAddressArray(jsonStr, JSON_TOKENS_IN);
-        s_tokensIn = tokensIn;
-
-        uint256[] memory amountsIn = vm.parseJsonUintArray(jsonStr, JSON_AMOUNTS_IN);
-        if (tokensIn.length != amountsIn.length) {
+        if (s_tokensIn.length != s_amountsIn.length) {
             revert MultiCall_Fork_Cartio_Test__ArrayLengthsAreNotEq(
-                "tokensIn", tokensIn.length, "amountsIn", amountsIn.length
+                "tokensIn", s_tokensIn.length, "amountsIn", s_amountsIn.length
             );
         }
-        s_amountsIn = amountsIn;
 
-        address[] memory tokensInHolders = vm.parseJsonAddressArray(jsonStr, JSON_TOKENS_IN_HOLDERS);
-        s_tokensInHolders = tokensInHolders;
-
-        address[] memory tokensOut = vm.parseJsonAddressArray(jsonStr, JSON_TOKENS_OUT);
-        s_tokensOut = tokensOut;
-
-        address[] memory tokensDust = vm.parseJsonAddressArray(jsonStr, JSON_TOKENS_DUST);
-        s_tokensDust = tokensDust;
+        s_tokensInHolders = vm.parseJsonAddressArray(jsonStr, JSON_TOKENS_IN_HOLDERS);
+        s_tokensOut = vm.parseJsonAddressArray(jsonStr, JSON_TOKENS_OUT);
+        s_tokensDust = vm.parseJsonAddressArray(jsonStr, JSON_TOKENS_DUST);
 
         address[] memory labelKeys = vm.parseJsonAddressArray(jsonStr, JSON_LABEL_KEYS);
         string[] memory labelValues = vm.parseJsonStringArray(jsonStr, JSON_LABEL_VALUES);
@@ -120,37 +103,32 @@ contract MultiCall_Fork_Cartio_Test is Test {
         }
 
         // --- Fund addresses ---
-        vm.deal(caller, 1000 ether);
+        vm.deal(s_caller, 1000 ether);
     }
 
     function test_aggregateCalls_1() public {
-        address[] memory tokensIn = s_tokensIn;
-        uint256[] memory tokensInBalancesPre = new uint256[](tokensIn.length);
-        uint256[] memory amountsIn = s_amountsIn;
-        address[] memory tokensInHolders = s_tokensInHolders;
-        address[] memory tokensOut = s_tokensOut;
-        uint256[] memory tokensOutBalancesPre = new uint256[](tokensOut.length);
-        address[] memory tokensDust = s_tokensDust;
-        uint256[] memory tokensDustBalancesPre = new uint256[](tokensDust.length);
+        uint256[] memory tokensInBalancesPre = new uint256[](s_tokensIn.length);
+        uint256[] memory tokensOutBalancesPre = new uint256[](s_tokensOut.length);
+        uint256[] memory tokensDustBalancesPre = new uint256[](s_tokensDust.length);
 
         // --- Calculate balances before ---
         // Tokens in (before funding them)
-        for (uint256 i = 0; i < tokensIn.length; i++) {
-            tokensInBalancesPre[i] = IERC20(tokensIn[i]).balanceOf(s_weirollWallet);
+        for (uint256 i = 0; i < s_tokensIn.length; i++) {
+            tokensInBalancesPre[i] = IERC20(s_tokensIn[i]).balanceOf(s_weirollWallet);
         }
         // Tokens out
-        for (uint256 i = 0; i < tokensOut.length; i++) {
-            tokensOutBalancesPre[i] = IERC20(tokensOut[i]).balanceOf(s_weirollWallet);
+        for (uint256 i = 0; i < s_tokensOut.length; i++) {
+            tokensOutBalancesPre[i] = IERC20(s_tokensOut[i]).balanceOf(s_weirollWallet);
         }
         // Tokens dust
-        for (uint256 i = 0; i < tokensDust.length; i++) {
-            tokensDustBalancesPre[i] = IERC20(tokensDust[i]).balanceOf(s_weirollWallet);
+        for (uint256 i = 0; i < s_tokensDust.length; i++) {
+            tokensDustBalancesPre[i] = IERC20(s_tokensDust[i]).balanceOf(s_weirollWallet);
         }
         // Fund wallet from Tokens In holders
-        for (uint256 i = 0; i < tokensIn.length; i++) {
-            address tokenIn = tokensIn[i];
-            uint256 amountIn = amountsIn[i];
-            address holder = tokensInHolders[i];
+        for (uint256 i = 0; i < s_tokensIn.length; i++) {
+            address tokenIn = s_tokensIn[i];
+            uint256 amountIn = s_amountsIn[i];
+            address holder = s_tokensInHolders[i];
             if (holder == address(0)) {
                 revert MultiCall_Fork_Cartio_Test__TokenInHolderNotFound(tokenIn);
             }
@@ -188,18 +166,18 @@ contract MultiCall_Fork_Cartio_Test is Test {
         // Tokens in
         console2.log(unicode"|────────────────────────────────────────────");
         console2.log("| - TOKENS IN -------------");
-        if (tokensOut.length == 0) {
+        if (s_tokensOut.length == 0) {
             console2.log("| No Tokens In");
         }
-        for (uint256 i = 0; i < tokensIn.length; i++) {
-            uint256 tokenInBalancePost = IERC20(tokensIn[i]).balanceOf(s_weirollWallet);
-            console2.log("| Addr    : ", tokensIn[i]);
-            console2.log("| Name    : ", s_addressToLabel[tokensIn[i]]);
+        for (uint256 i = 0; i < s_tokensIn.length; i++) {
+            uint256 tokenInBalancePost = IERC20(s_tokensIn[i]).balanceOf(s_weirollWallet);
+            console2.log("| Addr    : ", s_tokensIn[i]);
+            console2.log("| Name    : ", s_addressToLabel[s_tokensIn[i]]);
             console2.log("| Amount  : ");
             console2.log("|   Pre   : ", tokensInBalancesPre[i]);
-            console2.log("|   In    : ", amountsIn[i]);
+            console2.log("|   In    : ", s_amountsIn[i]);
             console2.log("|   Post  : ", tokenInBalancePost);
-            if (i != tokensIn.length - 1) {
+            if (i != s_tokensIn.length - 1) {
                 console2.log(unicode"|--------------------------------------------");
             }
         }
@@ -207,17 +185,17 @@ contract MultiCall_Fork_Cartio_Test is Test {
         // Tokens out
         console2.log(unicode"|────────────────────────────────────────────");
         console2.log("| - TOKENS OUT -------------");
-        if (tokensOut.length == 0) {
+        if (s_tokensOut.length == 0) {
             console2.log("| No Tokens Out");
         }
-        for (uint256 i = 0; i < tokensOut.length; i++) {
-            uint256 tokenOutBalancePost = IERC20(tokensOut[i]).balanceOf(s_weirollWallet);
-            console2.log("| Addr    : ", tokensOut[i]);
-            console2.log("| Name    : ", s_addressToLabel[tokensOut[i]]);
+        for (uint256 i = 0; i < s_tokensOut.length; i++) {
+            uint256 tokenOutBalancePost = IERC20(s_tokensOut[i]).balanceOf(s_weirollWallet);
+            console2.log("| Addr    : ", s_tokensOut[i]);
+            console2.log("| Name    : ", s_addressToLabel[s_tokensOut[i]]);
             console2.log("| Amount  : ", tokenOutBalancePost - tokensOutBalancesPre[i]);
             console2.log("|   Pre   : ", tokensOutBalancesPre[i]);
             console2.log("|   Post  : ", tokenOutBalancePost);
-            if (i != tokensOut.length - 1) {
+            if (i != s_tokensOut.length - 1) {
                 console2.log(unicode"|--------------------------------------------");
             }
         }
@@ -225,17 +203,17 @@ contract MultiCall_Fork_Cartio_Test is Test {
         // Tokens dust
         console2.log(unicode"|────────────────────────────────────────────");
         console2.log("|- DUST TOKENS -------------");
-        if (tokensDust.length == 0) {
+        if (s_tokensDust.length == 0) {
             console2.log("| No Dust Tokens");
         }
-        for (uint256 i = 0; i < tokensDust.length; i++) {
-            uint256 tokenDustBalancePost = IERC20(tokensDust[i]).balanceOf(s_weirollWallet);
-            console2.log("| Addr    : ", tokensDust[i]);
-            console2.log("| Name    : ", s_addressToLabel[tokensDust[i]]);
+        for (uint256 i = 0; i < s_tokensDust.length; i++) {
+            uint256 tokenDustBalancePost = IERC20(s_tokensDust[i]).balanceOf(s_weirollWallet);
+            console2.log("| Addr    : ", s_tokensDust[i]);
+            console2.log("| Name    : ", s_addressToLabel[s_tokensDust[i]]);
             console2.log("| Amount  : ", tokenDustBalancePost - tokensDustBalancesPre[i]);
             console2.log("|   Pre   : ", tokensDustBalancesPre[i]);
             console2.log("|   Post  : ", tokenDustBalancePost);
-            if (i != tokensDust.length - 1) {
+            if (i != s_tokensDust.length - 1) {
                 console2.log(unicode"|--------------------------------------------");
             }
         }
