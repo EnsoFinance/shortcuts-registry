@@ -54,9 +54,9 @@ export class KodiakWethWbtcShortcut implements Shortcut {
     switch (chainId) {
       case ChainIds.Cartio:
         return new Map([
-          [this.inputs[ChainIds.Cartio].usdc, { label: 'ERC20:USDC' }],
-          [this.inputs[ChainIds.Cartio].honey, { label: 'ERC20:HONEY' }],
-          [this.inputs[ChainIds.Cartio].island, { label: 'Kodiak Island-USDC-HONEY-0.5%' }],
+          [this.inputs[ChainIds.Cartio].wbtc, { label: 'ERC20:WBTC' }],
+          [this.inputs[ChainIds.Cartio].weth, { label: 'ERC20:WETH' }],
+          [this.inputs[ChainIds.Cartio].island, { label: 'Kodiak Island-WETH-WBTC-0.3%' }],
           [this.inputs[ChainIds.Cartio].primary, { label: 'Kodiak Island Router' }],
         ]);
       default:

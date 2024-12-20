@@ -2,25 +2,23 @@ import { Builder } from '@ensofinance/shortcuts-builder';
 import { RoycoClient } from '@ensofinance/shortcuts-builder/client/implementations/roycoClient';
 import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
-import { Standards } from '@ensofinance/shortcuts-standards';
-import { TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
 import { getAddress } from '@ethersproject/address';
 
 import { chainIdToTokenHolder } from '../../constants';
-import { AddressData, Input, Output, Shortcut } from '../../types';
-import { addresses, balanceOf, depositKodiak, mintHoney, redeemHoney } from '../../utils';
+import type { AddressData, Input, Output, Shortcut } from '../../types';
+import { addresses, balanceOf, depositKodiak, mintHoney } from '../../utils';
 
-export class KodiakWethHoneyShortcut implements Shortcut {
-  name = 'kodiak-weth-honey';
+export class AbracadabraHoneyMimShortcut implements Shortcut {
+  name = 'abracadabra-honey-mim';
   description = '';
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
-      weth: getAddress('0x2d93FbcE4CffC15DD385A80B3f4CC1D4E76C38b3') as AddressArg,
-      usdc: getAddress(TokenAddresses.cartio.usdc) as AddressArg,
-      honey: getAddress(TokenAddresses.cartio.honey) as AddressArg,
-      island: getAddress('0xD4570a738675fB2c31e7b7b88998EE73E9E17d49') as AddressArg,
-      primary: getAddress(Standards.Kodiak_Islands.protocol.addresses!.cartio!.router) as AddressArg,
+      usdc: addresses[ChainIds.Cartio].usdc,
+      honey: addresses[ChainIds.Cartio].honey,
+      mim: addresses[ChainIds.Cartio].mim,
+      island: getAddress('0x150683BF3f0a344e271fc1b7dac3783623e7208A') as AddressArg,
+      primary: addresses[ChainIds.Cartio].kodiakRouter,
       setter: addresses[ChainIds.Cartio].setter, // having setter in inputs lets simulator know to set a min amount value
     },
   };
@@ -29,20 +27,18 @@ export class KodiakWethHoneyShortcut implements Shortcut {
     const client = new RoycoClient();
 
     const inputs = this.inputs[chainId];
-    const { weth, usdc, honey, island, primary, setter } = inputs;
+    const { mim, usdc, honey, island, primary, setter } = inputs;
 
     const builder = new Builder(chainId, client, {
-      tokensIn: [weth, usdc],
+      tokensIn: [mim, usdc],
       tokensOut: [island],
     });
+
+    const mimAmount = builder.add(balanceOf(mim, walletAddress()));
     const usdcAmount = builder.add(balanceOf(usdc, walletAddress()));
-    const wethAmount = builder.add(balanceOf(weth, walletAddress()));
     const mintedAmount = await mintHoney(usdc, usdcAmount, builder);
 
-    await depositKodiak(builder, [weth, honey], [wethAmount, mintedAmount], island, primary, setter, false);
-
-    const honeyAmount = builder.add(balanceOf(honey, walletAddress()));
-    await redeemHoney(usdc, honeyAmount, builder);
+    await depositKodiak(builder, [mim, honey], [mimAmount, mintedAmount], island, primary, setter, false);
 
     const payload = await builder.build({
       requireWeiroll: true,
@@ -59,11 +55,17 @@ export class KodiakWethHoneyShortcut implements Shortcut {
     switch (chainId) {
       case ChainIds.Cartio:
         return new Map([
-          [this.inputs[ChainIds.Cartio].usdc, { label: 'ERC20:USDC' }],
-          [this.inputs[ChainIds.Cartio].honey, { label: 'ERC20:HONEY' }],
-          [this.inputs[ChainIds.Cartio].weth, { label: 'ERC20:WETH' }],
-          [this.inputs[ChainIds.Cartio].island, { label: 'Kodiak Island-WETH-HONEY-0.3%' }],
+          [
+            this.inputs[ChainIds.Cartio].island,
+            {
+              label: 'Kodiak Island-HONEY-NECT',
+            },
+          ],
           [this.inputs[ChainIds.Cartio].primary, { label: 'Kodiak Island Router' }],
+          [this.inputs[ChainIds.Cartio].island, { label: 'Kodiak Island-MIM-HONEY-0.05%' }],
+          [this.inputs[ChainIds.Cartio].honey, { label: 'ERC20:HONEY' }],
+          [this.inputs[ChainIds.Cartio].mim, { label: 'ERC20:MIM' }],
+          [this.inputs[ChainIds.Cartio].usdc, { label: 'ERC20:USDC' }],
         ]);
       default:
         throw new Error(`Unsupported chainId: ${chainId}`);
