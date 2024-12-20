@@ -7,9 +7,13 @@ import { addAction, addApprovals } from '@ensofinance/shortcuts-standards/helper
 import { div } from '@ensofinance/shortcuts-standards/helpers/math';
 import { getAddress } from '@ethersproject/address';
 
-import { chainIdToTokenHolder } from '../../constants';
+import { chainIdToDeFiAddresses, chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
+<<<<<<< HEAD:src/shortcuts/beraborrow/nect-honey.ts
 import { addresses, balanceOf, depositKodiak, mintHoney, redeemHoney } from '../../utils';
+=======
+import { balanceOf, depositKodiak, mintHoney } from '../../utils';
+>>>>>>> 0db50a5 (feat(registry): added multicall & setter support for forge):src/shortcuts/beraborrow/mint-nect-lp.ts
 
 export class BeraborrowNectHoneyShortcut implements Shortcut {
   name = 'nect-honey';
@@ -17,14 +21,14 @@ export class BeraborrowNectHoneyShortcut implements Shortcut {
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
-      honey: addresses[ChainIds.Cartio].honey,
-      nect: addresses[ChainIds.Cartio].nect,
-      usdc: addresses[ChainIds.Cartio].usdc,
+      honey: chainIdToDeFiAddresses[ChainIds.Cartio].honey,
+      nect: chainIdToDeFiAddresses[ChainIds.Cartio].nect,
+      usdc: chainIdToDeFiAddresses[ChainIds.Cartio].usdc,
       usdcPsmBond: getAddress('0xd064C80776497821313b1Dc0E3192d1a67b2a9fa') as AddressArg,
-      island: getAddress('0xaEdC80dCdc872FA7B5FB4c5EC5d8C8696BB05f5d') as AddressArg, // KODI-HONEY-NECT
-      primary: addresses[ChainIds.Cartio].kodiakRouter,
-      quoterV2: getAddress(Standards.Kodiak_Islands.protocol.addresses!.cartio!.quoterV2) as AddressArg,
-      setter: addresses[ChainIds.Cartio].setter, // having setter in inputs lets simulator know to set a min amount value
+      island: getAddress(Standards.Kodiak_Islands.protocol.addresses!.cartio!.nectUsdcIsland) as AddressArg, // KODI-HONEY-NECT
+      primary: chainIdToDeFiAddresses[ChainIds.Cartio].kodiakRouter,
+      quoterV2: chainIdToDeFiAddresses[ChainIds.Cartio].quoterV2,
+      setter: chainIdToDeFiAddresses[ChainIds.Cartio].setter, // having setter in inputs lets simulator know to set a min amount value
     },
   };
 

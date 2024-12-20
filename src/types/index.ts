@@ -42,5 +42,22 @@ export type Report = {
 };
 
 export interface AddressData {
+  address?: AddressArg;
   label: string;
+}
+
+export interface SimulationRoles {
+  readonly caller: AddressData;
+  readonly recipeMarketHub: AddressData;
+  readonly multiCall: AddressData;
+  readonly setter: AddressData;
+  weirollWallet?: AddressData;
+}
+
+export interface SimulationTokensData {
+  tokensIn: AddressArg[];
+  tokensInHolders: AddressArg[];
+  amountsIn: AddressArg[];
+  tokensOut: AddressArg[];
+  tokensDust: AddressArg[];
 }

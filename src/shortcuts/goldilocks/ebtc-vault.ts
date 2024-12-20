@@ -6,7 +6,7 @@ import { Standards, getStandardByProtocol } from '@ensofinance/shortcuts-standar
 import { div } from '@ensofinance/shortcuts-standards/helpers/math';
 import { getAddress } from '@ethersproject/address';
 
-import { chainIdToTokenHolder } from '../../constants';
+import { chainIdToDeFiAddresses, chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
 import { balanceOf } from '../../utils';
 
@@ -16,7 +16,7 @@ export class GoldilocksEbtcShortcut implements Shortcut {
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
-      ebtc: getAddress(Standards.Goldilocks.protocol.addresses!.cartio!.ebtc) as AddressArg,
+      ebtc: chainIdToDeFiAddresses[ChainIds.Cartio].ebtc,
       ot: getAddress(Standards.Goldilocks.protocol.addresses!.cartio!.eBtcOt) as AddressArg,
       yt: getAddress(Standards.Goldilocks.protocol.addresses!.cartio!.eBtcYt) as AddressArg,
       vault: getAddress(Standards.Goldilocks.protocol.addresses!.cartio!.eBtcVault) as AddressArg,

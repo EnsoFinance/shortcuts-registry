@@ -3,10 +3,9 @@ import { RoycoClient } from '@ensofinance/shortcuts-builder/client/implementatio
 import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 import { getStandardByProtocol } from '@ensofinance/shortcuts-standards';
-import { TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
 import { getAddress } from '@ethersproject/address';
 
-import { chainIdToTokenHolder } from '../../constants';
+import { chainIdToDeFiAddresses, chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
 import { balanceOf } from '../../utils';
 
@@ -16,7 +15,7 @@ export class DolomiteDUsdtShortcut implements Shortcut {
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
-      base: getAddress(TokenAddresses.cartio.usdt) as AddressArg,
+      base: chainIdToDeFiAddresses[ChainIds.Cartio].usdt,
       vault: getAddress('0xF2d2d55Daf93b0660297eaA10969eBe90ead5CE8') as AddressArg, //dusdt
     },
   };
