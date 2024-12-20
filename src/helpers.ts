@@ -4,7 +4,7 @@ import { Interface } from '@ethersproject/abi';
 import dotenv from 'dotenv';
 import { execSync } from 'node:child_process';
 
-import { ShortcutOutputFormat, SimulationMode } from '../src/constants';
+import { ShortcutOutputFormat, SimulationMode, chainIdToSimulationRoles } from '../src/constants';
 import { Shortcut } from '../src/types';
 import { AbracadabraHoneyMimShortcut } from './shortcuts/abracadabra/honey-mim';
 import { BeraborrowNectHoneyShortcut } from './shortcuts/beraborrow/nect-honey';
@@ -32,6 +32,7 @@ import { MobyWolpWethShortcut } from './shortcuts/moby/wolp-weth';
 import { OrigamiBoycoHoneyShortcut } from './shortcuts/origami/oboy-HONEY-a';
 import { SatlayerPumpBtcShortcut } from './shortcuts/satlayer/pumpbtc';
 import { ThjUsdcShortcut } from './shortcuts/thj/usdc';
+import type { SimulationRoles } from './types';
 
 dotenv.config();
 
