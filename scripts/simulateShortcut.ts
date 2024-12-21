@@ -38,11 +38,10 @@ async function generateMulticallTxData(
   recipeMarketHubAddr: AddressArg,
 ): Promise<string> {
   const calls = [];
-  if (shortcut.inputs[chainId].setter) {
-    // set min amount out
-    const setterData = setterInterface.encodeFunctionData('setSingleValue', [1]); // for min amount out, simulation can set zero
-    calls.push([shortcut.inputs[chainId].setter, setterData]);
-  }
+  // set min amount out
+  const setterData = setterInterface.encodeFunctionData('setSingleValue', [1]); // for min amount out, simulation can set zero
+  calls.push([shortcut.inputs[chainId].setter, setterData]);
+
   // can call executeWeiroll on recipeMarketHub it will automatically deploy a weiroll wallet
   const weirollData = getEncodedData(commands, state);
   calls.push([recipeMarketHubAddr, weirollData]);
@@ -78,15 +77,28 @@ async function simulateShortcutOnQuoter(
   if (amountsIn.length != tokensIn.length)
     throw `Error: Incorrect number of amounts for shortcut. Expected ${tokensIn.length}`;
 
+  const { commands, state } = script;
   const provider = new StaticJsonRpcProvider(rpcUrl);
   const weirollWallet = await getNextWeirollWalletFromRecipeMarketHub(provider, roles.recipeMarketHub.address!);
   roles.weirollWallet = { address: weirollWallet, label: 'WeirollWallet' };
-  const { commands, state } = script;
-  const data = await generateMulticallTxData(shortcut, chainId, commands, state, roles.recipeMarketHub.address!);
+
+  let data;
+
+  const useMulticall = shortcut.inputs[chainId].setter;
+  if (useMulticall) {
+    console.log('Simulating with multicall');
+
+    data = await generateMulticallTxData(shortcut, chainId, commands, state, roles.recipeMarketHub.address!);
+  } else {
+    data = getEncodedData(commands, state);
+  }
+
+  console.log(roles.caller.address!);
+  console.log(weirollWallet);
 
   const tx: APITransaction = {
     from: roles.caller.address!,
-    to: roles.multiCall.address!,
+    to: useMulticall ? roles.multiCall.address! : weirollWallet,
     data,
     value: '0',
     receiver: weirollWallet,
