@@ -16,7 +16,7 @@ export class GoldilocksEbtcShortcut implements Shortcut {
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
-      ebtc: getAddress(Standards.Goldilocks.protocol.addresses!.cartio!.ebtc) as AddressArg,
+      base: getAddress(Standards.Goldilocks.protocol.addresses!.cartio!.ebtc) as AddressArg,
       ot: getAddress(Standards.Goldilocks.protocol.addresses!.cartio!.eBtcOt) as AddressArg,
       yt: getAddress(Standards.Goldilocks.protocol.addresses!.cartio!.eBtcYt) as AddressArg,
       vault: getAddress(Standards.Goldilocks.protocol.addresses!.cartio!.eBtcVault) as AddressArg,
@@ -91,7 +91,7 @@ export class GoldilocksEbtcShortcut implements Shortcut {
           [this.inputs[ChainIds.Cartio].ot, { label: 'ERC20:eBTC-OT' }],
           [this.inputs[ChainIds.Cartio].yt, { label: 'ERC20:eBTC-YT' }],
           [this.inputs[ChainIds.Cartio].vault, { label: 'PointsGoldiVault:eBTC' }],
-          [this.inputs[ChainIds.Cartio].island, { label: 'KodiakIsland:' }],
+          [this.inputs[ChainIds.Cartio].island, { label: 'KodiakIsland:eBTC/eBTC-OT' }],
         ]);
       default:
         throw new Error(`Unsupported chainId: ${chainId}`);

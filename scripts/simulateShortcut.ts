@@ -21,6 +21,7 @@ async function simulateShortcutOnQuoter(shortcut: Shortcut, chainId: ChainIds, a
   const { script, metadata } = await shortcut.build(chainId);
 
   const { tokensIn, tokensOut } = metadata;
+  console.log('Tokens In: ', tokensIn);
   if (!tokensIn || !tokensOut) throw 'Error: Invalid builder metadata';
   if (amountsIn.length != tokensIn.length)
     throw `Error: Incorrect number of amounts for shortcut. Expected ${tokensIn.length}`;
