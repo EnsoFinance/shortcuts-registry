@@ -1,3 +1,6 @@
+import fs from 'fs';
+import path from 'path';
+
 import { ShortcutOutputFormat } from '../src/constants';
 import { getShortcut, getShortcutOutputFormatFromArgs } from '../src/helpers';
 import { Output, RoycoOutput } from '../src/types';
@@ -8,6 +11,7 @@ async function main() {
     const { shortcut, chainId } = await getShortcut();
     const outputFmt = getShortcutOutputFormatFromArgs(process.argv);
     let output: RoycoOutput | Output;
+
     switch (outputFmt) {
       case ShortcutOutputFormat.ROYCO:
         output = await buildRoycoMarketShortcut(shortcut, chainId);
@@ -18,9 +22,21 @@ async function main() {
       default:
         throw new Error(`Unsupported '--output=' format: ${outputFmt}`);
     }
+
     console.log(output);
+
+    const market = process.argv[4];
+    const protocol = process.argv[3];
+
+    const outputDir = path.join(__dirname, '../outputs', protocol);
+    const outputFile = path.join(outputDir, `${market}.json`);
+
+    fs.mkdirSync(outputDir, { recursive: true });
+
+    fs.writeFileSync(outputFile, JSON.stringify(output, null, 2), 'utf-8');
+    console.log(`Output saved to ${outputFile}`);
   } catch (e) {
-    console.log(e);
+    console.error(e);
   }
 }
 

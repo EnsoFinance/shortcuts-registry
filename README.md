@@ -2,7 +2,8 @@
 
 # Shortcuts Registry
 
-This is a registry of shortcuts (weiroll scripts) used in **[CCDM](https://github.com/roycoprotocol/cross-chain-deposit-module)** Campaigns.
+This is a registry of shortcuts (weiroll scripts) used in
+**[CCDM](https://github.com/roycoprotocol/cross-chain-deposit-module)** Campaigns.
 
 ## Setup
 
@@ -61,6 +62,8 @@ Default output example:
   ]
 }
 ```
+
+The generated output will be saved to the `shortcuts-registry/outputs` directory.
 
 Optionally, get a full output by adding `--output=full`:
 
