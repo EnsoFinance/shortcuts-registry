@@ -17,10 +17,11 @@ import { DolomiteDWbtcShortcut } from './shortcuts/dolomite/dwbtc';
 import { KodiakHoneyUsdcShortcut } from './shortcuts/kodiak/honey-usdc';
 import { KodiakHoneyWethShortcut } from './shortcuts/kodiak/honey-weth';
 import { KodiakWethWbtcShortcut } from './shortcuts/kodiak/weth-wbtc';
-import { MobyWolpHoneyShortcut } from './shortcuts/moby/wolp-honey';
-import { MobyWolpUsdcShortcut } from './shortcuts/moby/wolp-usdc';
-import { MobyWolpWbtcShortcut } from './shortcuts/moby/wolp-wbtc';
-import { MobyWolpWethShortcut } from './shortcuts/moby/wolp-weth';
+import { MobyWolpHoneyShortcut } from './shortcuts/moby-olp/wolp-honey';
+import { MobyWolpUsdcShortcut } from './shortcuts/moby-olp/wolp-usdc';
+import { MobyWolpWbtcShortcut } from './shortcuts/moby-olp/wolp-wbtc';
+import { MobyWolpWethShortcut } from './shortcuts/moby-olp/wolp-weth';
+import { MobySpvUsdcHoneyShortcut } from './shortcuts/moby-spv/usdc-honey';
 import { OrigamiBoycoHoneyShortcut } from './shortcuts/origami/oboy-HONEY-a';
 import { SatlayerPumpBtcShortcut } from './shortcuts/satlayer/pumpbtc';
 import type { SimulationRoles } from './types';
@@ -52,11 +53,14 @@ const shortcuts: Record<string, Record<string, Shortcut>> = {
     'honey-weth': new KodiakHoneyWethShortcut(),
     'weth-wbtc': new KodiakWethWbtcShortcut(),
   },
-  moby: {
+  mobyOlp: {
     'wolp-honey': new MobyWolpHoneyShortcut(),
     'wolp-usdc': new MobyWolpUsdcShortcut(),
     'wolp-wbtc': new MobyWolpWbtcShortcut(),
     'wolp-weth': new MobyWolpWethShortcut(),
+  },
+  mobySpv: {
+    'usdc-honey': new MobySpvUsdcHoneyShortcut(),
   },
   origami: {
     'oboy-honey': new OrigamiBoycoHoneyShortcut(),

@@ -82,15 +82,17 @@ async function simulateShortcutOnQuoter(
   const weirollWallet = await getNextWeirollWalletFromRecipeMarketHub(provider, roles.recipeMarketHub.address!);
   roles.weirollWallet = { address: weirollWallet, label: 'WeirollWallet' };
   const { commands, state } = script;
-  const data = await generateMulticallTxData(shortcut, chainId, commands, state, roles.recipeMarketHub.address!);
+  const data = getEncodedData(commands, state);
+
+  const fromAddress = '0x93621DCA56fE26Cdee86e4F6B18E116e9758Ff11';
+  const weirollWalletAddress = '0xBa8F5f80C41BF5e169d9149Cd4977B1990Fc2736';
 
   const tx: APITransaction = {
-    from: roles.caller.address!,
-    to: roles.multiCall.address!,
+    from: fromAddress,
+    to: weirollWalletAddress,
     data,
     value: '0',
-    receiver: weirollWallet,
-    executor: weirollWallet,
+    receiver: weirollWalletAddress,
   };
   const quoteTokens = [...tokensOut, ...tokensIn]; //find dust
 
