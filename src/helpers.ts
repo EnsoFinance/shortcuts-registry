@@ -14,6 +14,7 @@ import { DolomiteDHoneyShortcut } from './shortcuts/dolomite/dhoney';
 import { DolomiteDUsdcShortcut } from './shortcuts/dolomite/dusdc';
 import { DolomiteDUsdtShortcut } from './shortcuts/dolomite/dusdt';
 import { DolomiteDWbtcShortcut } from './shortcuts/dolomite/dwbtc';
+import { InfraredWethWbtcShortcut } from './shortcuts/infrared/weth-wbtc';
 import { KodiakHoneyUsdcShortcut } from './shortcuts/kodiak/honey-usdc';
 import { KodiakHoneyWethShortcut } from './shortcuts/kodiak/honey-weth';
 import { KodiakWethWbtcShortcut } from './shortcuts/kodiak/weth-wbtc';
@@ -63,6 +64,9 @@ const shortcuts: Record<string, Record<string, Shortcut>> = {
   },
   satlayer: {
     pumpbtc: new SatlayerPumpBtcShortcut(),
+  },
+  infrared: {
+    'weth-wbtc': new InfraredWethWbtcShortcut(),
   },
 };
 
