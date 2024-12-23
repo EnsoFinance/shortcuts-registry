@@ -27,7 +27,6 @@ export class AbracadabraMimHoneyhortcut implements Shortcut {
 
     const inputs = this.inputs[chainId];
     const { mim, usdc, honey, island, primary, setter } = inputs;
-    console.log(island);
 
     const builder = new Builder(chainId, client, {
       tokensIn: [mim, usdc],
@@ -40,8 +39,8 @@ export class AbracadabraMimHoneyhortcut implements Shortcut {
 
     await depositKodiak(builder, [mim, honey], [mimAmount, mintedAmount], island, primary, setter, false);
 
-    const honeyLeftovers = builder.add(balanceOf(honey, walletAddress()));
-    await redeemHoney(usdc, honeyLeftovers, builder);
+    const leftoverAmount = builder.add(balanceOf(honey, walletAddress()));
+    await redeemHoney(usdc, leftoverAmount, builder);
 
     const payload = await builder.build({
       requireWeiroll: true,

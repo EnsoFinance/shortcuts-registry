@@ -7,7 +7,7 @@ import { div } from '@ensofinance/shortcuts-standards/helpers/math';
 
 import { chainIdToDeFiAddresses, chainIdToSimulationRoles, chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
-import { balanceOf, depositKodiak, mintHoney } from '../../utils';
+import { balanceOf, depositKodiak, mintHoney, redeemHoney } from '../../utils';
 
 export class BeraborrowMintNectLpShortcut implements Shortcut {
   name = 'mint-nect-lp';
@@ -59,13 +59,15 @@ export class BeraborrowMintNectLpShortcut implements Shortcut {
       false,
     );
 
-    const nectLeftovers = builder.add(balanceOf(nect, walletAddress()));
+    const honeyLeftoverAmount = builder.add(balanceOf(honey, walletAddress()));
+    await redeemHoney(usdc, honeyLeftoverAmount, builder);
 
+    const nectLeftoversAmount = builder.add(balanceOf(nect, walletAddress()));
     const withdrawLeftovers = contractCall({
       address: usdcPsmBond,
       functionName: 'withdraw',
       abi: ['function withdraw(uint shares, address receiver, address owner) '],
-      args: [nectLeftovers, walletAddress(), walletAddress()],
+      args: [nectLeftoversAmount, walletAddress(), walletAddress()],
     });
 
     await builder.add(withdrawLeftovers);
