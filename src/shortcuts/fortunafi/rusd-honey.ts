@@ -2,12 +2,10 @@ import { Builder } from '@ensofinance/shortcuts-builder';
 import { RoycoClient } from '@ensofinance/shortcuts-builder/client/implementations/roycoClient';
 import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
-import { Standards, getStandardByProtocol } from '@ensofinance/shortcuts-standards';
-import { TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
 
-import { chainIdToTokenHolder } from '../../constants';
+import { chainIdToDeFiAddresses, chainIdToSimulationRoles, chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
-import { balanceOf, mintHoney, redeemHoney } from '../../utils';
+import { balanceOf, depositKodiak, mintHoney, redeemHoney } from '../../utils';
 
 export class FortunafiRusdHoneyShortcut implements Shortcut {
   name = 'fortunafi-rusd-honey';
@@ -15,11 +13,12 @@ export class FortunafiRusdHoneyShortcut implements Shortcut {
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
-      usd: TokenAddresses.cartio.usd,
-      honey: TokenAddresses.cartio.honey,
-      rusd: TokenAddresses.cartio.rusd,
+      usd: chainIdToDeFiAddresses[ChainIds.Cartio].usd,
+      honey: chainIdToDeFiAddresses[ChainIds.Cartio].honey,
+      rusd: chainIdToDeFiAddresses[ChainIds.Cartio].rusd,
       island: '' as AddressArg, // TO DO: ADDING ISLAND WHEN DEPLOYED
-      primary: Standards.Kodiak_Islands.protocol.addresses!.cartio!.router,
+      primary: chainIdToDeFiAddresses[ChainIds.Cartio].kodiakRouter,
+      setter: chainIdToSimulationRoles.get(ChainIds.Cartio)!.setter.address!, // having setter in inputs lets simulator know to set a min amount value
     },
   };
 
@@ -27,7 +26,7 @@ export class FortunafiRusdHoneyShortcut implements Shortcut {
     const client = new RoycoClient();
 
     const inputs = this.inputs[chainId];
-    const { rusd, usdc, honey, island, primary } = inputs;
+    const { rusd, usdc, honey, island, primary, setter } = inputs;
 
     const builder = new Builder(chainId, client, {
       tokensIn: [rusd, usdc],
@@ -38,14 +37,7 @@ export class FortunafiRusdHoneyShortcut implements Shortcut {
     const usdcAmount = builder.add(balanceOf(usdc, walletAddress()));
     const mintedAmount = await mintHoney(usdc, usdcAmount, builder);
 
-    const kodiak = getStandardByProtocol('kodiak-islands', chainId);
-
-    await kodiak.deposit.addToBuilder(builder, {
-      tokenIn: [rusd, honey],
-      tokenOut: island,
-      amountIn: [rusdAmount, mintedAmount],
-      primaryAddress: primary,
-    });
+    await depositKodiak(builder, [rusd, honey], [rusdAmount, mintedAmount], island, primary, setter, false);
 
     const honeyLeftOvers = builder.add(balanceOf(honey, walletAddress()));
     await redeemHoney(usdc, honeyLeftOvers, builder);

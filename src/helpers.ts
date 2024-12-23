@@ -4,9 +4,9 @@ import { Interface } from '@ethersproject/abi';
 import dotenv from 'dotenv';
 import { execSync } from 'node:child_process';
 
-import { ShortcutOutputFormat, SimulationMode } from '../src/constants';
+import { ShortcutOutputFormat, SimulationMode, chainIdToSimulationRoles } from '../src/constants';
 import { Shortcut } from '../src/types';
-import { AbracadabraMimUsdcShortcut } from './shortcuts/abracadabra/mim-usdc';
+import { AbracadabraMimHoneyhortcut } from './shortcuts/abracadabra/mim-honey';
 import { BeraborrowMintNectLpShortcut } from './shortcuts/beraborrow/mint-nect-lp';
 import { BeraborrowVaultStrategyShortcut } from './shortcuts/beraborrow/vault-strategy';
 import { DolomiteDEthShortcut } from './shortcuts/dolomite/deth';
@@ -16,7 +16,7 @@ import { DolomiteDUsdtShortcut } from './shortcuts/dolomite/dusdt';
 import { DolomiteDWbtcShortcut } from './shortcuts/dolomite/dwbtc';
 import { InfraredWethWbtcShortcut } from './shortcuts/infrared/weth-wbtc';
 import { KodiakHoneyUsdcShortcut } from './shortcuts/kodiak/honey-usdc';
-import { KodiakWethHoneyShortcut } from './shortcuts/kodiak/weth-honey';
+import { KodiakHoneyWethShortcut } from './shortcuts/kodiak/honey-weth';
 import { KodiakWethWbtcShortcut } from './shortcuts/kodiak/weth-wbtc';
 import { MobyWolpHoneyShortcut } from './shortcuts/moby/wolp-honey';
 import { MobyWolpUsdcShortcut } from './shortcuts/moby/wolp-usdc';
@@ -24,12 +24,13 @@ import { MobyWolpWbtcShortcut } from './shortcuts/moby/wolp-wbtc';
 import { MobyWolpWethShortcut } from './shortcuts/moby/wolp-weth';
 import { OrigamiBoycoHoneyShortcut } from './shortcuts/origami/oboy-HONEY-a';
 import { SatlayerPumpBtcShortcut } from './shortcuts/satlayer/pumpbtc';
+import type { SimulationRoles } from './types';
 
 dotenv.config();
 
 const shortcuts: Record<string, Record<string, Shortcut>> = {
   abracadabra: {
-    'mim-usdc': new AbracadabraMimUsdcShortcut(),
+    'honey-mim': new AbracadabraMimHoneyhortcut(),
   },
   beraborrow: {
     'mint-nect-lp': new BeraborrowMintNectLpShortcut(),
@@ -49,7 +50,7 @@ const shortcuts: Record<string, Record<string, Shortcut>> = {
   // },
   kodiak: {
     'honey-usdc': new KodiakHoneyUsdcShortcut(),
-    'weth-honey': new KodiakWethHoneyShortcut(),
+    'honey-weth': new KodiakHoneyWethShortcut(),
     'weth-wbtc': new KodiakWethWbtcShortcut(),
   },
   moby: {
@@ -99,6 +100,16 @@ export function getRpcUrlByChainId(chainId: number): string {
   if (!rpcUrl) throw new Error(`Missing 'RPC_URL_${chainName.toUpperCase()}' environment variable`);
 
   return rpcUrl;
+}
+
+export function getSimulationRolesByChainId(chainId: number): SimulationRoles {
+  const roles = chainIdToSimulationRoles.get(chainId);
+  if (!roles)
+    throw new Error(
+      `Missing simulation roles for 'chainId': ${chainId}. Please, update 'chainIdToSimulationRoles' map`,
+    );
+
+  return roles;
 }
 
 export function getForgePath(): string {
