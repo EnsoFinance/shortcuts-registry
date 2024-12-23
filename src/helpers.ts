@@ -6,7 +6,7 @@ import { execSync } from 'node:child_process';
 
 import { ShortcutOutputFormat, SimulationMode, chainIdToSimulationRoles } from '../src/constants';
 import { Shortcut } from '../src/types';
-import { AbracadabraHoneyMimShortcut } from './shortcuts/abracadabra/honey-mim';
+import { AbracadabraMimHoneyhortcut } from './shortcuts/abracadabra/mim-honey';
 import { BeraborrowMintNectLpShortcut } from './shortcuts/beraborrow/mint-nect-lp';
 import { BeraborrowVaultStrategyShortcut } from './shortcuts/beraborrow/vault-strategy';
 import { DolomiteDEthShortcut } from './shortcuts/dolomite/deth';
@@ -30,7 +30,7 @@ dotenv.config();
 
 const shortcuts: Record<string, Record<string, Shortcut>> = {
   abracadabra: {
-    'honey-mim': new AbracadabraHoneyMimShortcut(),
+    'honey-mim': new AbracadabraMimHoneyhortcut(),
   },
   beraborrow: {
     'mint-nect-lp': new BeraborrowMintNectLpShortcut(),
