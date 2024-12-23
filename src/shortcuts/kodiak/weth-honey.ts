@@ -46,8 +46,8 @@ export class KodiakWethHoneyShortcut implements Shortcut {
       primaryAddress: primary,
     });
 
-    const honeyAmount = builder.add(balanceOf(honey, walletAddress()));
-    await redeemHoney(usdc, honeyAmount, builder);
+    const leftoverAmount = builder.add(balanceOf(honey, walletAddress()));
+    await redeemHoney(usdc, leftoverAmount, builder);
 
     const payload = await builder.build({
       requireWeiroll: true,
