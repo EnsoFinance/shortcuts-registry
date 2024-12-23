@@ -5,10 +5,10 @@ import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-buil
 
 import { chainIdToDeFiAddresses, chainIdToSimulationRoles, chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
-import { balanceOf, depositKodiak, mintHoney } from '../../utils';
+import { balanceOf, depositKodiak, mintHoney, redeemHoney } from '../../utils';
 
-export class AbracadabraHoneyMimShortcut implements Shortcut {
-  name = 'abracadabra-honey-mim';
+export class AbracadabraMimHoneyhortcut implements Shortcut {
+  name = 'abracadabra-mim-honey';
   description = '';
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
@@ -27,6 +27,7 @@ export class AbracadabraHoneyMimShortcut implements Shortcut {
 
     const inputs = this.inputs[chainId];
     const { mim, usdc, honey, island, primary, setter } = inputs;
+    console.log(island);
 
     const builder = new Builder(chainId, client, {
       tokensIn: [mim, usdc],
@@ -38,6 +39,9 @@ export class AbracadabraHoneyMimShortcut implements Shortcut {
     const mintedAmount = await mintHoney(usdc, usdcAmount, builder);
 
     await depositKodiak(builder, [mim, honey], [mimAmount, mintedAmount], island, primary, setter, false);
+
+    const honeyLeftovers = builder.add(balanceOf(honey, walletAddress()));
+    await redeemHoney(usdc, honeyLeftovers, builder);
 
     const payload = await builder.build({
       requireWeiroll: true,
