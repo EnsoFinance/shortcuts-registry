@@ -1,9 +1,8 @@
 import { Builder } from '@ensofinance/shortcuts-builder';
 import { RoycoClient } from '@ensofinance/shortcuts-builder/client/implementations/roycoClient';
-import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
+import { contractCall, walletAddress } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, FromContractCallArg, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 import { Standards, getStandardByProtocol } from '@ensofinance/shortcuts-standards';
-import { addAction, addApprovals } from '@ensofinance/shortcuts-standards/helpers';
 import { div } from '@ensofinance/shortcuts-standards/helpers/math';
 
 import { chainIdToDeFiAddresses, chainIdToSimulationRoles, chainIdToTokenHolder } from '../../constants';
@@ -60,28 +59,18 @@ export class BeraborrowNectHoneyShortcut implements Shortcut {
       false,
     );
 
-    const honeyLeftOvers = builder.add(balanceOf(honey, walletAddress()));
-    await redeemHoney(usdc, honeyLeftOvers, builder);
+    const honeyLeftoverAmount = builder.add(balanceOf(honey, walletAddress()));
+    await redeemHoney(usdc, honeyLeftoverAmount, builder);
 
-    const nectLeftOvers = builder.add(balanceOf(nect, walletAddress()));
-
-    const approvals = {
-      tokens: [nect],
-      amounts: [nectLeftOvers],
-      spender: usdcPsmBond,
-    };
-
-    await addApprovals(builder, approvals);
-    await addAction({
-      builder,
-      action: {
-        address: usdcPsmBond,
-        abi: ['function withdraw(uint256 shares, address receiver, address owner) returns (uint256)'],
-        functionName: 'withdraw',
-        args: [nectLeftOvers, walletAddress(), walletAddress()],
-      },
-      approvals,
+    const nectLeftoversAmount = builder.add(balanceOf(nect, walletAddress()));
+    const withdrawLeftovers = contractCall({
+      address: usdcPsmBond,
+      functionName: 'withdraw',
+      abi: ['function withdraw(uint shares, address receiver, address owner) '],
+      args: [nectLeftoversAmount, walletAddress(), walletAddress()],
     });
+
+    builder.add(withdrawLeftovers);
 
     const payload = await builder.build({
       requireWeiroll: true,
