@@ -39,8 +39,8 @@ export class FortunafiRusdHoneyShortcut implements Shortcut {
 
     await depositKodiak(builder, [rusd, honey], [rusdAmount, mintedAmount], island, primary, setter, false);
 
-    const honeyLeftOvers = builder.add(balanceOf(honey, walletAddress()));
-    await redeemHoney(usdc, honeyLeftOvers, builder);
+    const leftoverAmount = builder.add(balanceOf(honey, walletAddress()));
+    await redeemHoney(usdc, leftoverAmount, builder);
 
     const payload = await builder.build({
       requireWeiroll: true,
