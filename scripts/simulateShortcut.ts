@@ -1,9 +1,17 @@
-import { AddressArg, ChainIds } from '@ensofinance/shortcuts-builder/types';
+import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 import { getAddress } from '@ensofinance/shortcuts-standards/helpers';
 import { Interface } from '@ethersproject/abi';
+import { BigNumber } from '@ethersproject/bignumber';
 import { StaticJsonRpcProvider } from '@ethersproject/providers';
 
-import { FUNCTION_ID_ERC20_APPROVE, ShortcutExecutionMode, SimulationMode } from '../src/constants';
+import {
+  DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE,
+  DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR,
+  DEFAULT_SETTER_MIN_AMOUNT_OUT,
+  FUNCTION_ID_ERC20_APPROVE,
+  ShortcutExecutionMode,
+  SimulationMode,
+} from '../src/constants';
 import { getEncodedData, getShortcut } from '../src/helpers';
 import {
   getAmountsInFromArgs,
@@ -13,6 +21,7 @@ import {
   getShortcutExecutionMode,
   getSimulationModeFromArgs,
   getSimulationRolesByChainId,
+  getSlippageFromArgs,
 } from '../src/helpers';
 import { simulateTransactionOnForge } from '../src/simulations/simulateOnForge';
 import { APITransaction, QuoteRequest, simulateTransactionOnQuoter } from '../src/simulations/simulateOnQuoter';
@@ -38,11 +47,12 @@ async function generateMulticallTxData(
   commands: string[],
   state: string[],
   recipeMarketHubAddr: AddressArg,
+  minAmountOut = DEFAULT_SETTER_MIN_AMOUNT_OUT,
 ): Promise<string> {
   const calls = [];
   if (shortcut.inputs[chainId].setter) {
     // set min amount out
-    const setterData = setterInterface.encodeFunctionData('setSingleValue', [1]); // for min amount out, simulation can set zero
+    const setterData = setterInterface.encodeFunctionData('setSingleValue', [minAmountOut]); // for min amount out, simulation can set zero
     calls.push([shortcut.inputs[chainId].setter, setterData]);
   }
   // can call executeWeiroll on recipeMarketHub it will automatically deploy a weiroll wallet
@@ -70,16 +80,14 @@ async function simulateShortcutOnQuoter(
   shortcut: Shortcut,
   chainId: ChainIds,
   amountsIn: string[],
+  script: WeirollScript,
+  tokensIn: AddressArg[],
+  tokensOut: AddressArg[],
+  slippage: BigNumber,
   rpcUrl: string,
   roles: SimulationRoles,
-): Promise<void> {
-  const { script, metadata } = await shortcut.build(chainId);
-
-  const { tokensIn, tokensOut } = metadata;
-  if (!tokensIn || !tokensOut) throw 'Error: Invalid builder metadata';
-  if (amountsIn.length != tokensIn.length)
-    throw `Error: Incorrect number of amounts for shortcut. Expected ${tokensIn.length}`;
-
+  isRecursiveCall = false,
+): Promise<Report> {
   const { commands, state } = script;
 
   const shortcutExecutionMode = getShortcutExecutionMode(shortcut, chainId);
@@ -88,15 +96,46 @@ async function simulateShortcutOnQuoter(
   switch (shortcutExecutionMode) {
     case ShortcutExecutionMode.MULTICALL__AGGREGATE: {
       const provider = new StaticJsonRpcProvider(rpcUrl);
+      let minAmountOut = DEFAULT_SETTER_MIN_AMOUNT_OUT;
+      // NB: simulate first with `minAmountOut` set to '1' wei and get the actual `amountOut` from quoter.
+      // Then, calculate the expected `minAmountOut` after applying maximum slippage, and finally simulate again.
+      if (!isRecursiveCall) {
+        const report = await simulateShortcutOnQuoter(
+          shortcut,
+          chainId,
+          amountsIn,
+          script,
+          tokensIn,
+          tokensOut,
+          slippage,
+          rpcUrl,
+          roles,
+          true,
+        );
+        const receiptTokenAddr = tokensOut[0]; // NB: Royco campaign shortcuts expect a single receipt token
+        const amountOut = report.quote[receiptTokenAddr];
+        minAmountOut = BigNumber.from(amountOut)
+          .mul(DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR.sub(slippage))
+          .div(DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR);
+      }
       const weirollWallet = await getNextWeirollWalletFromRecipeMarketHub(provider, roles.recipeMarketHub.address!);
       roles.weirollWallet = { address: weirollWallet, label: 'WeirollWallet' };
       roles.callee = roles.multiCall;
-      txData = await generateMulticallTxData(shortcut, chainId, commands, state, roles.recipeMarketHub.address!);
+      txData = await generateMulticallTxData(
+        shortcut,
+        chainId,
+        commands,
+        state,
+        roles.recipeMarketHub.address!,
+        minAmountOut,
+      );
+
       break;
     }
     case ShortcutExecutionMode.WEIROLL_WALLET__EXECUTE_WEIROLL: {
       txData = getEncodedData(commands, state);
-      roles.callee = roles.weirollWallet;
+      roles.weirollWallet = roles.defaultWeirollWallet;
+      roles.callee = roles.defaultWeirollWallet;
       break;
     }
     default:
@@ -136,7 +175,11 @@ async function simulateShortcutOnQuoter(
     const index = quoteTokens.findIndex((q) => q === t);
     report.dust[t] = quote.amountOut[index];
   });
-  console.log('Simulation: ', report);
+  if (!isRecursiveCall) {
+    console.log('Simulation: ', report);
+  }
+
+  return report;
 }
 
 async function simulateShortcutOnForge(
@@ -261,6 +304,23 @@ async function main() {
     const rpcUrl = getRpcUrlByChainId(chainId);
     const roles = getSimulationRolesByChainId(chainId);
 
+    const { script, metadata } = await shortcut.build(chainId);
+
+    // Validate tokens
+    const { tokensIn, tokensOut } = metadata;
+    if (!tokensIn || !tokensOut) throw 'Error: Invalid builder metadata. Missing eiter "tokensIn" or "tokensOut"';
+    if (amountsIn.length != tokensIn.length) {
+      throw `Error: Incorrect number of amounts for shortcut. Expected ${tokensIn.length} CSVs`;
+    }
+
+    // Validate slippage
+    // NB: currently only a single slippage is supported due to setter logic interacting with `setSingleValue`
+    // and Royco campaign shortcuts expecting a single receipt token
+    let slippage = DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE;
+    if (shortcut.inputs[chainId].setter) {
+      slippage = getSlippageFromArgs(args);
+    }
+
     switch (simulatonMode) {
       case SimulationMode.FORGE: {
         const forgePath = getForgePath();
@@ -268,7 +328,17 @@ async function main() {
         break;
       }
       case SimulationMode.QUOTER: {
-        await simulateShortcutOnQuoter(shortcut, chainId, amountsIn, rpcUrl, roles);
+        await simulateShortcutOnQuoter(
+          shortcut,
+          chainId,
+          amountsIn,
+          script,
+          tokensIn,
+          tokensOut,
+          slippage,
+          rpcUrl,
+          roles,
+        );
         break;
       }
       default:

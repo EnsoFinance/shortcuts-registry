@@ -48,11 +48,12 @@ export interface AddressData {
 
 export interface SimulationRoles {
   readonly caller: AddressData;
+  readonly defaultWeirollWallet: AddressData;
   readonly recipeMarketHub: AddressData;
   readonly multiCall: AddressData;
   readonly setter: AddressData;
   readonly nativeToken: AddressData;
-  weirollWallet: AddressData;
+  weirollWallet?: AddressData;
   callee?: AddressData;
 }
 

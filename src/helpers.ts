@@ -1,10 +1,14 @@
 import { getChainName } from '@ensofinance/shortcuts-builder/helpers';
 import { ChainIds } from '@ensofinance/shortcuts-builder/types';
 import { Interface } from '@ethersproject/abi';
+import { BigNumber } from '@ethersproject/bignumber';
 import dotenv from 'dotenv';
 import { execSync } from 'node:child_process';
 
 import {
+  DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE,
+  DEFAULT_MIN_AMOUNT_OUT_MULTIPLIER,
+  DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR,
   ShortcutExecutionMode,
   ShortcutOutputFormat,
   SimulationMode,
@@ -189,10 +193,33 @@ export function getShortcutOutputFormatFromArgs(args: string[]): string {
 }
 
 export function getAmountsInFromArgs(args: string[]): string[] {
-  const filteredArgs = args.slice(5);
-  if (filteredArgs.length != 1) throw 'Error: Please pass amounts (use commas for multiple values)';
+  const filteredArg = args[5];
+  if (!filteredArg || !filteredArg.length) throw 'Error: Please pass amounts (use commas for multiple values)';
 
-  return filteredArgs[0].split(',');
+  return filteredArg.split(',');
+}
+
+export function getSlippageFromArgs(args: string[], allowedNumberOfDecimals = 2): BigNumber {
+  const filteredArg = args[6];
+  if (!filteredArg || !filteredArg.length) throw 'Error: Please pass slippage amount';
+
+  const slippageRaw = parseFloat(filteredArg);
+  if (isNaN(slippageRaw)) throw 'Error: Invalid slippage. Required a float type';
+  const slippageRawStr = slippageRaw.toString();
+
+  // Check if there are more than the allowed number of decimal places
+  if (slippageRawStr.includes('.') && slippageRawStr.split('.')[1].length > allowedNumberOfDecimals) {
+    throw new Error(`Invalid number: ${filteredArg}. Only ${allowedNumberOfDecimals} decimal places are allowed.`);
+  }
+  const slippage = slippageRaw * DEFAULT_MIN_AMOUNT_OUT_MULTIPLIER;
+  if (
+    slippage < DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE.toNumber() ||
+    slippage > DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR.toNumber()
+  ) {
+    throw new Error(`invalid slippage: ${filteredArg}. Percentage is out of range [0,100]`);
+  }
+
+  return BigNumber.from(slippage.toString());
 }
 
 export function getWalletFromArgs(args: string[]): string {

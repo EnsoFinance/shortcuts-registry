@@ -1,6 +1,7 @@
 import { AddressArg, ChainIds } from '@ensofinance/shortcuts-builder/types';
 import { Standards } from '@ensofinance/shortcuts-standards';
 import { GeneralAddresses, TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
+import { BigNumber } from '@ethersproject/bignumber';
 
 import type { SimulationRoles } from './types';
 
@@ -23,6 +24,11 @@ export enum ShortcutExecutionMode {
 
 export const FUNCTION_ID_ERC20_APPROVE = '0x095ea7b3';
 
+export const DEFAULT_SETTER_MIN_AMOUNT_OUT = BigNumber.from('1');
+export const DEFAULT_MIN_AMOUNT_OUT_MULTIPLIER = 100; // NB: 0.01 * 100 = BigNumber.from('1')
+export const DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR = BigNumber.from('10000'); // NB: 100%
+export const DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE = BigNumber.from('0'); // NB: 0%
+
 export const chainIdToSimulationRoles: Map<ChainIds, SimulationRoles> = new Map([
   [
     ChainIds.Cartio,
@@ -31,7 +37,7 @@ export const chainIdToSimulationRoles: Map<ChainIds, SimulationRoles> = new Map(
         address: '0x93621DCA56fE26Cdee86e4F6B18E116e9758Ff11',
         label: 'Caller',
       },
-      weirollWallet: {
+      defaultWeirollWallet: {
         address: '0xBa8F5f80C41BF5e169d9149Cd4977B1990Fc2736',
         label: 'WeirollWallet',
       },

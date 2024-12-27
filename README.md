@@ -76,6 +76,8 @@ pnpm generate cartio dolomite dhoney --output=full
 Simulation supported modes are: `forge`, and `quoter`. Simulation mode is set via `--mode=<simulationMode>`. By default
 simulation is done via the `quoter`.
 
+Shortcuts whose execution has slippage protection require it as an extra parameter
+
 ### Forge
 
 Please set first:
@@ -151,25 +153,27 @@ Ran 1 test suite in 6.17s (6.17s CPU time): 1 tests passed, 0 failed, 0 skipped 
 Please set `QUOTER_URL` in the .env file.
 
 Pass the amount(s) that you want to simulate (e.g., 1000000). If you shortcut that takes multiple tokens, pass the
-amounts as comma separated values (e.g., 100,100).
+amounts as comma separated values (e.g., 100,100). If you shortcut that checks against a `minAmountOut`, pass the
+slippage protection percentage ([0, 100], 2 decimal numbers max, for instance, 0.03).
 
 ```sh
-pnpm simulate cartio dolomite dhoney 1000000
+pnpm simulate cartio abracadabra honey-mim 10000000,100000000 0.03
 ```
 
 ```sh
-pnpm simulate cartio kodiak honey-usdc 10000 --mode=quoter
+pnpm simulate cartio abracadabra honey-mim 10000000,100000000 0.03 --mode=quoter
 ```
 
 Output example:
 
 ```sh
 Simulation:  {
-  quote: {
-    '0x7f2B60fDff1494A0E3e060532c9980d7fad0404B': '998000000000000000'
+  quote: { '0x150683BF3f0a344e271fc1b7dac3783623e7208A': '271725' },
+  dust: {
+    '0x08B918dD18E087893bb9d711d9E0BBaA7a63Ef63': '16',
+    '0x015fd589F4f1A33ce4487E12714e1B15129c9329': '99600399'
   },
-  dust: { '0x015fd589F4f1A33ce4487E12714e1B15129c9329': '0' },
-  gas: '818424'
+  gas: '1334335'
 }
 ```
 

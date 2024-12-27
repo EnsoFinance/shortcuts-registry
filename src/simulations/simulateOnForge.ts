@@ -15,8 +15,11 @@ export function simulateTransactionOnForge(
   rpcUrl: string,
   blockNumber: number,
 ): void {
-  if (!roles.callee) {
+  if (!roles.callee?.address) {
     throw new Error("missing 'callee' address in 'roles'");
+  }
+  if (!roles.weirollWallet?.address) {
+    throw new Error("missing 'weirollWallet' address in 'roles'");
   }
   // NB: `spawnSync` forge call return can optionally be read from both `return.stdout` and `return.stderr`, and processed.
   // NB: calling forge with `--json` will print the deployment information as JSON.
