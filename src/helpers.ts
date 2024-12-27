@@ -9,6 +9,7 @@ import { Shortcut } from '../src/types';
 import { AbracadabraMimUsdcShortcut } from './shortcuts/abracadabra/mim-usdc';
 import { BeraborrowMintNectLpShortcut } from './shortcuts/beraborrow/mint-nect-lp';
 import { BeraborrowVaultStrategyShortcut } from './shortcuts/beraborrow/vault-strategy';
+import { BeraborrowWethVaultShortcut } from './shortcuts/beraborrow/weth';
 import { BurrbearUsdcVaultShortcut } from './shortcuts/burrbear/usdc-vault';
 import { DolomiteDEthShortcut } from './shortcuts/dolomite/deth';
 import { DolomiteDHoneyShortcut } from './shortcuts/dolomite/dhoney';
@@ -35,6 +36,7 @@ const shortcuts: Record<string, Record<string, Shortcut>> = {
   beraborrow: {
     'mint-nect-lp': new BeraborrowMintNectLpShortcut(),
     'vault-strategy': new BeraborrowVaultStrategyShortcut(),
+    'weth-vault': new BeraborrowWethVaultShortcut(),
   },
   burrbear: {
     'usdc-vault': new BurrbearUsdcVaultShortcut(),
