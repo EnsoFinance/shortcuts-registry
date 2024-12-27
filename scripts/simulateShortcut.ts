@@ -2,13 +2,14 @@ import { AddressArg, ChainIds } from '@ensofinance/shortcuts-builder/types';
 import { Interface } from '@ethersproject/abi';
 import { StaticJsonRpcProvider } from '@ethersproject/providers';
 
-import { FUNCTION_ID_ERC20_APPROVE, SimulationMode } from '../src/constants';
+import { FUNCTION_ID_ERC20_APPROVE, ShortcutExecutionMode, SimulationMode } from '../src/constants';
 import { getEncodedData, getShortcut } from '../src/helpers';
 import {
   getAmountsInFromArgs,
   getBlockNumberFromArgs,
   getForgePath,
   getRpcUrlByChainId,
+  getShortcutExecutionMode,
   getSimulationModeFromArgs,
   getSimulationRolesByChainId,
 } from '../src/helpers';
@@ -120,7 +121,7 @@ async function simulateShortcutOnQuoter(
   console.log('Simulation: ', report);
 }
 
-async function simulateOnForge(
+async function simulateShortcutOnForge(
   shortcut: Shortcut,
   chainId: ChainIds,
   amountsIn: string[],
@@ -138,10 +139,32 @@ async function simulateOnForge(
 
   const { commands, state } = script;
 
-  const provider = new StaticJsonRpcProvider(rpcUrl);
-  const weirollWallet = await getNextWeirollWalletFromRecipeMarketHub(provider, roles.recipeMarketHub.address!);
-  roles.weirollWallet = { address: weirollWallet, label: 'WeirollWallet' };
-  const txData = await generateMulticallTxData(shortcut, chainId, commands, state, roles.recipeMarketHub.address!);
+  const shortcutExecutionMode = getShortcutExecutionMode(shortcut, chainId);
+
+  let txData: string;
+  let forgeContract: string;
+  let forgeTest: string;
+  switch (shortcutExecutionMode) {
+    case ShortcutExecutionMode.MULTICALL__AGGREGATE: {
+      const provider = new StaticJsonRpcProvider(rpcUrl);
+      const weirollWallet = await getNextWeirollWalletFromRecipeMarketHub(provider, roles.recipeMarketHub.address!);
+      roles.weirollWallet = { address: weirollWallet, label: 'WeirollWallet' };
+      roles.callee = roles.multiCall;
+      txData = await generateMulticallTxData(shortcut, chainId, commands, state, roles.recipeMarketHub.address!);
+      forgeContract = 'Simulation_Fork_Test';
+      forgeTest = 'test_simulateShortcut_1';
+      break;
+    }
+    case ShortcutExecutionMode.WEIROLL_WALLET__EXECUTE_WEIROLL: {
+      txData = getEncodedData(commands, state);
+      roles.callee = roles.weirollWallet;
+      forgeContract = 'Simulation_Fork_Test';
+      forgeTest = 'test_simulateShortcut_1';
+      break;
+    }
+    default:
+      throw new Error(`Unsupported 'shortcutExecutionMode': ${shortcutExecutionMode}`);
+  }
 
   // Get labels for known addresses
   const addressToLabel: Map<AddressArg, string> = new Map();
@@ -182,6 +205,11 @@ async function simulateOnForge(
       tokensInHolders.add(tokenToHolder.get(tokensIn[i]) as AddressArg);
     }
   }
+  const forgeData = {
+    path: forgePath,
+    contract: forgeContract,
+    test: forgeTest,
+  };
   const tokensData = {
     tokensIn,
     tokensInHolders: [...tokensInHolders] as AddressArg[],
@@ -190,7 +218,17 @@ async function simulateOnForge(
     tokensDust: [...tokensDust] as AddressArg[],
   };
 
-  simulateTransactionOnForge(roles, txData, tokensData, addressToLabel, forgePath, chainId, rpcUrl, blockNumber);
+  simulateTransactionOnForge(
+    shortcutExecutionMode,
+    roles,
+    txData,
+    tokensData,
+    addressToLabel,
+    forgeData,
+    chainId,
+    rpcUrl,
+    blockNumber,
+  );
 }
 
 async function main() {
@@ -208,7 +246,7 @@ async function main() {
     switch (simulatonMode) {
       case SimulationMode.FORGE: {
         const forgePath = getForgePath();
-        await simulateOnForge(shortcut, chainId, amountsIn, forgePath, rpcUrl, blockNumber, roles);
+        await simulateShortcutOnForge(shortcut, chainId, amountsIn, forgePath, rpcUrl, blockNumber, roles);
         break;
       }
       case SimulationMode.QUOTER: {

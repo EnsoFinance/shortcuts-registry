@@ -51,7 +51,15 @@ export interface SimulationRoles {
   readonly recipeMarketHub: AddressData;
   readonly multiCall: AddressData;
   readonly setter: AddressData;
-  weirollWallet?: AddressData;
+  readonly nativeToken: AddressData;
+  weirollWallet: AddressData;
+  callee?: AddressData;
+}
+
+export interface SimulationForgeData {
+  path: string;
+  contract: string;
+  test: string;
 }
 
 export interface SimulationTokensData {

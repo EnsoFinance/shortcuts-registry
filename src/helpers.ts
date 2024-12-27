@@ -4,7 +4,12 @@ import { Interface } from '@ethersproject/abi';
 import dotenv from 'dotenv';
 import { execSync } from 'node:child_process';
 
-import { ShortcutOutputFormat, SimulationMode, chainIdToSimulationRoles } from '../src/constants';
+import {
+  ShortcutExecutionMode,
+  ShortcutOutputFormat,
+  SimulationMode,
+  chainIdToSimulationRoles,
+} from '../src/constants';
 import { Shortcut } from '../src/types';
 import { AbracadabraMimHoneyhortcut } from './shortcuts/abracadabra/mim-honey';
 import { BeraborrowMintNectLpShortcut } from './shortcuts/beraborrow/mint-nect-lp';
@@ -85,6 +90,14 @@ export async function getShortcut() {
   if (!shortcut) throw 'Error: Unknown shortcut';
 
   return { shortcut, chainId };
+}
+
+export function getShortcutExecutionMode(shortcut: Shortcut, chainId: number): ShortcutExecutionMode {
+  if (shortcut.inputs[chainId].setter) {
+    return ShortcutExecutionMode.MULTICALL__AGGREGATE;
+  }
+
+  return ShortcutExecutionMode.WEIROLL_WALLET__EXECUTE_WEIROLL;
 }
 
 function getChainId(chainName: string) {

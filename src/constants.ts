@@ -16,6 +16,11 @@ export enum ShortcutOutputFormat {
   FULL = 'full',
 }
 
+export enum ShortcutExecutionMode {
+  WEIROLL_WALLET__EXECUTE_WEIROLL = 'weirollWallet__executeWeiroll',
+  MULTICALL__AGGREGATE = 'multiCall__aggregate',
+}
+
 export const FUNCTION_ID_ERC20_APPROVE = '0x095ea7b3';
 
 export const chainIdToSimulationRoles: Map<ChainIds, SimulationRoles> = new Map([
@@ -25,6 +30,10 @@ export const chainIdToSimulationRoles: Map<ChainIds, SimulationRoles> = new Map(
       caller: {
         address: '0x93621DCA56fE26Cdee86e4F6B18E116e9758Ff11',
         label: 'Caller',
+      },
+      weirollWallet: {
+        address: '0xBa8F5f80C41BF5e169d9149Cd4977B1990Fc2736',
+        label: 'WeirollWallet',
       },
       recipeMarketHub: {
         address: '0x65a605E074f9Efc26d9Cf28CCdbC532B94772056',
