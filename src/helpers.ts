@@ -11,6 +11,8 @@ import { BeraborrowMintNectLpShortcut } from './shortcuts/beraborrow/mint-nect-l
 import { BeraborrowVaultStrategyShortcut } from './shortcuts/beraborrow/vault-strategy';
 import { BeraborrowWethVaultShortcut } from './shortcuts/beraborrow/weth';
 import { BurrbearUsdcVaultShortcut } from './shortcuts/burrbear/usdc-vault';
+import { ConcreteUsdcShortcut } from './shortcuts/concrete/usdc';
+import { ConcreteWethShortcut } from './shortcuts/concrete/weth';
 import { DolomiteDEthShortcut } from './shortcuts/dolomite/deth';
 import { DolomiteDHoneyShortcut } from './shortcuts/dolomite/dhoney';
 import { DolomiteDUsdcShortcut } from './shortcuts/dolomite/dusdc';
@@ -40,6 +42,11 @@ const shortcuts: Record<string, Record<string, Shortcut>> = {
   },
   burrbear: {
     'usdc-vault': new BurrbearUsdcVaultShortcut(),
+  },
+  concrete: {
+    'usdc-vault': new ConcreteUsdcShortcut(),
+    'weth-vault': new ConcreteWethShortcut(),
+    'wbtc-vault': new ConcreteWethShortcut(),
   },
   dolomite: {
     deth: new DolomiteDEthShortcut(),
