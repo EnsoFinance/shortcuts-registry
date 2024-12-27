@@ -1,4 +1,5 @@
 import { AddressArg, ChainIds } from '@ensofinance/shortcuts-builder/types';
+import { getAddress } from '@ensofinance/shortcuts-standards/helpers';
 import { Interface } from '@ethersproject/abi';
 import { StaticJsonRpcProvider } from '@ethersproject/providers';
 
@@ -79,19 +80,36 @@ async function simulateShortcutOnQuoter(
   if (amountsIn.length != tokensIn.length)
     throw `Error: Incorrect number of amounts for shortcut. Expected ${tokensIn.length}`;
 
-  const provider = new StaticJsonRpcProvider(rpcUrl);
-  const weirollWallet = await getNextWeirollWalletFromRecipeMarketHub(provider, roles.recipeMarketHub.address!);
-  roles.weirollWallet = { address: weirollWallet, label: 'WeirollWallet' };
   const { commands, state } = script;
-  const data = await generateMulticallTxData(shortcut, chainId, commands, state, roles.recipeMarketHub.address!);
+
+  const shortcutExecutionMode = getShortcutExecutionMode(shortcut, chainId);
+
+  let txData: string;
+  switch (shortcutExecutionMode) {
+    case ShortcutExecutionMode.MULTICALL__AGGREGATE: {
+      const provider = new StaticJsonRpcProvider(rpcUrl);
+      const weirollWallet = await getNextWeirollWalletFromRecipeMarketHub(provider, roles.recipeMarketHub.address!);
+      roles.weirollWallet = { address: weirollWallet, label: 'WeirollWallet' };
+      roles.callee = roles.multiCall;
+      txData = await generateMulticallTxData(shortcut, chainId, commands, state, roles.recipeMarketHub.address!);
+      break;
+    }
+    case ShortcutExecutionMode.WEIROLL_WALLET__EXECUTE_WEIROLL: {
+      txData = getEncodedData(commands, state);
+      roles.callee = roles.weirollWallet;
+      break;
+    }
+    default:
+      throw new Error(`Unsupported 'shortcutExecutionMode': ${shortcutExecutionMode}`);
+  }
 
   const tx: APITransaction = {
     from: roles.caller.address!,
-    to: roles.multiCall.address!,
-    data,
+    to: roles.callee.address!,
+    data: txData,
     value: '0',
-    receiver: weirollWallet,
-    executor: weirollWallet,
+    receiver: roles.weirollWallet.address,
+    executor: roles.weirollWallet.address,
   };
   const quoteTokens = [...tokensOut, ...tokensIn]; //find dust
 
@@ -183,8 +201,8 @@ async function simulateShortcutOnForge(
   const tokensDustRaw: Set<AddressArg> = new Set();
   for (const command of commands) {
     if (command.startsWith(FUNCTION_ID_ERC20_APPROVE)) {
-      // NB: spender address is the last 20 bytes of the data
-      tokensDustRaw.add(`0x${command.slice(-40)}`);
+      // NB: spender address is the last 20 bytes of the data (not checksum)
+      tokensDustRaw.add(getAddress(`0x${command.slice(-40)}`));
     }
   }
   // NB: tokensOut shouldn't be flagged as dust
