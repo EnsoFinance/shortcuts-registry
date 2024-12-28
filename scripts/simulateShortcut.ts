@@ -5,6 +5,7 @@ import { BigNumber } from '@ethersproject/bignumber';
 import { StaticJsonRpcProvider } from '@ethersproject/providers';
 
 import {
+  CONTRCT_SIMULATION_FORK_TEST_EVENTS_ABI,
   DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE,
   DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR,
   DEFAULT_SETTER_MIN_AMOUNT_OUT,
@@ -129,7 +130,6 @@ async function simulateShortcutOnQuoter(
         roles.recipeMarketHub.address!,
         minAmountOut,
       );
-
       break;
     }
     case ShortcutExecutionMode.WEIROLL_WALLET__EXECUTE_WEIROLL: {
@@ -186,41 +186,77 @@ async function simulateShortcutOnForge(
   shortcut: Shortcut,
   chainId: ChainIds,
   amountsIn: string[],
+  script: WeirollScript,
+  tokensIn: AddressArg[],
+  tokensOut: AddressArg[],
+  slippage: BigNumber,
   forgePath: string,
   rpcUrl: string,
   blockNumber: number,
   roles: SimulationRoles,
-): Promise<void> {
-  const { script, metadata } = await shortcut.build(chainId);
-
-  const { tokensIn, tokensOut } = metadata;
-  if (!tokensIn || !tokensOut) throw 'Error: Invalid builder metadata';
-  if (amountsIn.length != tokensIn.length)
-    throw `Error: Incorrect number of amounts for shortcut. Expected ${tokensIn.length}`;
-
+  isRecursiveCall = false,
+): Promise<Report> {
   const { commands, state } = script;
 
   const shortcutExecutionMode = getShortcutExecutionMode(shortcut, chainId);
 
   let txData: string;
   let forgeContract: string;
+  let forgeContractABI: Record<string, unknown>[];
   let forgeTest: string;
+  let forgeTestRelativePath: string;
   switch (shortcutExecutionMode) {
     case ShortcutExecutionMode.MULTICALL__AGGREGATE: {
       const provider = new StaticJsonRpcProvider(rpcUrl);
+      let minAmountOut = DEFAULT_SETTER_MIN_AMOUNT_OUT;
+      // NB: simulate first with `minAmountOut` set to '1' wei and get the actual `amountOut` from quoter.
+      // Then, calculate the expected `minAmountOut` after applying maximum slippage, and finally simulate again.
+      if (!isRecursiveCall) {
+        const report = await simulateShortcutOnForge(
+          shortcut,
+          chainId,
+          amountsIn,
+          script,
+          tokensIn,
+          tokensOut,
+          slippage,
+          forgePath,
+          rpcUrl,
+          blockNumber,
+          roles,
+          true,
+        );
+        const receiptTokenAddr = tokensOut[0]; // NB: Royco campaign shortcuts expect a single receipt token
+        const amountOut = report.quote[receiptTokenAddr]; // NB: decoded events use lowercase
+        minAmountOut = BigNumber.from(amountOut)
+          .mul(DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR.sub(slippage))
+          .div(DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR);
+      }
       const weirollWallet = await getNextWeirollWalletFromRecipeMarketHub(provider, roles.recipeMarketHub.address!);
       roles.weirollWallet = { address: weirollWallet, label: 'WeirollWallet' };
       roles.callee = roles.multiCall;
-      txData = await generateMulticallTxData(shortcut, chainId, commands, state, roles.recipeMarketHub.address!);
+      txData = await generateMulticallTxData(
+        shortcut,
+        chainId,
+        commands,
+        state,
+        roles.recipeMarketHub.address!,
+        minAmountOut,
+      );
       forgeContract = 'Simulation_Fork_Test';
       forgeTest = 'test_simulateShortcut_1';
+      forgeTestRelativePath = 'test/foundry/fork/Simulation_Fork_Test.t.sol';
+      forgeContractABI = CONTRCT_SIMULATION_FORK_TEST_EVENTS_ABI;
       break;
     }
     case ShortcutExecutionMode.WEIROLL_WALLET__EXECUTE_WEIROLL: {
       txData = getEncodedData(commands, state);
-      roles.callee = roles.weirollWallet;
+      roles.weirollWallet = roles.defaultWeirollWallet;
+      roles.callee = roles.defaultWeirollWallet;
       forgeContract = 'Simulation_Fork_Test';
       forgeTest = 'test_simulateShortcut_1';
+      forgeTestRelativePath = 'test/foundry/fork/Simulation_Fork_Test.t.sol';
+      forgeContractABI = CONTRCT_SIMULATION_FORK_TEST_EVENTS_ABI;
       break;
     }
     default:
@@ -269,7 +305,9 @@ async function simulateShortcutOnForge(
   const forgeData = {
     path: forgePath,
     contract: forgeContract,
+    contractABI: forgeContractABI,
     test: forgeTest,
+    testRelativePath: forgeTestRelativePath,
   };
   const tokensData = {
     tokensIn,
@@ -279,7 +317,7 @@ async function simulateShortcutOnForge(
     tokensDust: [...tokensDust] as AddressArg[],
   };
 
-  simulateTransactionOnForge(
+  const forgeTestLog = simulateTransactionOnForge(
     shortcutExecutionMode,
     roles,
     txData,
@@ -290,6 +328,52 @@ async function simulateShortcutOnForge(
     rpcUrl,
     blockNumber,
   );
+
+  const testLog = forgeTestLog[`${forgeData.testRelativePath}:${forgeData.contract}`];
+  const testResult = testLog.test_results[`${forgeData.test}()`];
+
+  if (!isRecursiveCall) {
+    console.log('Simulation (Forge):\n', testResult.decoded_logs.join('\n'));
+  }
+
+  // Decode logs to write report
+  const contractInterface = new Interface(forgeData.contractABI);
+
+  // Decode Gas
+  const gasUsedTopic = contractInterface.getEventTopic('SimulationReportGasUsed');
+  const gasUsedLog = testResult.logs.find((log) => log.topics[0] === gasUsedTopic);
+  if (!gasUsedLog) throw new Error('simulateShortcutOnForge: missing "SimulationReportGasUsed" used log');
+  const gasUsed = contractInterface.parseLog(gasUsedLog).args.gasUsed;
+
+  // Decode Quote
+  const quoteTopic = contractInterface.getEventTopic('SimulationReportQuote');
+  const quoteLog = testResult.logs.find((log) => log.topics[0] === quoteTopic);
+  if (!quoteLog) throw new Error('simulateShortcutOnForge: missing "SimulationReportQuote" used log');
+  const quoteTokensOut = contractInterface.parseLog(quoteLog).args.tokensOut;
+  const quoteAmountsOut = contractInterface.parseLog(quoteLog).args.amountsOut;
+
+  // Decode Dust
+  const dustTopic = contractInterface.getEventTopic('SimulationReportDust');
+  const dustLog = testResult.logs.find((log) => log.topics[0] === dustTopic);
+  if (!dustLog) throw new Error('simulateShortcutOnForge: missing "SimulationReportDust" used log');
+  const dustTokensDust = contractInterface.parseLog(dustLog).args.tokensDust;
+  const dustAmountsDust = contractInterface.parseLog(dustLog).args.amountsDust;
+
+  // Instantiate Report
+  const report = {
+    quote: Object.fromEntries(
+      quoteTokensOut.map((key: AddressArg, idx: number) => [key, quoteAmountsOut[idx].toString()]),
+    ),
+    dust: Object.fromEntries(
+      dustTokensDust.map((key: AddressArg, idx: number) => [key, dustAmountsDust[idx].toString()]),
+    ),
+    gas: gasUsed.toString(),
+  };
+
+  if (!isRecursiveCall) {
+    console.log('Simulation (Report):\n', JSON.stringify(report, null, 2));
+  }
+  return report;
 }
 
 async function main() {
@@ -324,7 +408,19 @@ async function main() {
     switch (simulatonMode) {
       case SimulationMode.FORGE: {
         const forgePath = getForgePath();
-        await simulateShortcutOnForge(shortcut, chainId, amountsIn, forgePath, rpcUrl, blockNumber, roles);
+        await simulateShortcutOnForge(
+          shortcut,
+          chainId,
+          amountsIn,
+          script,
+          tokensIn,
+          tokensOut,
+          slippage,
+          forgePath,
+          rpcUrl,
+          blockNumber,
+          roles,
+        );
         break;
       }
       case SimulationMode.QUOTER: {

@@ -2,7 +2,7 @@ import type { AddressArg } from '@ensofinance/shortcuts-builder/types';
 import { spawnSync } from 'node:child_process';
 
 import type { ShortcutExecutionMode } from '../constants';
-import type { SimulationForgeData, SimulationRoles, SimulationTokensData } from '../types';
+import type { ForgeTestLogJSON, SimulationForgeData, SimulationRoles, SimulationTokensData } from '../types';
 
 export function simulateTransactionOnForge(
   shortcutExecutionMode: ShortcutExecutionMode,
@@ -14,7 +14,7 @@ export function simulateTransactionOnForge(
   chainId: number,
   rpcUrl: string,
   blockNumber: number,
-): void {
+): ForgeTestLogJSON {
   if (!roles.callee?.address) {
     throw new Error("missing 'callee' address in 'roles'");
   }
@@ -26,31 +26,54 @@ export function simulateTransactionOnForge(
   // NB: calling forge with `--gas-report` will print the gas report.
   // NB: calling forge with `-vvv` prevents too much verbosity (i.e. `setUp` steps), but hides traces from successful
   // tests. To make visible successful test traces, use `-vvvv`.
-  spawnSync('forge', ['test', '--match-contract', forgeData.contract, '--match-test', forgeData.test, '-vvv'], {
-    encoding: 'utf-8',
-    env: {
-      PATH: `${process.env.PATH}:${forgeData.path}"`,
-      SIMULATION_JSON_DATA: JSON.stringify({
-        chainId,
-        rpcUrl,
-        blockNumber: blockNumber.toString(),
-        shortcutExecutionMode,
-        caller: roles.caller.address,
-        recipeMarketHub: roles.recipeMarketHub.address,
-        callee: roles.callee.address,
-        weirollWallet: roles.weirollWallet.address,
-        txData,
-        tokensIn: tokensData.tokensIn,
-        tokensInHolders: tokensData.tokensInHolders,
-        amountsIn: tokensData.amountsIn,
-        tokensOut: tokensData.tokensOut,
-        tokensDust: tokensData.tokensDust,
-        labelKeys: [...addressToLabel.keys()],
-        labelValues: [...addressToLabel.values()],
-      }),
-      TERM: process.env.TER || 'xterm-256color',
-      FORCE_COLOR: '1',
+  const result = spawnSync(
+    'forge',
+    ['test', '--match-contract', forgeData.contract, '--match-test', forgeData.test, '-vvv', '--json'],
+    {
+      encoding: 'utf-8',
+      env: {
+        PATH: `${process.env.PATH}:${forgeData.path}"`,
+        SIMULATION_JSON_DATA: JSON.stringify({
+          chainId,
+          rpcUrl,
+          blockNumber: blockNumber.toString(),
+          shortcutExecutionMode,
+          caller: roles.caller.address,
+          recipeMarketHub: roles.recipeMarketHub.address,
+          callee: roles.callee.address,
+          weirollWallet: roles.weirollWallet.address,
+          txData,
+          tokensIn: tokensData.tokensIn,
+          tokensInHolders: tokensData.tokensInHolders,
+          amountsIn: tokensData.amountsIn,
+          tokensOut: tokensData.tokensOut,
+          tokensDust: tokensData.tokensDust,
+          labelKeys: [...addressToLabel.keys()],
+          labelValues: [...addressToLabel.values()],
+        }),
+        TERM: process.env.TER || 'xterm-256color',
+        FORCE_COLOR: '1',
+      },
     },
-    stdio: 'inherit',
-  });
+  );
+
+  if (result.error) {
+    throw new Error(`simulateTransactionOnForge: unexpected error calling 'forge'. Reason: ${result.stderr}`);
+  }
+
+  if (!result.stdout) {
+    throw new Error(
+      `simulateTransactionOnForge: unexpected error calling 'forge'. ` +
+        `Reason: it didn't error but 'stdout' is falsey: ${result.stdout}. 'stderr' is: ${result.stderr}`,
+    );
+  }
+
+  let forgeTestLog: ForgeTestLogJSON;
+  try {
+    forgeTestLog = JSON.parse(result.stdout) as ForgeTestLogJSON;
+  } catch (error) {
+    throw new Error(`simulateTransactionOnForge: unexpected error parsing 'forge' JSON output. Reason: ${error}`);
+  }
+
+  return forgeTestLog;
 }

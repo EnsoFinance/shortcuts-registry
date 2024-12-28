@@ -46,6 +46,11 @@ contract Simulation_Fork_Test is Test {
 
     mapping(address address_ => string label) private s_addressToLabel;
 
+    // --- Events ---
+    event SimulationReportQuote(address[] tokensOut, uint256[] amountsOut);
+    event SimulationReportDust(address[] tokensDust, uint256[] amountsDust);
+    event SimulationReportGasUsed(uint256 gasUsed);
+
     // --- Custom Errors ---
     error Simulation_Fork_Test__ArrayLengthsAreNotEq(
         string array1Name, uint256 array1Length, string array2Name, uint256 array2Length
@@ -202,10 +207,12 @@ contract Simulation_Fork_Test is Test {
         if (s_tokensOut.length == 0) {
             console2.log("| No Tokens Out");
         }
+        uint256[] memory tokensOutAmounts = new uint256[](s_tokensOut.length);
         for (uint256 i = 0; i < s_tokensOut.length; i++) {
             uint256 tokenOutBalancePost = IERC20(s_tokensOut[i]).balanceOf(s_weirollWallet);
             console2.log("| Addr    : ", s_tokensOut[i]);
             console2.log("| Name    : ", s_addressToLabel[s_tokensOut[i]]);
+            tokensOutAmounts[i] = tokenOutBalancePost - tokensOutBalancesPre[i];
             console2.log("| Amount  : ", tokenOutBalancePost - tokensOutBalancesPre[i]);
             console2.log("|   Pre   : ", tokensOutBalancesPre[i]);
             console2.log("|   Post  : ", tokenOutBalancePost);
@@ -220,10 +227,12 @@ contract Simulation_Fork_Test is Test {
         if (s_tokensDust.length == 0) {
             console2.log("| No Dust Tokens");
         }
+        uint256[] memory tokensDustAmounts = new uint256[](s_tokensDust.length);
         for (uint256 i = 0; i < s_tokensDust.length; i++) {
             uint256 tokenDustBalancePost = IERC20(s_tokensDust[i]).balanceOf(s_weirollWallet);
             console2.log("| Addr    : ", s_tokensDust[i]);
             console2.log("| Name    : ", s_addressToLabel[s_tokensDust[i]]);
+            tokensDustAmounts[i] = tokenDustBalancePost - tokensDustBalancesPre[i];
             console2.log("| Amount  : ", tokenDustBalancePost - tokensDustBalancesPre[i]);
             console2.log("|   Pre   : ", tokensDustBalancesPre[i]);
             console2.log("|   Post  : ", tokenDustBalancePost);
@@ -235,5 +244,10 @@ contract Simulation_Fork_Test is Test {
         console2.log("|- Gas --------------------");
         console2.log("| Used    : ", gasStart - gasEnd);
         console2.log(unicode"╚══════════════════════════════════════════╝");
+
+        // Emit simulation report data
+        emit SimulationReportQuote(s_tokensOut, tokensOutAmounts);
+        emit SimulationReportDust(s_tokensDust, tokensDustAmounts);
+        emit SimulationReportGasUsed(gasStart - gasEnd);
     }
 }

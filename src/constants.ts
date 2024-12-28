@@ -22,12 +22,46 @@ export enum ShortcutExecutionMode {
   MULTICALL__AGGREGATE = 'multiCall__aggregate',
 }
 
+// Forge test
+export enum TraceItemPhase {
+  DEPLOYMENT = 'Deployment',
+  EXECUTION = 'Execution',
+  SETUP = 'Setup',
+}
+
 export const FUNCTION_ID_ERC20_APPROVE = '0x095ea7b3';
 
 export const DEFAULT_SETTER_MIN_AMOUNT_OUT = BigNumber.from('1');
 export const DEFAULT_MIN_AMOUNT_OUT_MULTIPLIER = 100; // NB: 0.01 * 100 = BigNumber.from('1')
 export const DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR = BigNumber.from('10000'); // NB: 100%
 export const DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE = BigNumber.from('0'); // NB: 0%
+
+export const CONTRCT_SIMULATION_FORK_TEST_EVENTS_ABI = [
+  {
+    type: 'event',
+    name: 'SimulationReportDust',
+    inputs: [
+      { name: 'tokensDust', type: 'address[]', indexed: false, internalType: 'address[]' },
+      { name: 'amountsDust', type: 'uint256[]', indexed: false, internalType: 'uint256[]' },
+    ],
+    anonymous: false,
+  },
+  {
+    type: 'event',
+    name: 'SimulationReportGasUsed',
+    inputs: [{ name: 'gasUsed', type: 'uint256', indexed: false, internalType: 'uint256' }],
+    anonymous: false,
+  },
+  {
+    type: 'event',
+    name: 'SimulationReportQuote',
+    inputs: [
+      { name: 'tokensOut', type: 'address[]', indexed: false, internalType: 'address[]' },
+      { name: 'amountsOut', type: 'uint256[]', indexed: false, internalType: 'uint256[]' },
+    ],
+    anonymous: false,
+  },
+];
 
 export const chainIdToSimulationRoles: Map<ChainIds, SimulationRoles> = new Map([
   [

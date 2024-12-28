@@ -60,7 +60,9 @@ export interface SimulationRoles {
 export interface SimulationForgeData {
   path: string;
   contract: string;
+  contractABI: Record<string, unknown>[];
   test: string;
+  testRelativePath: string;
 }
 
 export interface SimulationTokensData {
@@ -69,4 +71,26 @@ export interface SimulationTokensData {
   amountsIn: AddressArg[];
   tokensOut: AddressArg[];
   tokensDust: AddressArg[];
+}
+
+export interface ForgeTestLogJSONTest {
+  duration: { secs: number; nanos: number };
+  test_results: {
+    [test: string]: {
+      status: string;
+      reason: null | string;
+      counterexample: null | string;
+      logs: {
+        address: AddressArg;
+        topics: string[];
+        data: string;
+      }[];
+      decoded_logs: string[];
+      labeled_addresses: Record<AddressArg, string>;
+    };
+  };
+}
+
+export interface ForgeTestLogJSON {
+  [path: string]: ForgeTestLogJSONTest;
 }
