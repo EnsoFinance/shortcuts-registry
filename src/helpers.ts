@@ -28,6 +28,7 @@ import { MobyWolpWbtcShortcut } from './shortcuts/moby/wolp-wbtc';
 import { MobyWolpWethShortcut } from './shortcuts/moby/wolp-weth';
 import { OrigamiBoycoHoneyShortcut } from './shortcuts/origami/oboy-HONEY-a';
 import { SatlayerPumpBtcShortcut } from './shortcuts/satlayer/pumpbtc';
+import { ThjUsdcShortcut } from './shortcuts/thj/usdc';
 
 dotenv.config();
 
@@ -79,6 +80,9 @@ const shortcuts: Record<string, Record<string, Shortcut>> = {
   },
   infrared: {
     'weth-wbtc': new InfraredWethWbtcShortcut(),
+  },
+  thj: {
+    'usdc-vault': new ThjUsdcShortcut(),
   },
 };
 
