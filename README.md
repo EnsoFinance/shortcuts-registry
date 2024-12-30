@@ -76,7 +76,9 @@ pnpm generate cartio dolomite dhoney --output=full
 Simulation supported modes are: `forge`, and `quoter`. Simulation mode is set via `--mode=<simulationMode>`. By default
 simulation is done via the `quoter`.
 
-Shortcuts whose execution has slippage protection require it as an extra parameter
+Shortcuts whose execution require to set a `minAmountOut` have it set to `1` by default. This amount can be fine-tuned
+via `--slippage=<numberAsBIPS>` (allowed values: [0, 10000]. Examples: 3 represents 0.03%, 25 represents 0.25%, 100
+represents 1%).
 
 ### Forge
 
@@ -153,15 +155,14 @@ Ran 1 test suite in 6.17s (6.17s CPU time): 1 tests passed, 0 failed, 0 skipped 
 Please set `QUOTER_URL` in the .env file.
 
 Pass the amount(s) that you want to simulate (e.g., 1000000). If you shortcut that takes multiple tokens, pass the
-amounts as comma separated values (e.g., 100,100). If you shortcut that checks against a `minAmountOut`, pass the
-slippage protection in BIPS ([0, 10000], for instance, 3 represents 0.03%).
+amounts as comma separated values (e.g., 100,100).
 
 ```sh
-pnpm simulate cartio abracadabra honey-mim 10000000,100000000 3
+pnpm simulate cartio abracadabra honey-mim 10000000,100000000
 ```
 
 ```sh
-pnpm simulate cartio abracadabra honey-mim 10000000,100000000 3 --mode=quoter
+pnpm simulate cartio abracadabra honey-mim 10000000,100000000 --slippage=3 --mode=quoter
 ```
 
 Output example:

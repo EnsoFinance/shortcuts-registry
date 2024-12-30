@@ -199,20 +199,25 @@ export function getAmountsInFromArgs(args: string[]): string[] {
 }
 
 export function getSlippageFromArgs(args: string[]): BigNumber {
-  const filteredArg = args[6];
-
-  if (!filteredArg || !filteredArg.length) throw new Error('Missing slippage amount in args');
+  const slippageIdx = args.findIndex((arg) => arg.startsWith('--slippage='));
+  let slippageRaw: string;
+  if (slippageIdx === -1) {
+    slippageRaw = '0';
+  } else {
+    slippageRaw = args[slippageIdx].split('=')[1] as ShortcutOutputFormat;
+    args.splice(slippageIdx, 1);
+  }
 
   let slippage: BigNumber;
   try {
-    slippage = BigNumber.from(filteredArg);
+    slippage = BigNumber.from(slippageRaw);
   } catch (error) {
-    throw new Error(`Invalid slippage: ${filteredArg}. Required a BigNumber type as BIPS. Reason: ${error}`);
+    throw new Error(`Invalid slippage: ${slippageRaw}. Required a BigNumber type as BIPS. Reason: ${error}`);
   }
 
   if (slippage.lt(DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE) || slippage.gt(DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR)) {
     throw new Error(
-      `invalid slippage: ${filteredArg}. BIPS is out of range [${DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE.toString()},${DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR.toString()}]`,
+      `invalid slippage: ${slippageRaw}. BIPS is out of range [${DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE.toString()},${DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR.toString()}]`,
     );
   }
 

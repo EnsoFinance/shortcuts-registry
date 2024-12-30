@@ -88,6 +88,7 @@ async function simulateShortcutOnQuoter(
   rpcUrl: string,
   roles: SimulationRoles,
   isRecursiveCall = false,
+  isSimulationLogged = true,
 ): Promise<Report> {
   const { commands, state } = script;
 
@@ -100,7 +101,7 @@ async function simulateShortcutOnQuoter(
       let minAmountOut = DEFAULT_SETTER_MIN_AMOUNT_OUT;
       // NB: simulate first with `minAmountOut` set to '1' wei and get the actual `amountOut` from quoter.
       // Then, calculate the expected `minAmountOut` after applying maximum slippage, and finally simulate again.
-      if (!isRecursiveCall) {
+      if (isRecursiveCall) {
         const report = await simulateShortcutOnQuoter(
           shortcut,
           chainId,
@@ -111,7 +112,8 @@ async function simulateShortcutOnQuoter(
           slippage,
           rpcUrl,
           roles,
-          true,
+          !isRecursiveCall,
+          false,
         );
         const receiptTokenAddr = tokensOut[0]; // NB: Royco campaign shortcuts expect a single receipt token
         const amountOut = report.quote[receiptTokenAddr];
@@ -119,6 +121,7 @@ async function simulateShortcutOnQuoter(
           .mul(DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR.sub(slippage))
           .div(DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR);
       }
+
       const weirollWallet = await getNextWeirollWalletFromRecipeMarketHub(provider, roles.recipeMarketHub.address!);
       roles.weirollWallet = { address: weirollWallet, label: 'WeirollWallet' };
       roles.callee = roles.multiCall;
@@ -175,7 +178,7 @@ async function simulateShortcutOnQuoter(
     const index = quoteTokens.findIndex((q) => q === t);
     report.dust[t] = quote.amountOut[index];
   });
-  if (!isRecursiveCall) {
+  if (isSimulationLogged) {
     console.log('Simulation: ', report);
   }
 
@@ -195,6 +198,7 @@ async function simulateShortcutOnForge(
   blockNumber: number,
   roles: SimulationRoles,
   isRecursiveCall = false,
+  isSimulationLogged = true,
 ): Promise<Report> {
   const { commands, state } = script;
 
@@ -211,7 +215,7 @@ async function simulateShortcutOnForge(
       let minAmountOut = DEFAULT_SETTER_MIN_AMOUNT_OUT;
       // NB: simulate first with `minAmountOut` set to '1' wei and get the actual `amountOut` from quoter.
       // Then, calculate the expected `minAmountOut` after applying maximum slippage, and finally simulate again.
-      if (!isRecursiveCall) {
+      if (isRecursiveCall) {
         const report = await simulateShortcutOnForge(
           shortcut,
           chainId,
@@ -224,7 +228,8 @@ async function simulateShortcutOnForge(
           rpcUrl,
           blockNumber,
           roles,
-          true,
+          !isRecursiveCall,
+          false,
         );
         const receiptTokenAddr = tokensOut[0]; // NB: Royco campaign shortcuts expect a single receipt token
         const amountOut = report.quote[receiptTokenAddr]; // NB: decoded events use lowercase
@@ -232,6 +237,7 @@ async function simulateShortcutOnForge(
           .mul(DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR.sub(slippage))
           .div(DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR);
       }
+
       const weirollWallet = await getNextWeirollWalletFromRecipeMarketHub(provider, roles.recipeMarketHub.address!);
       roles.weirollWallet = { address: weirollWallet, label: 'WeirollWallet' };
       roles.callee = roles.multiCall;
@@ -332,7 +338,7 @@ async function simulateShortcutOnForge(
   const testLog = forgeTestLog[`${forgeData.testRelativePath}:${forgeData.contract}`];
   const testResult = testLog.test_results[`${forgeData.test}()`];
 
-  if (!isRecursiveCall) {
+  if (isSimulationLogged) {
     console.log('Simulation (Forge):\n', testResult.decoded_logs.join('\n'));
   }
 
@@ -401,8 +407,10 @@ async function main() {
     // NB: currently only a single slippage is supported due to setter logic interacting with `setSingleValue`
     // and Royco campaign shortcuts expecting a single receipt token
     let slippage = DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE;
+    let isRecursiveCall = false;
     if (shortcut.inputs[chainId].setter) {
       slippage = getSlippageFromArgs(args);
+      isRecursiveCall = !slippage.eq(DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE);
     }
 
     switch (simulatonMode) {
@@ -420,6 +428,7 @@ async function main() {
           rpcUrl,
           blockNumber,
           roles,
+          isRecursiveCall,
         );
         break;
       }
@@ -434,6 +443,7 @@ async function main() {
           slippage,
           rpcUrl,
           roles,
+          isRecursiveCall,
         );
         break;
       }
