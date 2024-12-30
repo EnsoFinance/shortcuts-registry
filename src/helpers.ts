@@ -13,6 +13,7 @@ import { BeraborrowWethVaultShortcut } from './shortcuts/beraborrow/weth';
 import { BurrbearUsdcVaultShortcut } from './shortcuts/burrbear/usdc-vault';
 import { ConcreteUsdcShortcut } from './shortcuts/concrete/usdc';
 import { ConcreteWethShortcut } from './shortcuts/concrete/weth';
+import { D2UsdcShortcut } from './shortcuts/d2/usdc';
 import { DolomiteDEthShortcut } from './shortcuts/dolomite/deth';
 import { DolomiteDHoneyShortcut } from './shortcuts/dolomite/dhoney';
 import { DolomiteDUsdcShortcut } from './shortcuts/dolomite/dusdc';
@@ -55,6 +56,9 @@ const shortcuts: Record<string, Record<string, Shortcut>> = {
     dusdc: new DolomiteDUsdcShortcut(),
     dusdt: new DolomiteDUsdtShortcut(),
     dwbtc: new DolomiteDWbtcShortcut(),
+  },
+  d2: {
+    usdc: new D2UsdcShortcut(),
   },
   // TODO: uncomment out and move import up once Goldilocks is ready
   // import { GoldilocksEbtcShortcut } from './shortcuts/goldilocks/ebtc-vault';
