@@ -154,14 +154,14 @@ Please set `QUOTER_URL` in the .env file.
 
 Pass the amount(s) that you want to simulate (e.g., 1000000). If you shortcut that takes multiple tokens, pass the
 amounts as comma separated values (e.g., 100,100). If you shortcut that checks against a `minAmountOut`, pass the
-slippage protection percentage ([0, 100], 2 decimal numbers max, for instance, 0.03).
+slippage protection in BIPS ([0, 10000], for instance, 3 represents 0.03%).
 
 ```sh
-pnpm simulate cartio abracadabra honey-mim 10000000,100000000 0.03
+pnpm simulate cartio abracadabra honey-mim 10000000,100000000 3
 ```
 
 ```sh
-pnpm simulate cartio abracadabra honey-mim 10000000,100000000 0.03 --mode=quoter
+pnpm simulate cartio abracadabra honey-mim 10000000,100000000 3 --mode=quoter
 ```
 
 Output example:

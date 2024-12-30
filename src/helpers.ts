@@ -7,7 +7,6 @@ import { execSync } from 'node:child_process';
 
 import {
   DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE,
-  DEFAULT_MIN_AMOUNT_OUT_MULTIPLIER,
   DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR,
   ShortcutExecutionMode,
   ShortcutOutputFormat,
@@ -199,27 +198,25 @@ export function getAmountsInFromArgs(args: string[]): string[] {
   return filteredArg.split(',');
 }
 
-export function getSlippageFromArgs(args: string[], allowedNumberOfDecimals = 2): BigNumber {
+export function getSlippageFromArgs(args: string[]): BigNumber {
   const filteredArg = args[6];
-  if (!filteredArg || !filteredArg.length) throw 'Error: Please pass slippage amount';
 
-  const slippageRaw = parseFloat(filteredArg);
-  if (isNaN(slippageRaw)) throw 'Error: Invalid slippage. Required a float type';
-  const slippageRawStr = slippageRaw.toString();
+  if (!filteredArg || !filteredArg.length) throw new Error('Missing slippage amount in args');
 
-  // Check if there are more than the allowed number of decimal places
-  if (slippageRawStr.includes('.') && slippageRawStr.split('.')[1].length > allowedNumberOfDecimals) {
-    throw new Error(`Invalid number: ${filteredArg}. Only ${allowedNumberOfDecimals} decimal places are allowed.`);
-  }
-  const slippage = slippageRaw * DEFAULT_MIN_AMOUNT_OUT_MULTIPLIER;
-  if (
-    slippage < DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE.toNumber() ||
-    slippage > DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR.toNumber()
-  ) {
-    throw new Error(`invalid slippage: ${filteredArg}. Percentage is out of range [0,100]`);
+  let slippage: BigNumber;
+  try {
+    slippage = BigNumber.from(filteredArg);
+  } catch (error) {
+    throw new Error(`Invalid slippage: ${filteredArg}. Required a BigNumber type as BIPS. Reason: ${error}`);
   }
 
-  return BigNumber.from(slippage.toString());
+  if (slippage.lt(DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE) || slippage.gt(DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR)) {
+    throw new Error(
+      `invalid slippage: ${filteredArg}. BIPS is out of range [${DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE.toString()},${DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR.toString()}]`,
+    );
+  }
+
+  return slippage;
 }
 
 export function getWalletFromArgs(args: string[]): string {

@@ -32,7 +32,6 @@ export enum TraceItemPhase {
 export const FUNCTION_ID_ERC20_APPROVE = '0x095ea7b3';
 
 export const DEFAULT_SETTER_MIN_AMOUNT_OUT = BigNumber.from('1');
-export const DEFAULT_MIN_AMOUNT_OUT_MULTIPLIER = 100; // NB: 0.01 * 100 = BigNumber.from('1')
 export const DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR = BigNumber.from('10000'); // NB: 100%
 export const DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE = BigNumber.from('0'); // NB: 0%
 
