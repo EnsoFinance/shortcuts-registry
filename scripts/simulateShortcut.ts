@@ -376,7 +376,7 @@ async function simulateShortcutOnForge(
     gas: gasUsed.toString(),
   };
 
-  if (!isRecursiveCall) {
+  if (isSimulationLogged) {
     console.log('Simulation (Report):\n', JSON.stringify(report, null, 2));
   }
   return report;
