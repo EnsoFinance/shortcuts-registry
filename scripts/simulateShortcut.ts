@@ -96,6 +96,7 @@ async function simulateShortcutOnQuoter(
 
   const shortcutExecutionMode = getShortcutExecutionMode(shortcut, chainId);
 
+  const reportPre: Partial<Report> = {};
   let txData: string;
   switch (shortcutExecutionMode) {
     case ShortcutExecutionMode.MULTICALL__AGGREGATE: {
@@ -127,6 +128,9 @@ async function simulateShortcutOnQuoter(
       const weirollWallet = await getNextWeirollWalletFromRecipeMarketHub(provider, roles.recipeMarketHub.address!);
       roles.weirollWallet = { address: weirollWallet, label: 'WeirollWallet' };
       roles.callee = roles.multiCall;
+      reportPre.minAmountOut = minAmountOut.toString();
+      reportPre.minAmountOutHex = minAmountOut.toHexString();
+
       txData = await generateMulticallTxData(
         shortcut,
         chainId,
@@ -169,10 +173,13 @@ async function simulateShortcutOnQuoter(
   if (quote.status === 'Error') throw quote.error;
   const report: Report = {
     weirollWallet: getAddress(roles.weirollWallet.address!),
+    minAmountOut: reportPre.minAmountOut,
+    minAmountOutHex: reportPre.minAmountOutHex,
     quote: {},
     dust: {},
     gas: quote.gas,
   };
+
   tokensOut.forEach((t) => {
     const index = quoteTokens.findIndex((q) => q === t);
     report.quote[t] = quote.amountOut[index];
@@ -211,6 +218,7 @@ async function simulateShortcutOnForge(
 
   const shortcutExecutionMode = getShortcutExecutionMode(shortcut, chainId);
 
+  const reportPre: Partial<Report> = {};
   let txData: string;
   let forgeContract: string;
   let forgeContractABI: Record<string, unknown>[];
@@ -248,6 +256,9 @@ async function simulateShortcutOnForge(
       const weirollWallet = await getNextWeirollWalletFromRecipeMarketHub(provider, roles.recipeMarketHub.address!);
       roles.weirollWallet = { address: weirollWallet, label: 'WeirollWallet' };
       roles.callee = roles.multiCall;
+      reportPre.minAmountOut = minAmountOut.toString();
+      reportPre.minAmountOutHex = minAmountOut.toHexString();
+
       txData = await generateMulticallTxData(
         shortcut,
         chainId,
@@ -381,6 +392,8 @@ async function simulateShortcutOnForge(
   // Instantiate Report
   const report = {
     weirollWallet: getAddress(roles.weirollWallet.address!),
+    minAmountOut: reportPre.minAmountOut,
+    minAmountOutHex: reportPre.minAmountOutHex,
     quote: Object.fromEntries(
       quoteTokensOut.map((key: AddressArg, idx: number) => [key, quoteAmountsOut[idx].toString()]),
     ),
