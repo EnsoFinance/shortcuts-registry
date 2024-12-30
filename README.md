@@ -65,8 +65,6 @@ Default output example:
 
 The generated output will be saved to the `shortcuts-registry/outputs` directory.
 
-Optionally, get a full output by adding `--output=full`:
-
 ```sh
 pnpm generate cartio dolomite dhoney --output=full
 ```

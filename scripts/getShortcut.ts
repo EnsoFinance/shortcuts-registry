@@ -1,43 +1,51 @@
+import { defaultAbiCoder } from '@ethersproject/abi';
+import { keccak256 } from '@ethersproject/keccak256';
 import fs from 'fs';
 import path from 'path';
 
-import { ShortcutOutputFormat } from '../src/constants';
-import { getShortcut, getShortcutOutputFormatFromArgs } from '../src/helpers';
-import { Output, RoycoOutput } from '../src/types';
-import { buildRoycoMarketShortcut } from '../src/utils';
+import { getShortcut } from '../src/helpers';
 
 async function main() {
   try {
     const { shortcut, chainId } = await getShortcut();
-    const outputFmt = getShortcutOutputFormatFromArgs(process.argv);
-    let output: RoycoOutput | Output;
 
-    switch (outputFmt) {
-      case ShortcutOutputFormat.ROYCO:
-        output = await buildRoycoMarketShortcut(shortcut, chainId);
-        break;
-      case ShortcutOutputFormat.FULL:
-        output = await shortcut.build(chainId);
-        break;
-      default:
-        throw new Error(`Unsupported '--output=' format: ${outputFmt}`);
-    }
+    const output = await shortcut.build(chainId);
 
-    console.log(output);
+    const script = {
+      weirollCommands: output.script.commands,
+      weirollState: output.script.state,
+    };
+    console.log('Generated WeiRoll Script:\n', script);
+
+    const verificationHash = getCampaignVerificationHash(
+      output.metadata.tokensIn!,
+      output.metadata.tokensOut![0],
+      '0x' + Buffer.from(JSON.stringify(script), 'utf8').toString('hex'),
+    );
+    console.log('Verification Hash:\n', verificationHash);
 
     const market = process.argv[4];
     const protocol = process.argv[3];
 
-    const outputDir = path.join(__dirname, '../outputs', protocol);
-    const outputFile = path.join(outputDir, `${market}.json`);
+    const scriptsDir = path.join(__dirname, '../outputs', protocol);
+    const scriptFile = path.join(scriptsDir, `${market}.json`);
+    const verificationHashFile = path.join(scriptsDir, `${market}.txt`);
 
-    fs.mkdirSync(outputDir, { recursive: true });
-
-    fs.writeFileSync(outputFile, JSON.stringify(output, null, 2), 'utf-8');
-    console.log(`Output saved to ${outputFile}`);
+    fs.writeFileSync(scriptFile, JSON.stringify(script, null, 2), 'utf-8');
+    fs.writeFileSync(verificationHashFile, JSON.stringify(verificationHash, null, 2), 'utf-8');
+    console.log('Output saved to:\n', scriptFile);
   } catch (e) {
     console.error(e);
   }
+}
+
+export function getCampaignVerificationHash(
+  inputTokens: string[],
+  receiptToken: string,
+  depositRecipe: string,
+): string {
+  const encoded = defaultAbiCoder.encode(['address[]', 'address', 'bytes'], [inputTokens, receiptToken, depositRecipe]);
+  return keccak256(encoded);
 }
 
 main();

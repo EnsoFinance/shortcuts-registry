@@ -4,7 +4,7 @@ import { Interface } from '@ethersproject/abi';
 import dotenv from 'dotenv';
 import { execSync } from 'node:child_process';
 
-import { ShortcutOutputFormat, SimulationMode } from '../src/constants';
+import { SimulationMode } from '../src/constants';
 import { Shortcut } from '../src/types';
 import { AbracadabraMimUsdcShortcut } from './shortcuts/abracadabra/mim-usdc';
 import { BeraborrowNectHoneyShortcut } from './shortcuts/beraborrow/nect-honey';
@@ -166,19 +166,6 @@ export function getPrivateKeyFromArgs(args: string[]): string {
   }
 
   return privateKey;
-}
-
-export function getShortcutOutputFormatFromArgs(args: string[]): string {
-  const outputFmtIdx = args.findIndex((arg) => arg.startsWith('--output='));
-  let outputFmt: string;
-  if (outputFmtIdx === -1) {
-    outputFmt = ShortcutOutputFormat.ROYCO;
-  } else {
-    outputFmt = args[outputFmtIdx].split('=')[1] as ShortcutOutputFormat;
-    args.splice(outputFmtIdx, 1);
-  }
-
-  return outputFmt;
 }
 
 export function getAmountsInFromArgs(args: string[]): string[] {
