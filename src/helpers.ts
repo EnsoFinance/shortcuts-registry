@@ -1,10 +1,18 @@
 import { getChainName } from '@ensofinance/shortcuts-builder/helpers';
 import { ChainIds } from '@ensofinance/shortcuts-builder/types';
 import { Interface } from '@ethersproject/abi';
+import { BigNumber } from '@ethersproject/bignumber';
 import dotenv from 'dotenv';
 import { execSync } from 'node:child_process';
 
-import { ShortcutOutputFormat, SimulationMode, chainIdToSimulationRoles } from '../src/constants';
+import {
+  DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE,
+  DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR,
+  ShortcutExecutionMode,
+  ShortcutOutputFormat,
+  SimulationMode,
+  chainIdToSimulationRoles,
+} from '../src/constants';
 import { Shortcut } from '../src/types';
 import { AbracadabraMimHoneyhortcut } from './shortcuts/abracadabra/mim-honey';
 import { BeraborrowMintNectLpShortcut } from './shortcuts/beraborrow/mint-nect-lp';
@@ -85,6 +93,14 @@ export async function getShortcut() {
   if (!shortcut) throw 'Error: Unknown shortcut';
 
   return { shortcut, chainId };
+}
+
+export function getShortcutExecutionMode(shortcut: Shortcut, chainId: number): ShortcutExecutionMode {
+  if (shortcut.inputs[chainId].setter) {
+    return ShortcutExecutionMode.MULTICALL__AGGREGATE;
+  }
+
+  return ShortcutExecutionMode.WEIROLL_WALLET__EXECUTE_WEIROLL;
 }
 
 function getChainId(chainName: string) {
@@ -176,10 +192,36 @@ export function getShortcutOutputFormatFromArgs(args: string[]): string {
 }
 
 export function getAmountsInFromArgs(args: string[]): string[] {
-  const filteredArgs = args.slice(5);
-  if (filteredArgs.length != 1) throw 'Error: Please pass amounts (use commas for multiple values)';
+  const filteredArg = args[5];
+  if (!filteredArg || !filteredArg.length) throw 'Error: Please pass amounts (use commas for multiple values)';
 
-  return filteredArgs[0].split(',');
+  return filteredArg.split(',');
+}
+
+export function getSlippageFromArgs(args: string[]): BigNumber {
+  const slippageIdx = args.findIndex((arg) => arg.startsWith('--slippage='));
+  let slippageRaw: string;
+  if (slippageIdx === -1) {
+    slippageRaw = '0';
+  } else {
+    slippageRaw = args[slippageIdx].split('=')[1] as ShortcutOutputFormat;
+    args.splice(slippageIdx, 1);
+  }
+
+  let slippage: BigNumber;
+  try {
+    slippage = BigNumber.from(slippageRaw);
+  } catch (error) {
+    throw new Error(`Invalid slippage: ${slippageRaw}. Required a BigNumber type as BIPS. Reason: ${error}`);
+  }
+
+  if (slippage.lt(DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE) || slippage.gt(DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR)) {
+    throw new Error(
+      `invalid slippage: ${slippageRaw}. BIPS is out of range [${DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE.toString()},${DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR.toString()}]`,
+    );
+  }
+
+  return slippage;
 }
 
 export function getWalletFromArgs(args: string[]): string {
