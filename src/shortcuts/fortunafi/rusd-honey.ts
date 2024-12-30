@@ -18,15 +18,17 @@ export class FortunafiRusdHoneyShortcut implements Shortcut {
       rusd: chainIdToDeFiAddresses[ChainIds.Cartio].rusd,
       island: '' as AddressArg, // TO DO: ADDING ISLAND WHEN DEPLOYED
       primary: chainIdToDeFiAddresses[ChainIds.Cartio].kodiakRouter,
-      setter: chainIdToSimulationRoles.get(ChainIds.Cartio)!.setter.address!, // having setter in inputs lets simulator know to set a min amount value
     },
+  };
+  setterInputs: Record<number, Set<string>> = {
+    [ChainIds.Cartio]: new Set(['minAmountOut']),
   };
 
   async build(chainId: number): Promise<Output> {
     const client = new RoycoClient();
 
     const inputs = this.inputs[chainId];
-    const { rusd, usdc, honey, island, primary, setter } = inputs;
+    const { rusd, usdc, honey, island, primary } = inputs;
 
     const builder = new Builder(chainId, client, {
       tokensIn: [rusd, usdc],
@@ -37,7 +39,16 @@ export class FortunafiRusdHoneyShortcut implements Shortcut {
     const usdcAmount = builder.add(balanceOf(usdc, walletAddress()));
     const mintedAmount = await mintHoney(usdc, usdcAmount, builder);
 
-    await depositKodiak(builder, [rusd, honey], [rusdAmount, mintedAmount], island, primary, setter, false);
+    await depositKodiak(
+      builder,
+      [rusd, honey],
+      [rusdAmount, mintedAmount],
+      island,
+      primary,
+      chainIdToSimulationRoles.get(ChainIds.Cartio)!.setter.address!,
+      this.setterInputs[chainId],
+      false,
+    );
 
     const leftoverAmount = builder.add(balanceOf(honey, walletAddress()));
     await redeemHoney(usdc, leftoverAmount, builder);

@@ -4,12 +4,14 @@ import {
   Transaction,
   WeirollScript,
 } from "@ensofinance/shortcuts-builder/types";
+import { BigNumberish } from "@ethersproject/bignumber";
 
 export interface Shortcut {
   name: string;
   description: string;
   supportedChains: number[];
   inputs: Record<number, Input>;
+  setterInputs?: Record<number, SetterInputToIndex>;
   build(chainId: number): Promise<Output>;
   getAddressData?(chainId: number): Map<AddressArg, AddressData>;
   getTokenHolder?(chainId: number): Map<AddressArg, AddressArg>;
@@ -27,6 +29,20 @@ export type RoycoOutput = {
 
 
 export type Input = Record<string, AddressArg>;
+export type SetterInputToIndex = Set<string>;
+
+export interface SetterInputData {
+  [key: string]: {
+    value: BigNumberish;
+    index: number;
+  }
+}
+
+export interface MultiCallData {
+  setterInputData: SetterInputData;
+  setterData: [AddressArg, string][];
+  txData: string;
+}
 
 export interface SimulationResult {
   /* eslint-disable @typescript-eslint/no-explicit-any */

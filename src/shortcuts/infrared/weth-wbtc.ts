@@ -73,7 +73,6 @@ export class InfraredWethWbtcShortcut implements Shortcut {
           [this.inputs[ChainIds.Cartio].weth, { label: 'ERC20:WETH' }],
           [this.inputs[ChainIds.Cartio].wbtc, { label: 'ERC20:WBTC' }],
           [this.inputs[ChainIds.Cartio].vault, { label: 'ERC20:INFRARED_VAULT' }],
-          [this.inputs[ChainIds.Cartio].setter, { label: 'CCMD-Setter' }],
           [this.inputs[ChainIds.Cartio].island, { label: 'Kodiak Island-WETH-WBTC-0.3%' }],
           [this.inputs[ChainIds.Cartio].primary, { label: 'Kodiak Island Router' }],
         ]);

@@ -18,15 +18,17 @@ export class KodiakHoneyWethShortcut implements Shortcut {
       honey: chainIdToDeFiAddresses[ChainIds.Cartio].honey,
       island: '0xD4570a738675fB2c31e7b7b88998EE73E9E17d49',
       primary: chainIdToDeFiAddresses[ChainIds.Cartio].kodiakRouter,
-      setter: chainIdToSimulationRoles.get(ChainIds.Cartio)!.setter.address!, // having setter in inputs lets simulator know to set a min amount value
     },
+  };
+  setterInputs: Record<number, Set<string>> = {
+    [ChainIds.Cartio]: new Set(['minAmountOut']),
   };
 
   async build(chainId: number): Promise<Output> {
     const client = new RoycoClient();
 
     const inputs = this.inputs[chainId];
-    const { weth, usdc, honey, island, primary, setter } = inputs;
+    const { weth, usdc, honey, island, primary } = inputs;
 
     const builder = new Builder(chainId, client, {
       tokensIn: [weth, usdc],
@@ -36,7 +38,16 @@ export class KodiakHoneyWethShortcut implements Shortcut {
     const wethAmount = builder.add(balanceOf(weth, walletAddress()));
     const mintedAmount = await mintHoney(usdc, usdcAmount, builder);
 
-    await depositKodiak(builder, [weth, honey], [wethAmount, mintedAmount], island, primary, setter, false);
+    await depositKodiak(
+      builder,
+      [weth, honey],
+      [wethAmount, mintedAmount],
+      island,
+      primary,
+      chainIdToSimulationRoles.get(ChainIds.Cartio)!.setter.address!,
+      this.setterInputs[chainId],
+      false,
+    );
 
     const leftoverAmount = builder.add(balanceOf(honey, walletAddress()));
     await redeemHoney(usdc, leftoverAmount, builder);

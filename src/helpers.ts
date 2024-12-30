@@ -96,7 +96,7 @@ export async function getShortcut() {
 }
 
 export function getShortcutExecutionMode(shortcut: Shortcut, chainId: number): ShortcutExecutionMode {
-  if (shortcut.inputs[chainId].setter) {
+  if (shortcut.setterInputs?.[chainId]) {
     return ShortcutExecutionMode.MULTICALL__AGGREGATE;
   }
 
