@@ -14,6 +14,8 @@ foundry-cache/
 foundry-out/
 node_modules/
 types/
+**/outputs/**/*.txt
+
 
 # files
 *.env
