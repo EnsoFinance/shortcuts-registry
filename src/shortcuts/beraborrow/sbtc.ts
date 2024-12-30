@@ -9,7 +9,7 @@ import { chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
 import { balanceOf } from '../../utils';
 
-export class BeraborrowVaultStrategyShortcut implements Shortcut {
+export class BeraborrowSbtcVaultShortcut implements Shortcut {
   name = 'vault-strategy';
   description = '';
   supportedChains = [ChainIds.Cartio];

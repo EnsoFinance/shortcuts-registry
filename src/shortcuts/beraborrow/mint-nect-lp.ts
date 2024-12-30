@@ -38,7 +38,6 @@ export class BeraborrowMintNectLpShortcut implements Shortcut {
       tokensIn: [usdc],
       tokensOut: [island],
     });
-    const kodiak = getStandardByProtocol('kodiak-islands', chainId);
     const amountIn = builder.add(balanceOf(usdc, walletAddress()));
     const halfAmount = div(amountIn, 2, builder);
     // Get HONEY
@@ -52,6 +51,7 @@ export class BeraborrowMintNectLpShortcut implements Shortcut {
       primaryAddress: usdcPsmBond,
     });
 
+    const kodiak = getStandardByProtocol('kodiak-islands', chainId);
     await kodiak.deposit.addToBuilder(builder, {
       tokenIn: [nect, honey],
       tokenOut: island,

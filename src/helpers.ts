@@ -8,7 +8,7 @@ import { ShortcutOutputFormat, SimulationMode } from '../src/constants';
 import { Shortcut } from '../src/types';
 import { AbracadabraMimUsdcShortcut } from './shortcuts/abracadabra/mim-usdc';
 import { BeraborrowMintNectLpShortcut } from './shortcuts/beraborrow/mint-nect-lp';
-import { BeraborrowVaultStrategyShortcut } from './shortcuts/beraborrow/vault-strategy';
+import { BeraborrowSbtcVaultShortcut } from './shortcuts/beraborrow/sbtc';
 import { BeraborrowWethVaultShortcut } from './shortcuts/beraborrow/weth';
 import { BurrbearUsdcVaultShortcut } from './shortcuts/burrbear/usdc-vault';
 import { ConcreteUsdcShortcut } from './shortcuts/concrete/usdc';
@@ -38,7 +38,7 @@ const shortcuts: Record<string, Record<string, Shortcut>> = {
   },
   beraborrow: {
     'mint-nect-lp': new BeraborrowMintNectLpShortcut(),
-    'vault-strategy': new BeraborrowVaultStrategyShortcut(),
+    'vault-strategy': new BeraborrowSbtcVaultShortcut(),
     'weth-vault': new BeraborrowWethVaultShortcut(),
   },
   burrbear: {
