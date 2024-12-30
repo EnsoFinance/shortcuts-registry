@@ -10,7 +10,7 @@ import type { AddressData, Input, Output, Shortcut } from '../../types';
 import { balanceOf } from '../../utils';
 
 export class BeraborrowSbtcVaultShortcut implements Shortcut {
-  name = 'vault-strategy';
+  name = 'sbtc-vault';
   description = '';
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {

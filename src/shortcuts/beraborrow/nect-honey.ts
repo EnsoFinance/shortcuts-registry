@@ -12,8 +12,8 @@ import { chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
 import { balanceOf, mintHoney, redeemHoney } from '../../utils';
 
-export class BeraborrowMintNectLpShortcut implements Shortcut {
-  name = 'mint-nect-lp';
+export class BeraborrowNectHoneyShortcut implements Shortcut {
+  name = 'nect-honey';
   description = '';
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
