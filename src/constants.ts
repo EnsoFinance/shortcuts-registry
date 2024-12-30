@@ -1,6 +1,7 @@
 import { AddressArg, ChainIds } from '@ensofinance/shortcuts-builder/types';
 import { Standards } from '@ensofinance/shortcuts-standards';
 import { GeneralAddresses, TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
+import { BigNumber } from '@ethersproject/bignumber';
 
 import type { SimulationRoles } from './types';
 
@@ -16,7 +17,50 @@ export enum ShortcutOutputFormat {
   FULL = 'full',
 }
 
+export enum ShortcutExecutionMode {
+  WEIROLL_WALLET__EXECUTE_WEIROLL = 'weirollWallet__executeWeiroll',
+  MULTICALL__AGGREGATE = 'multiCall__aggregate',
+}
+
+// Forge test
+export enum TraceItemPhase {
+  DEPLOYMENT = 'Deployment',
+  EXECUTION = 'Execution',
+  SETUP = 'Setup',
+}
+
 export const FUNCTION_ID_ERC20_APPROVE = '0x095ea7b3';
+
+export const DEFAULT_SETTER_MIN_AMOUNT_OUT = BigNumber.from('1');
+export const DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR = BigNumber.from('10000'); // NB: 100%
+export const DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE = BigNumber.from('0'); // NB: 0%
+
+export const CONTRCT_SIMULATION_FORK_TEST_EVENTS_ABI = [
+  {
+    type: 'event',
+    name: 'SimulationReportDust',
+    inputs: [
+      { name: 'tokensDust', type: 'address[]', indexed: false, internalType: 'address[]' },
+      { name: 'amountsDust', type: 'uint256[]', indexed: false, internalType: 'uint256[]' },
+    ],
+    anonymous: false,
+  },
+  {
+    type: 'event',
+    name: 'SimulationReportGasUsed',
+    inputs: [{ name: 'gasUsed', type: 'uint256', indexed: false, internalType: 'uint256' }],
+    anonymous: false,
+  },
+  {
+    type: 'event',
+    name: 'SimulationReportQuote',
+    inputs: [
+      { name: 'tokensOut', type: 'address[]', indexed: false, internalType: 'address[]' },
+      { name: 'amountsOut', type: 'uint256[]', indexed: false, internalType: 'uint256[]' },
+    ],
+    anonymous: false,
+  },
+];
 
 export const chainIdToSimulationRoles: Map<ChainIds, SimulationRoles> = new Map([
   [
@@ -25,6 +69,10 @@ export const chainIdToSimulationRoles: Map<ChainIds, SimulationRoles> = new Map(
       caller: {
         address: '0x93621DCA56fE26Cdee86e4F6B18E116e9758Ff11',
         label: 'Caller',
+      },
+      defaultWeirollWallet: {
+        address: '0xBa8F5f80C41BF5e169d9149Cd4977B1990Fc2736',
+        label: 'WeirollWallet',
       },
       recipeMarketHub: {
         address: '0x65a605E074f9Efc26d9Cf28CCdbC532B94772056',
