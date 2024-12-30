@@ -80,6 +80,8 @@ Shortcuts whose execution require to set a `minAmountOut` have it set to `1` by 
 via `--slippage=<numberAsBIPS>` (allowed values: [0, 10000]. Examples: 3 represents 0.03%, 25 represents 0.25%, 100
 represents 1%).
 
+Log the tx calldata with `--calldata` (only if simulation is successful).
+
 ### Forge
 
 Please set first:

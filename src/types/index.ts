@@ -36,6 +36,7 @@ export interface SimulationResult {
 }
 
 export type Report = {
+  weirollWallet: AddressArg;
   quote: Record<string, string>;
   dust: Record<string, string>;
   gas: string;
@@ -44,6 +45,11 @@ export type Report = {
 export interface AddressData {
   address?: AddressArg;
   label: string;
+}
+
+export interface SimulationLogConfig {
+  isReportLogged: boolean;
+  isCalldataLogged: boolean;
 }
 
 export interface SimulationRoles {

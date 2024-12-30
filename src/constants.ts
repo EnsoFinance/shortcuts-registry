@@ -23,6 +23,11 @@ export enum ShortcutExecutionMode {
 }
 
 // Forge test
+export enum ForgeTestLogFormat {
+  DEFAULT = '',
+  JSON = '--json',
+}
+
 export enum TraceItemPhase {
   DEPLOYMENT = 'Deployment',
   EXECUTION = 'Execution',

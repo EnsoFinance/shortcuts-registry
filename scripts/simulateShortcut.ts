@@ -13,12 +13,14 @@ import {
   ShortcutExecutionMode,
   SimulationMode,
 } from '../src/constants';
-import { getEncodedData, getShortcut } from '../src/helpers';
 import {
   getAmountsInFromArgs,
   getBlockNumberFromArgs,
+  getEncodedData,
   getForgePath,
+  getIsCalldataLoggedFromArgs,
   getRpcUrlByChainId,
+  getShortcut,
   getShortcutExecutionMode,
   getSimulationModeFromArgs,
   getSimulationRolesByChainId,
@@ -26,7 +28,7 @@ import {
 } from '../src/helpers';
 import { simulateTransactionOnForge } from '../src/simulations/simulateOnForge';
 import { APITransaction, QuoteRequest, simulateTransactionOnQuoter } from '../src/simulations/simulateOnQuoter';
-import type { Report, Shortcut, SimulationRoles } from '../src/types';
+import type { Report, Shortcut, SimulationLogConfig, SimulationRoles } from '../src/types';
 
 const recipeMarketHubInterface = new Interface([
   'function createCampaign(uint256) external view returns (address)',
@@ -88,7 +90,7 @@ async function simulateShortcutOnQuoter(
   rpcUrl: string,
   roles: SimulationRoles,
   isRecursiveCall = false,
-  isSimulationLogged = true,
+  simulationLogConfig: SimulationLogConfig,
 ): Promise<Report> {
   const { commands, state } = script;
 
@@ -113,7 +115,7 @@ async function simulateShortcutOnQuoter(
           rpcUrl,
           roles,
           !isRecursiveCall,
-          false,
+          { ...simulationLogConfig, isReportLogged: false, isCalldataLogged: false },
         );
         const receiptTokenAddr = tokensOut[0]; // NB: Royco campaign shortcuts expect a single receipt token
         const amountOut = report.quote[receiptTokenAddr];
@@ -166,6 +168,7 @@ async function simulateShortcutOnQuoter(
   const quote = (await simulateTransactionOnQuoter(request))[0];
   if (quote.status === 'Error') throw quote.error;
   const report: Report = {
+    weirollWallet: getAddress(roles.weirollWallet.address!),
     quote: {},
     dust: {},
     gas: quote.gas,
@@ -178,8 +181,12 @@ async function simulateShortcutOnQuoter(
     const index = quoteTokens.findIndex((q) => q === t);
     report.dust[t] = quote.amountOut[index];
   });
-  if (isSimulationLogged) {
-    console.log('Simulation: ', report);
+
+  if (simulationLogConfig.isReportLogged) {
+    console.log('Simulation (Report):\n', report, '\n');
+  }
+  if (simulationLogConfig.isCalldataLogged) {
+    console.log('Simulation (Calldata):\n', txData, '\n');
   }
 
   return report;
@@ -198,7 +205,7 @@ async function simulateShortcutOnForge(
   blockNumber: number,
   roles: SimulationRoles,
   isRecursiveCall = false,
-  isSimulationLogged = true,
+  simulationLogConfig: SimulationLogConfig,
 ): Promise<Report> {
   const { commands, state } = script;
 
@@ -229,7 +236,7 @@ async function simulateShortcutOnForge(
           blockNumber,
           roles,
           !isRecursiveCall,
-          false,
+          { ...simulationLogConfig, isReportLogged: false, isCalldataLogged: false },
         );
         const receiptTokenAddr = tokensOut[0]; // NB: Royco campaign shortcuts expect a single receipt token
         const amountOut = report.quote[receiptTokenAddr]; // NB: decoded events use lowercase
@@ -334,12 +341,18 @@ async function simulateShortcutOnForge(
     rpcUrl,
     blockNumber,
   );
-
+  // console.log('forgeTestLog:\n', JSON.stringify(forgeTestLog, null, 2), '\n');
   const testLog = forgeTestLog[`${forgeData.testRelativePath}:${forgeData.contract}`];
   const testResult = testLog.test_results[`${forgeData.test}()`];
 
-  if (isSimulationLogged) {
-    console.log('Simulation (Forge):\n', testResult.decoded_logs.join('\n'));
+  if (testResult.status === 'Failure') {
+    throw new Error(
+      `Forge simulation test failed. Uncomment '--json' and re-run this script to inspect the forge logs`,
+    );
+  }
+
+  if (simulationLogConfig.isReportLogged) {
+    console.log('Simulation (Forge):\n', testResult.decoded_logs.join('\n'), '\n');
   }
 
   // Decode logs to write report
@@ -367,6 +380,7 @@ async function simulateShortcutOnForge(
 
   // Instantiate Report
   const report = {
+    weirollWallet: getAddress(roles.weirollWallet.address!),
     quote: Object.fromEntries(
       quoteTokensOut.map((key: AddressArg, idx: number) => [key, quoteAmountsOut[idx].toString()]),
     ),
@@ -376,9 +390,13 @@ async function simulateShortcutOnForge(
     gas: gasUsed.toString(),
   };
 
-  if (isSimulationLogged) {
-    console.log('Simulation (Report):\n', JSON.stringify(report, null, 2));
+  if (simulationLogConfig.isReportLogged) {
+    console.log('Simulation (Report):\n', report, '\n');
   }
+  if (simulationLogConfig.isCalldataLogged) {
+    console.log('Simulation (Calldata):\n', txData, '\n');
+  }
+
   return report;
 }
 
@@ -393,6 +411,10 @@ async function main() {
 
     const rpcUrl = getRpcUrlByChainId(chainId);
     const roles = getSimulationRolesByChainId(chainId);
+    const simulationLogConfig = {
+      isReportLogged: true,
+      isCalldataLogged: getIsCalldataLoggedFromArgs(args),
+    };
 
     const { script, metadata } = await shortcut.build(chainId);
 
@@ -429,6 +451,7 @@ async function main() {
           blockNumber,
           roles,
           isRecursiveCall,
+          simulationLogConfig,
         );
         break;
       }
@@ -444,6 +467,7 @@ async function main() {
           rpcUrl,
           roles,
           isRecursiveCall,
+          simulationLogConfig,
         );
         break;
       }
