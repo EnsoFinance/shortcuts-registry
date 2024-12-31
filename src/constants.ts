@@ -99,6 +99,10 @@ export const chainIdToSimulationRoles: Map<ChainIds, SimulationRoles> = new Map(
         address: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
         label: 'NativeToken',
       },
+      depositExecutor: {
+        address: '0xfA72467e6C1a6b8A5F79180583243E5DD9345C71',
+        label: 'DepositExecutor',
+      },
     },
   ],
 ]);

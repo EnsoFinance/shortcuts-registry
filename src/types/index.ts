@@ -4,7 +4,7 @@ import {
   Transaction,
   WeirollScript,
 } from "@ensofinance/shortcuts-builder/types";
-import { BigNumberish } from "@ethersproject/bignumber";
+import { BigNumber, BigNumberish } from "@ethersproject/bignumber";
 
 export interface Shortcut {
   name: string;
@@ -77,6 +77,7 @@ export interface SimulationRoles {
   readonly multiCall: AddressData;
   readonly setter: AddressData;
   readonly nativeToken: AddressData;
+  readonly depositExecutor: AddressData;
   weirollWallet?: AddressData;
   callee?: AddressData;
 }
@@ -117,4 +118,13 @@ export interface ForgeTestLogJSONTest {
 
 export interface ForgeTestLogJSON {
   [path: string]: ForgeTestLogJSONTest;
+}
+
+export type Campaign = {
+  owner: AddressArg;
+  verified: boolean;
+  numInputTokens: number;
+  receiptToken: AddressArg;
+  unlockTimestamp: BigNumber;
+  depositRecipe: WeirollScript;
 }
