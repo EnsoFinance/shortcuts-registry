@@ -13,7 +13,7 @@ import { addAction, areAddressesEqual, percentMul, resetApprovals } from '@ensof
 import { Interface } from '@ethersproject/abi';
 import { StaticJsonRpcProvider } from '@ethersproject/providers';
 
-import { chainIdToDeFiAddresses } from '../constants';
+import { chainIdToDeFiAddresses, chainIdToSimulationRoles } from '../constants';
 import type { RoycoOutput, Shortcut, SimulationResult } from '../types';
 
 export async function prepareResponse(
@@ -71,7 +71,6 @@ export async function depositKodiak(
   amountsIn: NumberArg[],
   island: AddressArg,
   primary: AddressArg,
-  setter: AddressArg,
   setterInputs: Set<string>,
   setMinAmount: boolean,
 ) {
@@ -94,7 +93,7 @@ export async function depositKodiak(
   const amount0Min = setMinAmount ? percentMul(amount0, 9900, builder) : 1;
   const amount1Min = setMinAmount ? percentMul(amount1, 9900, builder) : 1;
   const amountSharesMin = builder.add({
-    address: setter,
+    address: chainIdToSimulationRoles.get(builder.chainId)!.setter.address!,
     abi: ['function getValue(uint256 index) external view returns (uint256)'],
     functionName: 'getValue',
     args: [findPositionInSetterInputs(setterInputs, 'minAmountOut')],

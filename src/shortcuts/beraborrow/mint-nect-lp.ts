@@ -5,7 +5,7 @@ import { AddressArg, ChainIds, FromContractCallArg, WeirollScript } from '@ensof
 import { Standards, getStandardByProtocol } from '@ensofinance/shortcuts-standards';
 import { div } from '@ensofinance/shortcuts-standards/helpers/math';
 
-import { chainIdToDeFiAddresses, chainIdToSimulationRoles, chainIdToTokenHolder } from '../../constants';
+import { chainIdToDeFiAddresses, chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
 import { balanceOf, depositKodiak, mintHoney, redeemHoney } from '../../utils';
 
@@ -57,7 +57,6 @@ export class BeraborrowMintNectLpShortcut implements Shortcut {
       [mintedAmountNect as FromContractCallArg, mintedAmountHoney],
       island,
       primary,
-      chainIdToSimulationRoles.get(ChainIds.Cartio)!.setter.address!,
       this.setterInputs[chainId],
       false,
     );

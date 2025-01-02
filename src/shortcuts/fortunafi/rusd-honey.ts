@@ -3,7 +3,7 @@ import { RoycoClient } from '@ensofinance/shortcuts-builder/client/implementatio
 import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 
-import { chainIdToDeFiAddresses, chainIdToSimulationRoles, chainIdToTokenHolder } from '../../constants';
+import { chainIdToDeFiAddresses, chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
 import { balanceOf, depositKodiak, mintHoney, redeemHoney } from '../../utils';
 
@@ -45,7 +45,6 @@ export class FortunafiRusdHoneyShortcut implements Shortcut {
       [rusdAmount, mintedAmount],
       island,
       primary,
-      chainIdToSimulationRoles.get(ChainIds.Cartio)!.setter.address!,
       this.setterInputs[chainId],
       false,
     );

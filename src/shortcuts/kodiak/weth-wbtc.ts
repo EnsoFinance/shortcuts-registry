@@ -3,7 +3,7 @@ import { RoycoClient } from '@ensofinance/shortcuts-builder/client/implementatio
 import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 
-import { chainIdToDeFiAddresses, chainIdToSimulationRoles, chainIdToTokenHolder } from '../../constants';
+import { chainIdToDeFiAddresses, chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
 import { balanceOf, depositKodiak } from '../../utils';
 
@@ -42,7 +42,6 @@ export class KodiakWethWbtcShortcut implements Shortcut {
       [amountInWeth, amountInWbtc],
       island,
       primary,
-      chainIdToSimulationRoles.get(ChainIds.Cartio)!.setter.address!,
       this.setterInputs[chainId],
       false,
     );
