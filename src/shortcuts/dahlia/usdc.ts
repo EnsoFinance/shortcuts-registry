@@ -10,14 +10,14 @@ import { chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
 import { balanceOf } from '../../utils';
 
-export class BeraborrowWethVaultShortcut implements Shortcut {
-  name = 'weth-vault';
+export class DahliaUsdcShortcut implements Shortcut {
+  name = 'usdc-vault';
   description = '';
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
-      weth: TokenAddresses.cartio.weth,
-      primary: getAddress('0xEdB3CD4f17b20b69Cd7bf8c1126E2759e4A710Be') as AddressArg,
+      usdc: TokenAddresses.cartio.usdc,
+      vault: getAddress('0x95B0de63dbbe5D92BD05B7c0C12A32673f490A42') as AddressArg,
     },
   };
 
@@ -25,20 +25,22 @@ export class BeraborrowWethVaultShortcut implements Shortcut {
     const client = new RoycoClient();
 
     const inputs = this.inputs[chainId];
-    const { weth, primary } = inputs;
+    const { usdc, vault } = inputs;
+
+    console.log(usdc);
 
     const builder = new Builder(chainId, client, {
-      tokensIn: [weth],
-      tokensOut: [primary],
+      tokensIn: [usdc],
+      tokensOut: [vault],
     });
-    const amountIn = builder.add(balanceOf(weth, walletAddress()));
+    const amountIn = builder.add(balanceOf(usdc, walletAddress()));
 
-    const erc4626 = getStandardByProtocol('erc4626', chainId);
-    await erc4626.deposit.addToBuilder(builder, {
-      tokenIn: [weth],
-      tokenOut: primary,
+    const vaultVault = getStandardByProtocol('erc4626', chainId);
+    await vaultVault.deposit.addToBuilder(builder, {
+      tokenIn: [usdc],
+      tokenOut: vault,
       amountIn: [amountIn],
-      primaryAddress: primary,
+      primaryAddress: vault,
     });
 
     const payload = await builder.build({
@@ -56,8 +58,8 @@ export class BeraborrowWethVaultShortcut implements Shortcut {
     switch (chainId) {
       case ChainIds.Cartio:
         return new Map([
-          [this.inputs[ChainIds.Cartio].primary, { label: 'Beraborrow Boyco WETH' }],
-          [this.inputs[ChainIds.Cartio].weth, { label: 'ERC20:WETH' }],
+          [this.inputs[ChainIds.Cartio].usdc, { label: 'ERC20:USDC' }],
+          [this.inputs[ChainIds.Cartio].vault, { label: 'ERC20:Dahlia Vault' }],
         ]);
       default:
         throw new Error(`Unsupported chainId: ${chainId}`);

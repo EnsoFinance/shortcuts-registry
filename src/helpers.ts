@@ -14,6 +14,8 @@ import { BurrbearUsdcVaultShortcut } from './shortcuts/burrbear/usdc-vault';
 import { ConcreteUsdcShortcut } from './shortcuts/concrete/usdc';
 import { ConcreteWethShortcut } from './shortcuts/concrete/weth';
 import { D2UsdcShortcut } from './shortcuts/d2/usdc';
+import { DahliaUsdcShortcut } from './shortcuts/dahlia/usdc';
+import { DahliaWethShortcut } from './shortcuts/dahlia/weth';
 import { DolomiteDEthShortcut } from './shortcuts/dolomite/deth';
 import { DolomiteDHoneyShortcut } from './shortcuts/dolomite/dhoney';
 import { DolomiteDUsdcShortcut } from './shortcuts/dolomite/dusdc';
@@ -50,6 +52,10 @@ const shortcuts: Record<string, Record<string, Shortcut>> = {
     'weth-vault': new ConcreteWethShortcut(),
     'wbtc-vault': new ConcreteWethShortcut(),
   },
+  dahlia: {
+    usdc: new DahliaUsdcShortcut(),
+    weth: new DahliaWethShortcut(),
+  },
   dolomite: {
     deth: new DolomiteDEthShortcut(),
     dhoney: new DolomiteDHoneyShortcut(),
@@ -57,6 +63,7 @@ const shortcuts: Record<string, Record<string, Shortcut>> = {
     dusdt: new DolomiteDUsdtShortcut(),
     dwbtc: new DolomiteDWbtcShortcut(),
   },
+
   d2: {
     usdc: new D2UsdcShortcut(),
   },
