@@ -31,7 +31,7 @@ export class DolomiteDUsdtShortcut implements Shortcut {
     });
 
     // Get the amount of token in wallet
-    const amountIn = await builder.add(balanceOf(base, walletAddress()));
+    const amountIn = builder.add(balanceOf(base, walletAddress()));
 
     //Mint
     const dolomite = getStandardByProtocol('dolomite-erc4626', chainId);

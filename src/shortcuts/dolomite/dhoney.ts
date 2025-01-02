@@ -32,7 +32,7 @@ export class DolomiteDHoneyShortcut implements Shortcut {
     });
 
     // Get the amount of USDC in the wallet, used to mint Honey
-    const amountToMint = await builder.add(balanceOf(usdc, walletAddress()));
+    const amountToMint = builder.add(balanceOf(usdc, walletAddress()));
     // Mint Honey
     const mintedAmount = await mintHoney(usdc, amountToMint, builder);
 

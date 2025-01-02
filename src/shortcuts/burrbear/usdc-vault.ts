@@ -34,7 +34,7 @@ export class BurrbearUsdcVaultShortcut implements Shortcut {
     });
 
     // Get the amount of token in wallet
-    const amountIn = await builder.add(balanceOf(usdc, walletAddress()));
+    const amountIn = builder.add(balanceOf(usdc, walletAddress()));
 
     //Mint
     const burrbearZap = getStandardByProtocol('erc4626', chainId);
