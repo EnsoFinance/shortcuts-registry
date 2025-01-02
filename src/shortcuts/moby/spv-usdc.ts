@@ -47,8 +47,8 @@ export class MobySpvUsdcShortcut implements Shortcut {
       spender: spv,
     };
 
-    await addApprovals(builder, approvals);
-    await addAction({
+    addApprovals(builder, approvals);
+    addAction({
       builder,
       action: {
         address: spv,
