@@ -434,84 +434,90 @@ async function simulateShortcutOnForge(
   return report;
 }
 
+export async function main_(args: string[]): Promise<Report> {
+  const { shortcut, chainId } = await getShortcut();
+
+  const simulatonMode = getSimulationModeFromArgs(args);
+  const blockNumber = getBlockNumberFromArgs(args);
+  const amountsIn = getAmountsInFromArgs(args);
+
+  const rpcUrl = getRpcUrlByChainId(chainId);
+  const roles = getSimulationRolesByChainId(chainId);
+  const simulationLogConfig = {
+    isReportLogged: true,
+    isCalldataLogged: getIsCalldataLoggedFromArgs(args),
+  };
+
+  const { script, metadata } = await shortcut.build(chainId);
+
+  // Validate tokens
+  const { tokensIn, tokensOut } = metadata;
+  if (!tokensIn || !tokensOut) throw 'Error: Invalid builder metadata. Missing eiter "tokensIn" or "tokensOut"';
+  if (amountsIn.length != tokensIn.length) {
+    throw `Error: Incorrect number of amounts for shortcut. Expected ${tokensIn.length} CSVs`;
+  }
+
+  // Validate slippage
+  // NB: currently only a single slippage is supported due Royco campaign shortcuts expecting a single receipt token
+  const shortcutExecutionMode = getShortcutExecutionMode(shortcut, chainId);
+  let slippage = DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE;
+  let isRecursiveCall = false;
+  if ([ShortcutExecutionMode.MULTICALL__AGGREGATE].includes(shortcutExecutionMode)) {
+    slippage = getSlippageFromArgs(args);
+    isRecursiveCall = !slippage.eq(DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE);
+  }
+
+  let report: Report;
+  switch (simulatonMode) {
+    case SimulationMode.FORGE: {
+      const forgePath = getForgePath();
+      report = await simulateShortcutOnForge(
+        shortcut,
+        chainId,
+        amountsIn,
+        script,
+        tokensIn,
+        tokensOut,
+        slippage,
+        forgePath,
+        rpcUrl,
+        blockNumber,
+        roles,
+        shortcutExecutionMode,
+        isRecursiveCall,
+        simulationLogConfig,
+      );
+      break;
+    }
+    case SimulationMode.QUOTER: {
+      report = await simulateShortcutOnQuoter(
+        shortcut,
+        chainId,
+        amountsIn,
+        script,
+        tokensIn,
+        tokensOut,
+        slippage,
+        rpcUrl,
+        roles,
+        shortcutExecutionMode,
+        isRecursiveCall,
+        simulationLogConfig,
+      );
+      break;
+    }
+    default:
+      throw new Error(`Unsupported simulaton 'mode': ${simulatonMode}. `);
+  }
+
+  return report;
+}
+
 async function main() {
   try {
-    const { shortcut, chainId } = await getShortcut();
-
-    const args: string[] = process.argv;
-    const simulatonMode = getSimulationModeFromArgs(args);
-    const blockNumber = getBlockNumberFromArgs(args);
-    const amountsIn = getAmountsInFromArgs(args);
-
-    const rpcUrl = getRpcUrlByChainId(chainId);
-    const roles = getSimulationRolesByChainId(chainId);
-    const simulationLogConfig = {
-      isReportLogged: true,
-      isCalldataLogged: getIsCalldataLoggedFromArgs(args),
-    };
-
-    const { script, metadata } = await shortcut.build(chainId);
-
-    // Validate tokens
-    const { tokensIn, tokensOut } = metadata;
-    if (!tokensIn || !tokensOut) throw 'Error: Invalid builder metadata. Missing eiter "tokensIn" or "tokensOut"';
-    if (amountsIn.length != tokensIn.length) {
-      throw `Error: Incorrect number of amounts for shortcut. Expected ${tokensIn.length} CSVs`;
-    }
-
-    // Validate slippage
-    // NB: currently only a single slippage is supported due Royco campaign shortcuts expecting a single receipt token
-    const shortcutExecutionMode = getShortcutExecutionMode(shortcut, chainId);
-    let slippage = DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE;
-    let isRecursiveCall = false;
-    if ([ShortcutExecutionMode.MULTICALL__AGGREGATE].includes(shortcutExecutionMode)) {
-      slippage = getSlippageFromArgs(args);
-      isRecursiveCall = !slippage.eq(DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE);
-    }
-
-    switch (simulatonMode) {
-      case SimulationMode.FORGE: {
-        const forgePath = getForgePath();
-        await simulateShortcutOnForge(
-          shortcut,
-          chainId,
-          amountsIn,
-          script,
-          tokensIn,
-          tokensOut,
-          slippage,
-          forgePath,
-          rpcUrl,
-          blockNumber,
-          roles,
-          shortcutExecutionMode,
-          isRecursiveCall,
-          simulationLogConfig,
-        );
-        break;
-      }
-      case SimulationMode.QUOTER: {
-        await simulateShortcutOnQuoter(
-          shortcut,
-          chainId,
-          amountsIn,
-          script,
-          tokensIn,
-          tokensOut,
-          slippage,
-          rpcUrl,
-          roles,
-          shortcutExecutionMode,
-          isRecursiveCall,
-          simulationLogConfig,
-        );
-        break;
-      }
-      default:
-        throw new Error(`Unsupported simulaton 'mode': ${simulatonMode}. `);
-    }
-  } catch (e) {
-    console.log(e);
+    await main_(process.argv);
+  } catch (error) {
+    console.error(error);
   }
 }
 
