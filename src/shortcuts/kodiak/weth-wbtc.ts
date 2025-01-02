@@ -3,7 +3,7 @@ import { RoycoClient } from '@ensofinance/shortcuts-builder/client/implementatio
 import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 
-import { chainIdToDeFiAddresses, chainIdToSimulationRoles, chainIdToTokenHolder } from '../../constants';
+import { chainIdToDeFiAddresses, chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
 import { balanceOf, depositKodiak } from '../../utils';
 
@@ -17,15 +17,17 @@ export class KodiakWethWbtcShortcut implements Shortcut {
       wbtc: chainIdToDeFiAddresses[ChainIds.Cartio].wbtc,
       island: '0x1E5FFDC9B4D69398c782608105d6e2B724063E13',
       primary: chainIdToDeFiAddresses[ChainIds.Cartio].kodiakRouter,
-      setter: chainIdToSimulationRoles.get(ChainIds.Cartio)!.setter.address!, // having setter in inputs lets simulator know to set a min amount value
     },
+  };
+  setterInputs: Record<number, Set<string>> = {
+    [ChainIds.Cartio]: new Set(['minAmountOut']),
   };
 
   async build(chainId: number): Promise<Output> {
     const client = new RoycoClient();
 
     const inputs = this.inputs[chainId];
-    const { weth, wbtc, island, primary, setter } = inputs;
+    const { weth, wbtc, island, primary } = inputs;
 
     const builder = new Builder(chainId, client, {
       tokensIn: [weth, wbtc],
@@ -34,7 +36,15 @@ export class KodiakWethWbtcShortcut implements Shortcut {
     const amountInWeth = builder.add(balanceOf(weth, walletAddress()));
     const amountInWbtc = builder.add(balanceOf(wbtc, walletAddress()));
 
-    await depositKodiak(builder, [weth, wbtc], [amountInWeth, amountInWbtc], island, primary, setter, false);
+    await depositKodiak(
+      builder,
+      [weth, wbtc],
+      [amountInWeth, amountInWbtc],
+      island,
+      primary,
+      this.setterInputs[chainId],
+      false,
+    );
 
     const payload = await builder.build({
       requireWeiroll: true,
@@ -53,7 +63,6 @@ export class KodiakWethWbtcShortcut implements Shortcut {
         return new Map([
           [this.inputs[ChainIds.Cartio].weth, { label: 'ERC20:WETH' }],
           [this.inputs[ChainIds.Cartio].wbtc, { label: 'ERC20:WBTC' }],
-          [this.inputs[ChainIds.Cartio].setter, { label: 'CCMD-Setter' }],
           [this.inputs[ChainIds.Cartio].island, { label: 'Kodiak Island-WETH-WBTC-0.3%' }],
           [this.inputs[ChainIds.Cartio].primary, { label: 'Kodiak Island Router' }],
         ]);
