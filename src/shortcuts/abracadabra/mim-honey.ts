@@ -3,7 +3,7 @@ import { RoycoClient } from '@ensofinance/shortcuts-builder/client/implementatio
 import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 
-import { chainIdToDeFiAddresses, chainIdToSimulationRoles, chainIdToTokenHolder } from '../../constants';
+import { chainIdToDeFiAddresses, chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
 import { balanceOf, depositKodiak, mintHoney, redeemHoney } from '../../utils';
 
@@ -18,15 +18,17 @@ export class AbracadabraMimHoneyhortcut implements Shortcut {
       mim: chainIdToDeFiAddresses[ChainIds.Cartio].mim,
       island: '0x150683BF3f0a344e271fc1b7dac3783623e7208A',
       primary: chainIdToDeFiAddresses[ChainIds.Cartio].kodiakRouter,
-      setter: chainIdToSimulationRoles.get(ChainIds.Cartio)!.setter.address!, // having setter in inputs lets simulator know to set a min amount value
     },
+  };
+  setterInputs: Record<number, Set<string>> = {
+    [ChainIds.Cartio]: new Set(['minAmountOut']),
   };
 
   async build(chainId: number): Promise<Output> {
     const client = new RoycoClient();
 
     const inputs = this.inputs[chainId];
-    const { mim, usdc, honey, island, primary, setter } = inputs;
+    const { mim, usdc, honey, island, primary } = inputs;
 
     const builder = new Builder(chainId, client, {
       tokensIn: [mim, usdc],
@@ -37,7 +39,15 @@ export class AbracadabraMimHoneyhortcut implements Shortcut {
     const usdcAmount = builder.add(balanceOf(usdc, walletAddress()));
     const mintedAmount = await mintHoney(usdc, usdcAmount, builder);
 
-    await depositKodiak(builder, [mim, honey], [mimAmount, mintedAmount], island, primary, setter, false);
+    await depositKodiak(
+      builder,
+      [mim, honey],
+      [mimAmount, mintedAmount],
+      island,
+      primary,
+      this.setterInputs[chainId],
+      false,
+    );
 
     const leftoverAmount = builder.add(balanceOf(honey, walletAddress()));
     await redeemHoney(usdc, leftoverAmount, builder);
