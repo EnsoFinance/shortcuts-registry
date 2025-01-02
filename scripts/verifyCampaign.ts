@@ -2,11 +2,11 @@ import { StaticJsonRpcProvider } from '@ethersproject/providers';
 
 import {
   buildShortcutsHashMap,
+  buildVerificationHash,
   getCampaign,
+  getCampaignVerificationHash,
   getChainId,
   getRpcUrlByChainId,
-  getVerificationHash,
-  getWeirollWallets,
 } from '../src/helpers';
 
 async function main() {
@@ -24,18 +24,33 @@ async function main() {
     const provider = new StaticJsonRpcProvider(rpcUrl);
 
     const campaign = await getCampaign(provider, chainId, marketHash);
-    const { receiptToken, depositRecipe } = campaign;
+    const { verified, receiptToken, depositRecipe } = campaign;
+    if (verified) {
+      console.log('Market is already verified');
+    } else {
+      console.log('Market is not yet verified');
+    }
     if (depositRecipe.commands.length === 0) throw 'Error: Cannot verify, recipe not set for market!';
 
-    const hash = getVerificationHash(depositRecipe, receiptToken, []);
-    console.log('Hash: ', hash);
+    const preVerificationHash = buildVerificationHash(depositRecipe, receiptToken, []);
 
     const shortcutHashMap = await buildShortcutsHashMap(chainId);
-    const shortcut = shortcutHashMap[hash];
+    const shortcut = shortcutHashMap[preVerificationHash];
     if (!shortcut) throw 'Error: Cannot find shortcut using market hash';
-    console.log('Shortcut found: ', shortcut.name);
-    const wallets = await getWeirollWallets(provider, chainId, marketHash);
-    console.log('Wallets: ', wallets);
+    console.log('Shortcut: ', shortcut.name);
+    // confirm verification hash
+    let verificationHash: string;
+    if (verified) {
+      const { metadata } = await shortcut.build(chainId);
+      verificationHash = buildVerificationHash(depositRecipe, receiptToken, metadata.tokensIn!);
+    } else {
+      verificationHash = preVerificationHash;
+    }
+    console.log('Verification Hash: ', verificationHash);
+    const campaignVerificationHash = await getCampaignVerificationHash(provider, chainId, marketHash);
+    if (verificationHash !== campaignVerificationHash)
+      throw `Error: On-chain verification hash (${campaignVerificationHash}) does not match calculated hash!`;
+    if (!verified) console.log('Market is ready to be verified');
   } catch (e) {
     console.error(e);
   }

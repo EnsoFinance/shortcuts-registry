@@ -288,7 +288,7 @@ export function getEncodedData(commands: string[], state: string[]): string {
   return weirollWalletInterface.encodeFunctionData('executeWeiroll', [commands, state]);
 }
 
-export function getVerificationHash(script: WeirollScript, receiptToken: AddressArg, inputTokens: AddressArg[]) {
+export function buildVerificationHash(script: WeirollScript, receiptToken: AddressArg, inputTokens: AddressArg[]) {
   // TODO: confirm token order for encoding hash
   return keccak256(
     defaultAbiCoder.encode(
@@ -296,6 +296,22 @@ export function getVerificationHash(script: WeirollScript, receiptToken: Address
       [inputTokens, receiptToken, [script.commands, script.state]],
     ),
   );
+}
+
+export async function getCampaignVerificationHash(
+  provider: StaticJsonRpcProvider,
+  chainId: number,
+  marketHash: string,
+): Promise<string> {
+  const depositExecutorInterface = new Interface([
+    'function getCampaignVerificationHash(bytes32 marketHash) external view returns (bytes32 verificationHash)',
+  ]);
+  const roles = getSimulationRolesByChainId(chainId);
+  const data = await provider.call({
+    to: roles.depositExecutor.address,
+    data: depositExecutorInterface.encodeFunctionData('getCampaignVerificationHash', [marketHash]),
+  });
+  return depositExecutorInterface.decodeFunctionResult('getCampaignVerificationHash', data).verificationHash as string;
 }
 
 export async function getCampaign(
@@ -357,7 +373,7 @@ export async function buildShortcutsHashMap(chainId: number): Promise<Record<str
   const hashArray = await Promise.all(
     shortcutsArray.map(async (shortcut) => {
       const { script, metadata } = await shortcut.build(chainId);
-      return getVerificationHash(script, metadata.tokensOut![0], []);
+      return buildVerificationHash(script, metadata.tokensOut![0], []);
     }),
   );
   const shortcutsHashMap: Record<string, Shortcut> = {};

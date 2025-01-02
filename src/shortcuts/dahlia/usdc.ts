@@ -26,8 +26,6 @@ export class DahliaUsdcShortcut implements Shortcut {
     const inputs = this.inputs[chainId];
     const { usdc, vault } = inputs;
 
-    console.log(usdc);
-
     const builder = new Builder(chainId, client, {
       tokensIn: [usdc],
       tokensOut: [vault],
