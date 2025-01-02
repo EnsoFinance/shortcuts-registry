@@ -79,7 +79,6 @@ export class BeraborrowNectHoneyShortcut implements Shortcut {
         functionName: 'withdraw',
         args: [nectLeftOvers, walletAddress(), walletAddress()],
       },
-      approvals,
     });
 
     const payload = await builder.build({
