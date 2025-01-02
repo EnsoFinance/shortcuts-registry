@@ -4,7 +4,6 @@ import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 import { getStandardByProtocol } from '@ensofinance/shortcuts-standards';
 import { TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
-import { getAddress } from '@ethersproject/address';
 
 import { chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
@@ -17,7 +16,7 @@ export class DahliaUsdcShortcut implements Shortcut {
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
       usdc: TokenAddresses.cartio.usdc,
-      vault: getAddress('0x95B0de63dbbe5D92BD05B7c0C12A32673f490A42') as AddressArg,
+      vault: '0x95B0de63dbbe5D92BD05B7c0C12A32673f490A42',
     },
   };
 

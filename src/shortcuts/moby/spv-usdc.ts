@@ -4,7 +4,6 @@ import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 import { TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
 import { addAction, addApprovals, div } from '@ensofinance/shortcuts-standards/helpers';
-import { getAddress } from '@ethersproject/address';
 import { MaxUint256 } from '@ethersproject/constants';
 
 import { chainIdToTokenHolder } from '../../constants';
@@ -17,10 +16,10 @@ export class MobySpvUsdcShortcut implements Shortcut {
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
-      usdc: getAddress(TokenAddresses.cartio.usdc) as AddressArg,
-      honey: getAddress(TokenAddresses.cartio.honey) as AddressArg,
-      spv: getAddress('0xC4E80693F0020eDA0a7500d6edE12Ebb5FDf4526') as AddressArg,
-      bexLp: getAddress('0xF7F214A9543c1153eF5DF2edCd839074615F248c') as AddressArg,
+      usdc: TokenAddresses.cartio.usdc,
+      honey: TokenAddresses.cartio.honey,
+      spv: '0xC4E80693F0020eDA0a7500d6edE12Ebb5FDf4526',
+      bexLp: '0xF7F214A9543c1153eF5DF2edCd839074615F248c',
     },
   };
 
@@ -79,6 +78,7 @@ export class MobySpvUsdcShortcut implements Shortcut {
           [this.inputs[ChainIds.Cartio].usdc, { label: 'ERC20:USDC' }],
           [this.inputs[ChainIds.Cartio].honey, { label: 'ERC20:Honey' }],
           [this.inputs[ChainIds.Cartio].spv, { label: 'ERC20:SPV' }],
+          [this.inputs[ChainIds.Cartio].bexLp, { label: 'ERC20:USDC-HONEY-COMPOSABLESTABLE' }],
         ]);
       default:
         throw new Error(`Unsupported chainId: ${chainId}`);
