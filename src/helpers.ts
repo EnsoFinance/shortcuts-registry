@@ -23,7 +23,7 @@ import { InfraredWethWbtcShortcut } from './shortcuts/infrared/weth-wbtc';
 import { KodiakHoneyUsdcShortcut } from './shortcuts/kodiak/honey-usdc';
 import { KodiakWethHoneyShortcut } from './shortcuts/kodiak/weth-honey';
 import { KodiakWethWbtcShortcut } from './shortcuts/kodiak/weth-wbtc';
-import { MobySpvUsdcShortcut } from './shortcuts/moby/spv-usdc copy';
+import { MobySpvUsdcShortcut } from './shortcuts/moby/spv-usdc';
 import { MobyWolpHoneyShortcut } from './shortcuts/moby/wolp-honey';
 import { MobyWolpUsdcShortcut } from './shortcuts/moby/wolp-usdc';
 import { MobyWolpWbtcShortcut } from './shortcuts/moby/wolp-wbtc';

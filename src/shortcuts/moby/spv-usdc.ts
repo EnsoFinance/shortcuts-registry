@@ -5,6 +5,7 @@ import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-buil
 import { TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
 import { addAction, addApprovals, div } from '@ensofinance/shortcuts-standards/helpers';
 import { getAddress } from '@ethersproject/address';
+import { MaxUint256 } from '@ethersproject/constants';
 
 import { chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
@@ -19,6 +20,7 @@ export class MobySpvUsdcShortcut implements Shortcut {
       usdc: getAddress(TokenAddresses.cartio.usdc) as AddressArg,
       honey: getAddress(TokenAddresses.cartio.honey) as AddressArg,
       spv: getAddress('0xC4E80693F0020eDA0a7500d6edE12Ebb5FDf4526') as AddressArg,
+      bexLp: getAddress('0xF7F214A9543c1153eF5DF2edCd839074615F248c') as AddressArg,
     },
   };
 
@@ -26,7 +28,7 @@ export class MobySpvUsdcShortcut implements Shortcut {
     const client = new RoycoClient();
 
     const inputs = this.inputs[chainId];
-    const { usdc, spv, honey } = inputs;
+    const { usdc, spv, honey, bexLp } = inputs;
 
     const builder = new Builder(chainId, client, {
       tokensIn: [usdc],
@@ -41,12 +43,10 @@ export class MobySpvUsdcShortcut implements Shortcut {
 
     const amountUsdc = builder.add(balanceOf(usdc, walletAddress()));
     const approvals = {
-      tokens: [usdc, honey],
-      amounts: [amountUsdc, amountHoneyMinted],
+      tokens: [usdc, honey, bexLp],
+      amounts: [amountUsdc, amountHoneyMinted, MaxUint256],
       spender: spv,
     };
-
-    console.log(usdc, honey);
 
     await addApprovals(builder, approvals);
     await addAction({
