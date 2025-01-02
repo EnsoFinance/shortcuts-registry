@@ -1,12 +1,20 @@
 import { getChainName } from '@ensofinance/shortcuts-builder/helpers';
 import { ChainIds } from '@ensofinance/shortcuts-builder/types';
 import { Interface } from '@ethersproject/abi';
+import { BigNumber } from '@ethersproject/bignumber';
 import dotenv from 'dotenv';
 import { execSync } from 'node:child_process';
 
-import { ShortcutOutputFormat, SimulationMode } from '../src/constants';
+import {
+  DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE,
+  DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR,
+  ShortcutExecutionMode,
+  ShortcutOutputFormat,
+  SimulationMode,
+  chainIdToSimulationRoles,
+} from '../src/constants';
 import { Shortcut } from '../src/types';
-import { AbracadabraMimUsdcShortcut } from './shortcuts/abracadabra/mim-usdc';
+import { AbracadabraMimHoneyhortcut } from './shortcuts/abracadabra/mim-honey';
 import { BeraborrowNectHoneyShortcut } from './shortcuts/beraborrow/nect-honey';
 import { BeraborrowSbtcVaultShortcut } from './shortcuts/beraborrow/sbtc';
 import { BeraborrowWethVaultShortcut } from './shortcuts/beraborrow/weth';
@@ -23,7 +31,7 @@ import { DolomiteDUsdtShortcut } from './shortcuts/dolomite/dusdt';
 import { DolomiteDWbtcShortcut } from './shortcuts/dolomite/dwbtc';
 import { InfraredWethWbtcShortcut } from './shortcuts/infrared/weth-wbtc';
 import { KodiakHoneyUsdcShortcut } from './shortcuts/kodiak/honey-usdc';
-import { KodiakWethHoneyShortcut } from './shortcuts/kodiak/weth-honey';
+import { KodiakHoneyWethShortcut } from './shortcuts/kodiak/honey-weth';
 import { KodiakWethWbtcShortcut } from './shortcuts/kodiak/weth-wbtc';
 import { MobySpvUsdcShortcut } from './shortcuts/moby/spv-usdc';
 import { MobyWolpHoneyShortcut } from './shortcuts/moby/wolp-honey';
@@ -33,12 +41,13 @@ import { MobyWolpWethShortcut } from './shortcuts/moby/wolp-weth';
 import { OrigamiBoycoHoneyShortcut } from './shortcuts/origami/oboy-HONEY-a';
 import { SatlayerPumpBtcShortcut } from './shortcuts/satlayer/pumpbtc';
 import { ThjUsdcShortcut } from './shortcuts/thj/usdc';
+import type { SimulationRoles } from './types';
 
 dotenv.config();
 
 const shortcuts: Record<string, Record<string, Shortcut>> = {
   abracadabra: {
-    'mim-usdc': new AbracadabraMimUsdcShortcut(),
+    'honey-mim': new AbracadabraMimHoneyhortcut(),
   },
   beraborrow: {
     'nect-honey': new BeraborrowNectHoneyShortcut(),
@@ -75,7 +84,7 @@ const shortcuts: Record<string, Record<string, Shortcut>> = {
   // },
   kodiak: {
     'honey-usdc': new KodiakHoneyUsdcShortcut(),
-    'weth-honey': new KodiakWethHoneyShortcut(),
+    'honey-weth': new KodiakHoneyWethShortcut(),
     'weth-wbtc': new KodiakWethWbtcShortcut(),
   },
   moby: {
@@ -116,6 +125,14 @@ export async function getShortcut() {
   return { shortcut, chainId };
 }
 
+export function getShortcutExecutionMode(shortcut: Shortcut, chainId: number): ShortcutExecutionMode {
+  if (shortcut.setterInputs?.[chainId]) {
+    return ShortcutExecutionMode.MULTICALL__AGGREGATE;
+  }
+
+  return ShortcutExecutionMode.WEIROLL_WALLET__EXECUTE_WEIROLL;
+}
+
 function getChainId(chainName: string) {
   chainName = chainName.toLowerCase(); // ensure consistent
   const key = (chainName.charAt(0).toUpperCase() + chainName.slice(1)) as keyof typeof ChainIds;
@@ -129,6 +146,16 @@ export function getRpcUrlByChainId(chainId: number): string {
   if (!rpcUrl) throw new Error(`Missing 'RPC_URL_${chainName.toUpperCase()}' environment variable`);
 
   return rpcUrl;
+}
+
+export function getSimulationRolesByChainId(chainId: number): SimulationRoles {
+  const roles = chainIdToSimulationRoles.get(chainId);
+  if (!roles)
+    throw new Error(
+      `Missing simulation roles for 'chainId': ${chainId}. Please, update 'chainIdToSimulationRoles' map`,
+    );
+
+  return roles;
 }
 
 export function getForgePath(): string {
@@ -195,10 +222,49 @@ export function getShortcutOutputFormatFromArgs(args: string[]): string {
 }
 
 export function getAmountsInFromArgs(args: string[]): string[] {
-  const filteredArgs = args.slice(5);
-  if (filteredArgs.length != 1) throw 'Error: Please pass amounts (use commas for multiple values)';
+  const filteredArg = args[5];
+  if (!filteredArg || !filteredArg.length) throw 'Error: Please pass amounts (use commas for multiple values)';
 
-  return filteredArgs[0].split(',');
+  return filteredArg.split(',');
+}
+
+export function getSlippageFromArgs(args: string[]): BigNumber {
+  const slippageIdx = args.findIndex((arg) => arg.startsWith('--slippage='));
+  let slippageRaw: string;
+  if (slippageIdx === -1) {
+    slippageRaw = '0';
+  } else {
+    slippageRaw = args[slippageIdx].split('=')[1] as ShortcutOutputFormat;
+    args.splice(slippageIdx, 1);
+  }
+
+  let slippage: BigNumber;
+  try {
+    slippage = BigNumber.from(slippageRaw);
+  } catch (error) {
+    throw new Error(`Invalid slippage: ${slippageRaw}. Required a BigNumber type as BIPS. Reason: ${error}`);
+  }
+
+  if (slippage.lt(DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE) || slippage.gt(DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR)) {
+    throw new Error(
+      `invalid slippage: ${slippageRaw}. BIPS is out of range [${DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE.toString()},${DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR.toString()}]`,
+    );
+  }
+
+  return slippage;
+}
+
+export function getIsCalldataLoggedFromArgs(args: string[]): boolean {
+  const logCalldataIdx = args.findIndex((arg) => arg.startsWith('--calldata'));
+  let isCalldataLogged: boolean;
+  if (logCalldataIdx === -1) {
+    isCalldataLogged = false;
+  } else {
+    isCalldataLogged = true;
+    args.splice(logCalldataIdx, 1);
+  }
+
+  return isCalldataLogged;
 }
 
 export function getWalletFromArgs(args: string[]): string {

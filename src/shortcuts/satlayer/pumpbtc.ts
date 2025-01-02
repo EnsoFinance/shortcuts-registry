@@ -3,9 +3,8 @@ import { RoycoClient } from '@ensofinance/shortcuts-builder/client/implementatio
 import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 import { Standards, getStandardByProtocol } from '@ensofinance/shortcuts-standards';
-import { getAddress } from '@ethersproject/address';
 
-import { chainIdToTokenHolder } from '../../constants';
+import { chainIdToDeFiAddresses, chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
 import { balanceOf } from '../../utils';
 
@@ -15,9 +14,9 @@ export class SatlayerPumpBtcShortcut implements Shortcut {
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
-      depositToken: getAddress(Standards.Satlayer_Vaults.protocol.addresses!.cartio!.pumpBtc) as AddressArg,
-      receiptToken: getAddress(Standards.Satlayer_Vaults.protocol.addresses!.cartio!.receiptToken) as AddressArg,
-      vault: getAddress(Standards.Satlayer_Vaults.protocol.addresses!.cartio!.vault) as AddressArg,
+      depositToken: chainIdToDeFiAddresses[ChainIds.Cartio].pumpbtc,
+      receiptToken: Standards.Satlayer_Vaults.protocol.addresses!.cartio!.receiptToken,
+      vault: Standards.Satlayer_Vaults.protocol.addresses!.cartio!.vault,
     },
   };
 

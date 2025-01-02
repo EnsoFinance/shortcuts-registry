@@ -3,9 +3,8 @@ import { RoycoClient } from '@ensofinance/shortcuts-builder/client/implementatio
 import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 import { getStandardByProtocol } from '@ensofinance/shortcuts-standards';
-import { getAddress } from '@ethersproject/address';
 
-import { chainIdToTokenHolder } from '../../constants';
+import { chainIdToDeFiAddresses, chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
 import { balanceOf } from '../../utils';
 
@@ -15,8 +14,8 @@ export class DolomiteDEthShortcut implements Shortcut {
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
-      base: getAddress('0x2d93FbcE4CffC15DD385A80B3f4CC1D4E76C38b3') as AddressArg, //weth
-      vault: getAddress('0xf7b5127B510E568fdC39e6Bb54e2081BFaD489AF') as AddressArg, //deth
+      base: chainIdToDeFiAddresses[ChainIds.Cartio].weth, // weth
+      vault: '0xf7b5127B510E568fdC39e6Bb54e2081BFaD489AF', // deth
     },
   };
 

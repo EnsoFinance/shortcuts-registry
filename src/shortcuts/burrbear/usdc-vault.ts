@@ -4,7 +4,6 @@ import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 import { getStandardByProtocol } from '@ensofinance/shortcuts-standards';
 import { TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
-import { getAddress } from '@ethersproject/address';
 
 import { chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
@@ -16,8 +15,8 @@ export class BurrbearUsdcVaultShortcut implements Shortcut {
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
-      usdc: getAddress(TokenAddresses.cartio.usdc) as AddressArg,
-      vault: getAddress('0x86b22E0236d4789a22EC5ca0356Fcc14E076D559') as AddressArg, // Zap
+      usdc: TokenAddresses.cartio.usdc,
+      vault: '0x86b22E0236d4789a22EC5ca0356Fcc14E076D559', // Zap
       bexLp: '0xFbb99BAD8eca0736A9ab2a7f566dEbC9acb607f0', //Honey-USDC-NECT
     },
   };
@@ -34,7 +33,7 @@ export class BurrbearUsdcVaultShortcut implements Shortcut {
     });
 
     // Get the amount of token in wallet
-    const amountIn = await builder.add(balanceOf(usdc, walletAddress()));
+    const amountIn = builder.add(balanceOf(usdc, walletAddress()));
 
     //Mint
     const burrbearZap = getStandardByProtocol('erc4626', chainId);

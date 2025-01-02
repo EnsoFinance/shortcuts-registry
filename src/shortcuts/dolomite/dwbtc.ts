@@ -3,10 +3,8 @@ import { RoycoClient } from '@ensofinance/shortcuts-builder/client/implementatio
 import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 import { getStandardByProtocol } from '@ensofinance/shortcuts-standards';
-import { TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
-import { getAddress } from '@ethersproject/address';
 
-import { chainIdToTokenHolder } from '../../constants';
+import { chainIdToDeFiAddresses, chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
 import { balanceOf } from '../../utils';
 
@@ -16,8 +14,8 @@ export class DolomiteDWbtcShortcut implements Shortcut {
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
-      base: getAddress(TokenAddresses.cartio.wbtc) as AddressArg,
-      vault: getAddress('0x29cF6e8eCeFb8d3c9dd2b727C1b7d1df1a754F6f') as AddressArg, //dwbtc
+      base: chainIdToDeFiAddresses[ChainIds.Cartio].wbtc,
+      vault: '0x29cF6e8eCeFb8d3c9dd2b727C1b7d1df1a754F6f', //dwbtc
     },
   };
 
@@ -33,7 +31,7 @@ export class DolomiteDWbtcShortcut implements Shortcut {
     });
 
     // Get the amount of token in wallet
-    const amountIn = await builder.add(balanceOf(base, walletAddress()));
+    const amountIn = builder.add(balanceOf(base, walletAddress()));
 
     //Mint
     const dolomite = getStandardByProtocol('dolomite-erc4626', chainId);

@@ -2,26 +2,26 @@ import { Builder } from '@ensofinance/shortcuts-builder';
 import { RoycoClient } from '@ensofinance/shortcuts-builder/client/implementations/roycoClient';
 import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
-import { Standards, getStandardByProtocol } from '@ensofinance/shortcuts-standards';
-import { TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
-import { getAddress } from '@ethersproject/address';
 
-import { chainIdToTokenHolder } from '../../constants';
+import { chainIdToDeFiAddresses, chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
-import { balanceOf, mintHoney } from '../../utils';
+import { balanceOf, depositKodiak, mintHoney, redeemHoney } from '../../utils';
 
-export class AbracadabraMimUsdcShortcut implements Shortcut {
-  name = 'abracadabra-mim-usdc';
+export class AbracadabraMimHoneyhortcut implements Shortcut {
+  name = 'abracadabra-mim-honey';
   description = '';
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
-      usdc: getAddress(TokenAddresses.cartio.usdc) as AddressArg,
-      honey: getAddress(TokenAddresses.cartio.honey) as AddressArg,
-      mim: getAddress(TokenAddresses.cartio.mim) as AddressArg,
-      island: getAddress('0x150683BF3f0a344e271fc1b7dac3783623e7208A') as AddressArg,
-      primary: getAddress(Standards.Kodiak_Islands.protocol.addresses!.cartio!.router) as AddressArg,
+      usdc: chainIdToDeFiAddresses[ChainIds.Cartio].usdc,
+      honey: chainIdToDeFiAddresses[ChainIds.Cartio].honey,
+      mim: chainIdToDeFiAddresses[ChainIds.Cartio].mim,
+      island: '0x150683BF3f0a344e271fc1b7dac3783623e7208A',
+      primary: chainIdToDeFiAddresses[ChainIds.Cartio].kodiakRouter,
     },
+  };
+  setterInputs: Record<number, Set<string>> = {
+    [ChainIds.Cartio]: new Set(['minAmountOut']),
   };
 
   async build(chainId: number): Promise<Output> {
@@ -37,15 +37,20 @@ export class AbracadabraMimUsdcShortcut implements Shortcut {
 
     const mimAmount = builder.add(balanceOf(mim, walletAddress()));
     const usdcAmount = builder.add(balanceOf(usdc, walletAddress()));
-    const honeyAmount = await mintHoney(usdc, usdcAmount, builder);
+    const mintedAmount = await mintHoney(usdc, usdcAmount, builder);
 
-    const kodiak = getStandardByProtocol('kodiak-islands', chainId);
-    await kodiak.deposit.addToBuilder(builder, {
-      tokenIn: [mim, honey],
-      tokenOut: island,
-      amountIn: [mimAmount, honeyAmount],
-      primaryAddress: primary,
-    });
+    await depositKodiak(
+      builder,
+      [mim, honey],
+      [mimAmount, mintedAmount],
+      island,
+      primary,
+      this.setterInputs[chainId],
+      false,
+    );
+
+    const leftoverAmount = builder.add(balanceOf(honey, walletAddress()));
+    await redeemHoney(usdc, leftoverAmount, builder);
 
     const payload = await builder.build({
       requireWeiroll: true,
@@ -69,7 +74,7 @@ export class AbracadabraMimUsdcShortcut implements Shortcut {
             },
           ],
           [this.inputs[ChainIds.Cartio].primary, { label: 'Kodiak Island Router' }],
-          [this.inputs[ChainIds.Cartio].island, { label: 'Kodiak Island-MIM-HONEY-0.5%' }],
+          [this.inputs[ChainIds.Cartio].island, { label: 'Kodiak Island-MIM-HONEY-0.05%' }],
           [this.inputs[ChainIds.Cartio].honey, { label: 'ERC20:HONEY' }],
           [this.inputs[ChainIds.Cartio].mim, { label: 'ERC20:MIM' }],
           [this.inputs[ChainIds.Cartio].usdc, { label: 'ERC20:USDC' }],
