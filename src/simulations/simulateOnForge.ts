@@ -2,6 +2,7 @@ import type { AddressArg } from '@ensofinance/shortcuts-builder/types';
 import { spawnSync } from 'node:child_process';
 
 import type { ShortcutExecutionMode } from '../constants';
+import { ForgeTestLogFormat } from '../constants';
 import type { ForgeTestLogJSON, SimulationForgeData, SimulationRoles, SimulationTokensData } from '../types';
 
 export function simulateTransactionOnForge(
@@ -21,6 +22,8 @@ export function simulateTransactionOnForge(
   if (!roles.weirollWallet?.address) {
     throw new Error("missing 'weirollWallet' address in 'roles'");
   }
+
+  const logFormat = ForgeTestLogFormat.JSON;
   // NB: `spawnSync` forge call return can optionally be read from both `return.stdout` and `return.stderr`, and processed.
   // NB: calling forge with `--json` will print the deployment information as JSON.
   // NB: calling forge with `--gas-report` will print the gas report.
@@ -28,7 +31,7 @@ export function simulateTransactionOnForge(
   // tests. To make visible successful test traces, use `-vvvv`.
   const result = spawnSync(
     'forge',
-    ['test', '--match-contract', forgeData.contract, '--match-test', forgeData.test, '-vvv', '--json'],
+    ['test', '--match-contract', forgeData.contract, '--match-test', forgeData.test, '-vvv', logFormat],
     {
       encoding: 'utf-8',
       env: {
@@ -66,6 +69,11 @@ export function simulateTransactionOnForge(
       `simulateTransactionOnForge: unexpected error calling 'forge'. ` +
         `Reason: it didn't error but 'stdout' is falsey: ${result.stdout}. 'stderr' is: ${result.stderr}`,
     );
+  }
+
+  if ([ForgeTestLogFormat.DEFAULT].includes(logFormat)) {
+    console.log(result.stdout);
+    throw new Error('Forced termination to inspect forge test log');
   }
 
   let forgeTestLog: ForgeTestLogJSON;

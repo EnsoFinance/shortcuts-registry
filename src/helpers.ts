@@ -96,7 +96,7 @@ export async function getShortcut() {
 }
 
 export function getShortcutExecutionMode(shortcut: Shortcut, chainId: number): ShortcutExecutionMode {
-  if (shortcut.inputs[chainId].setter) {
+  if (shortcut.setterInputs?.[chainId]) {
     return ShortcutExecutionMode.MULTICALL__AGGREGATE;
   }
 
@@ -222,6 +222,19 @@ export function getSlippageFromArgs(args: string[]): BigNumber {
   }
 
   return slippage;
+}
+
+export function getIsCalldataLoggedFromArgs(args: string[]): boolean {
+  const logCalldataIdx = args.findIndex((arg) => arg.startsWith('--calldata'));
+  let isCalldataLogged: boolean;
+  if (logCalldataIdx === -1) {
+    isCalldataLogged = false;
+  } else {
+    isCalldataLogged = true;
+    args.splice(logCalldataIdx, 1);
+  }
+
+  return isCalldataLogged;
 }
 
 export function getWalletFromArgs(args: string[]): string {

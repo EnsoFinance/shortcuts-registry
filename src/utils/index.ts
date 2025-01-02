@@ -13,7 +13,7 @@ import { addAction, areAddressesEqual, percentMul, resetApprovals } from '@ensof
 import { Interface } from '@ethersproject/abi';
 import { StaticJsonRpcProvider } from '@ethersproject/providers';
 
-import { chainIdToDeFiAddresses } from '../constants';
+import { chainIdToDeFiAddresses, chainIdToSimulationRoles } from '../constants';
 import type { RoycoOutput, Shortcut, SimulationResult } from '../types';
 
 export async function prepareResponse(
@@ -71,7 +71,7 @@ export async function depositKodiak(
   amountsIn: NumberArg[],
   island: AddressArg,
   primary: AddressArg,
-  setter: AddressArg,
+  setterInputs: Set<string>,
   setMinAmount: boolean,
 ) {
   const rpcUrl = PUBLIC_RPC_URLS[builder.chainId].rpcUrls.public;
@@ -93,10 +93,10 @@ export async function depositKodiak(
   const amount0Min = setMinAmount ? percentMul(amount0, 9900, builder) : 1;
   const amount1Min = setMinAmount ? percentMul(amount1, 9900, builder) : 1;
   const amountSharesMin = builder.add({
-    address: setter,
-    abi: ['function getSingleValue() external view returns (uint256)'],
-    functionName: 'getSingleValue',
-    args: [],
+    address: chainIdToSimulationRoles.get(builder.chainId)!.setter.address!,
+    abi: ['function getValue(uint256 index) external view returns (uint256)'],
+    functionName: 'getValue',
+    args: [findPositionInSetterInputs(setterInputs, 'minAmountOut')],
   });
   addAction({
     builder,
@@ -123,4 +123,15 @@ export async function buildRoycoMarketShortcut(shortcut: Shortcut, chainId: Chai
     weirollCommands: output.script.commands,
     weirollState: output.script.state,
   };
+}
+
+function findPositionInSetterInputs(set: Set<string>, item: string) {
+  let index = 0;
+  for (const value of set) {
+    if (value === item) {
+      return index;
+    }
+    index++;
+  }
+  throw new Error(`Missing input '${item}' in set: ${JSON.stringify(set)}`);
 }

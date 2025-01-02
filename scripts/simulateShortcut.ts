@@ -2,6 +2,7 @@ import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-buil
 import { getAddress } from '@ensofinance/shortcuts-standards/helpers';
 import { Interface } from '@ethersproject/abi';
 import { BigNumber } from '@ethersproject/bignumber';
+import type { BigNumberish } from '@ethersproject/bignumber';
 import { StaticJsonRpcProvider } from '@ethersproject/providers';
 
 import {
@@ -13,12 +14,14 @@ import {
   ShortcutExecutionMode,
   SimulationMode,
 } from '../src/constants';
-import { getEncodedData, getShortcut } from '../src/helpers';
 import {
   getAmountsInFromArgs,
   getBlockNumberFromArgs,
+  getEncodedData,
   getForgePath,
+  getIsCalldataLoggedFromArgs,
   getRpcUrlByChainId,
+  getShortcut,
   getShortcutExecutionMode,
   getSimulationModeFromArgs,
   getSimulationRolesByChainId,
@@ -26,7 +29,15 @@ import {
 } from '../src/helpers';
 import { simulateTransactionOnForge } from '../src/simulations/simulateOnForge';
 import { APITransaction, QuoteRequest, simulateTransactionOnQuoter } from '../src/simulations/simulateOnQuoter';
-import type { Report, Shortcut, SimulationRoles } from '../src/types';
+import type {
+  MultiCallData,
+  Report,
+  SetterInputData,
+  SetterInputToIndex,
+  Shortcut,
+  SimulationLogConfig,
+  SimulationRoles,
+} from '../src/types';
 
 const recipeMarketHubInterface = new Interface([
   'function createCampaign(uint256) external view returns (address)',
@@ -43,26 +54,30 @@ const multicallInterface = new Interface([
 ]);
 
 async function generateMulticallTxData(
-  shortcut: Shortcut,
-  chainId: ChainIds,
+  setterInputToIndex: SetterInputToIndex,
   commands: string[],
   state: string[],
+  setterAddr: AddressArg,
   recipeMarketHubAddr: AddressArg,
-  minAmountOut = DEFAULT_SETTER_MIN_AMOUNT_OUT,
-): Promise<string> {
-  const calls = [];
-  if (shortcut.inputs[chainId].setter) {
-    // set min amount out
-    const setterData = setterInterface.encodeFunctionData('setSingleValue', [minAmountOut]); // for min amount out, simulation can set zero
-    calls.push([shortcut.inputs[chainId].setter, setterData]);
-  }
+  inputToValue: Record<string, BigNumberish>,
+): Promise<MultiCallData> {
+  let setterData: [AddressArg, string][] = [];
+  const setterInputData: SetterInputData = {};
+  const calls: [AddressArg, string][] = [];
+  [...setterInputToIndex].forEach((input, index) => {
+    const value = inputToValue[input];
+    const setterData = setterInterface.encodeFunctionData('setValue', [index, value]);
+    setterInputData[input] = { value, index: Number(index) };
+    calls.push([setterAddr, setterData]);
+  });
+
+  setterData = [...calls];
   // can call executeWeiroll on recipeMarketHub it will automatically deploy a weiroll wallet
   const weirollData = getEncodedData(commands, state);
   calls.push([recipeMarketHubAddr, weirollData]);
+  const txData = multicallInterface.encodeFunctionData('aggregate', [calls]);
 
-  const data = multicallInterface.encodeFunctionData('aggregate', [calls]);
-
-  return data;
+  return { setterInputData, setterData, txData };
 }
 
 async function getNextWeirollWalletFromRecipeMarketHub(
@@ -87,13 +102,13 @@ async function simulateShortcutOnQuoter(
   slippage: BigNumber,
   rpcUrl: string,
   roles: SimulationRoles,
+  shortcutExecutionMode: ShortcutExecutionMode,
   isRecursiveCall = false,
-  isSimulationLogged = true,
+  simulationLogConfig: SimulationLogConfig,
 ): Promise<Report> {
   const { commands, state } = script;
 
-  const shortcutExecutionMode = getShortcutExecutionMode(shortcut, chainId);
-
+  const reportPre: Partial<Report> = {};
   let txData: string;
   switch (shortcutExecutionMode) {
     case ShortcutExecutionMode.MULTICALL__AGGREGATE: {
@@ -112,8 +127,9 @@ async function simulateShortcutOnQuoter(
           slippage,
           rpcUrl,
           roles,
+          shortcutExecutionMode,
           !isRecursiveCall,
-          false,
+          { ...simulationLogConfig, isReportLogged: false, isCalldataLogged: false },
         );
         const receiptTokenAddr = tokensOut[0]; // NB: Royco campaign shortcuts expect a single receipt token
         const amountOut = report.quote[receiptTokenAddr];
@@ -125,14 +141,24 @@ async function simulateShortcutOnQuoter(
       const weirollWallet = await getNextWeirollWalletFromRecipeMarketHub(provider, roles.recipeMarketHub.address!);
       roles.weirollWallet = { address: weirollWallet, label: 'WeirollWallet' };
       roles.callee = roles.multiCall;
-      txData = await generateMulticallTxData(
-        shortcut,
-        chainId,
+      reportPre.minAmountOut = minAmountOut.toString();
+      reportPre.minAmountOutHex = minAmountOut.toHexString();
+
+      const multiCallData = await generateMulticallTxData(
+        shortcut.setterInputs![chainId],
         commands,
         state,
+        roles.setter.address!,
         roles.recipeMarketHub.address!,
-        minAmountOut,
+        { minAmountOut },
       );
+      txData = multiCallData.txData;
+
+      if (simulationLogConfig.isCalldataLogged) {
+        console.log('Simulation (setter calldata):\n', multiCallData.setterData, '\n');
+        console.log('Simulation (setter data):\n', multiCallData.setterInputData, '\n');
+      }
+
       break;
     }
     case ShortcutExecutionMode.WEIROLL_WALLET__EXECUTE_WEIROLL: {
@@ -166,10 +192,14 @@ async function simulateShortcutOnQuoter(
   const quote = (await simulateTransactionOnQuoter(request))[0];
   if (quote.status === 'Error') throw quote.error;
   const report: Report = {
+    weirollWallet: getAddress(roles.weirollWallet.address!),
+    minAmountOut: reportPre.minAmountOut,
+    minAmountOutHex: reportPre.minAmountOutHex,
     quote: {},
     dust: {},
     gas: quote.gas,
   };
+
   tokensOut.forEach((t) => {
     const index = quoteTokens.findIndex((q) => q === t);
     report.quote[t] = quote.amountOut[index];
@@ -178,8 +208,9 @@ async function simulateShortcutOnQuoter(
     const index = quoteTokens.findIndex((q) => q === t);
     report.dust[t] = quote.amountOut[index];
   });
-  if (isSimulationLogged) {
-    console.log('Simulation: ', report);
+
+  if (simulationLogConfig.isReportLogged) {
+    console.log('Simulation (Report):\n', report, '\n');
   }
 
   return report;
@@ -197,13 +228,13 @@ async function simulateShortcutOnForge(
   rpcUrl: string,
   blockNumber: number,
   roles: SimulationRoles,
+  shortcutExecutionMode: ShortcutExecutionMode,
   isRecursiveCall = false,
-  isSimulationLogged = true,
+  simulationLogConfig: SimulationLogConfig,
 ): Promise<Report> {
   const { commands, state } = script;
 
-  const shortcutExecutionMode = getShortcutExecutionMode(shortcut, chainId);
-
+  const reportPre: Partial<Report> = {};
   let txData: string;
   let forgeContract: string;
   let forgeContractABI: Record<string, unknown>[];
@@ -228,8 +259,9 @@ async function simulateShortcutOnForge(
           rpcUrl,
           blockNumber,
           roles,
+          shortcutExecutionMode,
           !isRecursiveCall,
-          false,
+          { ...simulationLogConfig, isReportLogged: false, isCalldataLogged: false },
         );
         const receiptTokenAddr = tokensOut[0]; // NB: Royco campaign shortcuts expect a single receipt token
         const amountOut = report.quote[receiptTokenAddr]; // NB: decoded events use lowercase
@@ -241,14 +273,24 @@ async function simulateShortcutOnForge(
       const weirollWallet = await getNextWeirollWalletFromRecipeMarketHub(provider, roles.recipeMarketHub.address!);
       roles.weirollWallet = { address: weirollWallet, label: 'WeirollWallet' };
       roles.callee = roles.multiCall;
-      txData = await generateMulticallTxData(
-        shortcut,
-        chainId,
+      reportPre.minAmountOut = minAmountOut.toString();
+      reportPre.minAmountOutHex = minAmountOut.toHexString();
+
+      const multiCallData = await generateMulticallTxData(
+        shortcut.setterInputs![chainId],
         commands,
         state,
+        roles.setter.address!,
         roles.recipeMarketHub.address!,
-        minAmountOut,
+        { minAmountOut },
       );
+      txData = multiCallData.txData;
+
+      if (simulationLogConfig.isCalldataLogged) {
+        console.log('Simulation (setter calldata):\n', multiCallData.setterData, '\n');
+        console.log('Simulation (setter data):\n', multiCallData.setterInputData, '\n');
+      }
+
       forgeContract = 'Simulation_Fork_Test';
       forgeTest = 'test_simulateShortcut_1';
       forgeTestRelativePath = 'test/foundry/fork/Simulation_Fork_Test.t.sol';
@@ -334,12 +376,18 @@ async function simulateShortcutOnForge(
     rpcUrl,
     blockNumber,
   );
-
+  // console.log('forgeTestLog:\n', JSON.stringify(forgeTestLog, null, 2), '\n');
   const testLog = forgeTestLog[`${forgeData.testRelativePath}:${forgeData.contract}`];
   const testResult = testLog.test_results[`${forgeData.test}()`];
 
-  if (isSimulationLogged) {
-    console.log('Simulation (Forge):\n', testResult.decoded_logs.join('\n'));
+  if (testResult.status === 'Failure') {
+    throw new Error(
+      `Forge simulation test failed. Uncomment '--json' and re-run this script to inspect the forge logs`,
+    );
+  }
+
+  if (simulationLogConfig.isReportLogged) {
+    console.log('Simulation (Forge):\n', testResult.decoded_logs.join('\n'), '\n');
   }
 
   // Decode logs to write report
@@ -367,6 +415,9 @@ async function simulateShortcutOnForge(
 
   // Instantiate Report
   const report = {
+    weirollWallet: getAddress(roles.weirollWallet.address!),
+    minAmountOut: reportPre.minAmountOut,
+    minAmountOutHex: reportPre.minAmountOutHex,
     quote: Object.fromEntries(
       quoteTokensOut.map((key: AddressArg, idx: number) => [key, quoteAmountsOut[idx].toString()]),
     ),
@@ -376,9 +427,10 @@ async function simulateShortcutOnForge(
     gas: gasUsed.toString(),
   };
 
-  if (isSimulationLogged) {
-    console.log('Simulation (Report):\n', JSON.stringify(report, null, 2));
+  if (simulationLogConfig.isReportLogged) {
+    console.log('Simulation (Report):\n', report, '\n');
   }
+
   return report;
 }
 
@@ -393,6 +445,10 @@ async function main() {
 
     const rpcUrl = getRpcUrlByChainId(chainId);
     const roles = getSimulationRolesByChainId(chainId);
+    const simulationLogConfig = {
+      isReportLogged: true,
+      isCalldataLogged: getIsCalldataLoggedFromArgs(args),
+    };
 
     const { script, metadata } = await shortcut.build(chainId);
 
@@ -404,11 +460,11 @@ async function main() {
     }
 
     // Validate slippage
-    // NB: currently only a single slippage is supported due to setter logic interacting with `setSingleValue`
-    // and Royco campaign shortcuts expecting a single receipt token
+    // NB: currently only a single slippage is supported due Royco campaign shortcuts expecting a single receipt token
+    const shortcutExecutionMode = getShortcutExecutionMode(shortcut, chainId);
     let slippage = DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE;
     let isRecursiveCall = false;
-    if (shortcut.inputs[chainId].setter) {
+    if ([ShortcutExecutionMode.MULTICALL__AGGREGATE].includes(shortcutExecutionMode)) {
       slippage = getSlippageFromArgs(args);
       isRecursiveCall = !slippage.eq(DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE);
     }
@@ -428,7 +484,9 @@ async function main() {
           rpcUrl,
           blockNumber,
           roles,
+          shortcutExecutionMode,
           isRecursiveCall,
+          simulationLogConfig,
         );
         break;
       }
@@ -443,7 +501,9 @@ async function main() {
           slippage,
           rpcUrl,
           roles,
+          shortcutExecutionMode,
           isRecursiveCall,
+          simulationLogConfig,
         );
         break;
       }

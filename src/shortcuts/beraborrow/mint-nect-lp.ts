@@ -5,7 +5,7 @@ import { AddressArg, ChainIds, FromContractCallArg, WeirollScript } from '@ensof
 import { Standards, getStandardByProtocol } from '@ensofinance/shortcuts-standards';
 import { div } from '@ensofinance/shortcuts-standards/helpers/math';
 
-import { chainIdToDeFiAddresses, chainIdToSimulationRoles, chainIdToTokenHolder } from '../../constants';
+import { chainIdToDeFiAddresses, chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
 import { balanceOf, depositKodiak, mintHoney, redeemHoney } from '../../utils';
 
@@ -22,15 +22,17 @@ export class BeraborrowMintNectLpShortcut implements Shortcut {
       island: Standards.Kodiak_Islands.protocol.addresses!.cartio!.nectUsdcIsland, // KODI-HONEY-NECT
       primary: chainIdToDeFiAddresses[ChainIds.Cartio].kodiakRouter,
       quoterV2: chainIdToDeFiAddresses[ChainIds.Cartio].kodiakQuoterV2,
-      setter: chainIdToSimulationRoles.get(ChainIds.Cartio)!.setter.address!, // having setter in inputs lets simulator know to set a min amount value
     },
+  };
+  setterInputs: Record<number, Set<string>> = {
+    [ChainIds.Cartio]: new Set(['minAmountOut']),
   };
 
   async build(chainId: number): Promise<Output> {
     const client = new RoycoClient();
 
     const inputs = this.inputs[chainId];
-    const { honey, nect, usdc, usdcPsmBond, island, primary, setter } = inputs;
+    const { honey, nect, usdc, usdcPsmBond, island, primary } = inputs;
 
     const builder = new Builder(chainId, client, {
       tokensIn: [usdc],
@@ -55,7 +57,7 @@ export class BeraborrowMintNectLpShortcut implements Shortcut {
       [mintedAmountNect as FromContractCallArg, mintedAmountHoney],
       island,
       primary,
-      setter,
+      this.setterInputs[chainId],
       false,
     );
 
