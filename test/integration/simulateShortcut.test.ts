@@ -6,6 +6,8 @@ const MOCKED_PATH_TO_NODE = '/path/to/node';
 const MOCKED_PATH_TO_SCRIPT = '/path/to/script';
 
 describe('Successfully simulates cArtio shortcuts for', () => {
+  const DEFAULT_ARGS = [MOCKED_PATH_TO_NODE, MOCKED_PATH_TO_SCRIPT, 'cartio'];
+
   beforeAll(() => {
     // Disable console methods during tests
     console.log = vi.fn();
@@ -16,20 +18,10 @@ describe('Successfully simulates cArtio shortcuts for', () => {
   describe('abracadabra', () => {
     it('mim-honey', async () => {
       // Arrange
-      const args = [
-        MOCKED_PATH_TO_NODE,
-        MOCKED_PATH_TO_SCRIPT,
-        'cartio',
-        'abracadabra',
-        'honey-mim',
-        '10000000,100000000',
-        '--mode=forge',
-        '--block=3443800',
-      ];
-      process.argv = args;
+      const args = ['abracadabra', 'honey-mim', '10000000,100000000', '--mode=forge', '--block=3443800'];
 
       // Act
-      const report = await main_(args);
+      const report = await main_([...DEFAULT_ARGS, ...args]);
 
       // Assert
       expect(report).toMatchObject({
@@ -49,9 +41,6 @@ describe('Successfully simulates cArtio shortcuts for', () => {
     it('mim-honey (with slippage)', async () => {
       // Arrange
       const args = [
-        MOCKED_PATH_TO_NODE,
-        MOCKED_PATH_TO_SCRIPT,
-        'cartio',
         'abracadabra',
         'honey-mim',
         '10000000,100000000',
@@ -59,10 +48,9 @@ describe('Successfully simulates cArtio shortcuts for', () => {
         '--slippage=3',
         '--block=3443800',
       ];
-      process.argv = args;
 
       // Act
-      const report = await main_(args);
+      const report = await main_([...DEFAULT_ARGS, ...args]);
 
       // Assert
       expect(report).toMatchObject({
@@ -87,20 +75,10 @@ describe('Successfully simulates cArtio shortcuts for', () => {
 
     it('sbtc', async () => {
       // Arrange
-      const args = [
-        MOCKED_PATH_TO_NODE,
-        MOCKED_PATH_TO_SCRIPT,
-        'cartio',
-        'beraborrow',
-        'sbtc',
-        '10000000',
-        '--mode=forge',
-        '--block=3444841',
-      ];
-      process.argv = args;
+      const args = ['beraborrow', 'sbtc', '10000000', '--mode=forge', '--block=3444841'];
 
       // Act
-      const report = await main_(args);
+      const report = await main_([...DEFAULT_ARGS, ...args]);
 
       // Assert
       expect(report).toMatchObject({
@@ -115,20 +93,10 @@ describe('Successfully simulates cArtio shortcuts for', () => {
 
     it('weth', async () => {
       // Arrange
-      const args = [
-        MOCKED_PATH_TO_NODE,
-        MOCKED_PATH_TO_SCRIPT,
-        'cartio',
-        'beraborrow',
-        'weth',
-        '100000000000',
-        '--mode=forge',
-        '--block=3444966',
-      ];
-      process.argv = args;
+      const args = ['beraborrow', 'weth', '100000000000', '--mode=forge', '--block=3444966'];
 
       // Act
-      const report = await main_(args);
+      const report = await main_([...DEFAULT_ARGS, ...args]);
 
       // Assert
       expect(report).toMatchObject({
@@ -145,20 +113,10 @@ describe('Successfully simulates cArtio shortcuts for', () => {
   describe('burrbear', () => {
     it('usdc', async () => {
       // Arrange
-      const args = [
-        MOCKED_PATH_TO_NODE,
-        MOCKED_PATH_TO_SCRIPT,
-        'cartio',
-        'burrbear',
-        'usdc',
-        '100000000',
-        '--mode=forge',
-        '--block=3445254',
-      ];
-      process.argv = args;
+      const args = ['burrbear', 'usdc', '100000000', '--mode=forge', '--block=3445254'];
 
       // Act
-      const report = await main_(args);
+      const report = await main_([...DEFAULT_ARGS, ...args]);
 
       // Assert
       expect(report).toMatchObject({
@@ -177,20 +135,10 @@ describe('Successfully simulates cArtio shortcuts for', () => {
   describe('concrete', () => {
     it('usdc', async () => {
       // Arrange
-      const args = [
-        MOCKED_PATH_TO_NODE,
-        MOCKED_PATH_TO_SCRIPT,
-        'cartio',
-        'concrete',
-        'usdc',
-        '100000000',
-        '--mode=forge',
-        '--block=3445321',
-      ];
-      process.argv = args;
+      const args = ['concrete', 'usdc', '100000000', '--mode=forge', '--block=3445321'];
 
       // Act
-      const report = await main_(args);
+      const report = await main_([...DEFAULT_ARGS, ...args]);
 
       // Assert
       expect(report).toMatchObject({
@@ -207,20 +155,10 @@ describe('Successfully simulates cArtio shortcuts for', () => {
 
     it('wbtc', async () => {
       // Arrange
-      const args = [
-        MOCKED_PATH_TO_NODE,
-        MOCKED_PATH_TO_SCRIPT,
-        'cartio',
-        'concrete',
-        'wbtc',
-        '100000000',
-        '--mode=forge',
-        '--block=3445478',
-      ];
-      process.argv = args;
+      const args = ['concrete', 'wbtc', '100000000', '--mode=forge', '--block=3445478'];
 
       // Act
-      const report = await main_(args);
+      const report = await main_([...DEFAULT_ARGS, ...args]);
 
       // Assert
       expect(report).toMatchObject({
@@ -237,20 +175,10 @@ describe('Successfully simulates cArtio shortcuts for', () => {
 
     it('weth', async () => {
       // Arrange
-      const args = [
-        MOCKED_PATH_TO_NODE,
-        MOCKED_PATH_TO_SCRIPT,
-        'cartio',
-        'concrete',
-        'weth',
-        '100000000',
-        '--mode=forge',
-        '--block=3445524',
-      ];
-      process.argv = args;
+      const args = ['concrete', 'weth', '100000000', '--mode=forge', '--block=3445524'];
 
       // Act
-      const report = await main_(args);
+      const report = await main_([...DEFAULT_ARGS, ...args]);
 
       // Assert
       expect(report).toMatchObject({
@@ -269,20 +197,10 @@ describe('Successfully simulates cArtio shortcuts for', () => {
   describe('d2', () => {
     it('usdc', async () => {
       // Arrange
-      const args = [
-        MOCKED_PATH_TO_NODE,
-        MOCKED_PATH_TO_SCRIPT,
-        'cartio',
-        'd2',
-        'usdc',
-        '100000000',
-        '--mode=forge',
-        '--block=3445662',
-      ];
-      process.argv = args;
+      const args = ['d2', 'usdc', '100000000', '--mode=forge', '--block=3445662'];
 
       // Act
-      const report = await main_(args);
+      const report = await main_([...DEFAULT_ARGS, ...args]);
 
       // Assert
       expect(report).toMatchObject({
@@ -299,20 +217,10 @@ describe('Successfully simulates cArtio shortcuts for', () => {
   describe('dahlia', () => {
     it('usdc', async () => {
       // Arrange
-      const args = [
-        MOCKED_PATH_TO_NODE,
-        MOCKED_PATH_TO_SCRIPT,
-        'cartio',
-        'dahlia',
-        'usdc',
-        '100000000',
-        '--mode=forge',
-        '--block=3445762',
-      ];
-      process.argv = args;
+      const args = ['dahlia', 'usdc', '100000000', '--mode=forge', '--block=3445762'];
 
       // Act
-      const report = await main_(args);
+      const report = await main_([...DEFAULT_ARGS, ...args]);
 
       // Assert
       expect(report).toMatchObject({
@@ -327,20 +235,10 @@ describe('Successfully simulates cArtio shortcuts for', () => {
 
     it('weth', async () => {
       // Arrange
-      const args = [
-        MOCKED_PATH_TO_NODE,
-        MOCKED_PATH_TO_SCRIPT,
-        'cartio',
-        'dahlia',
-        'weth',
-        '100000000000000',
-        '--mode=forge',
-        '--block=3445824',
-      ];
-      process.argv = args;
+      const args = ['dahlia', 'weth', '100000000000000', '--mode=forge', '--block=3445824'];
 
       // Act
-      const report = await main_(args);
+      const report = await main_([...DEFAULT_ARGS, ...args]);
 
       // Assert
       expect(report).toMatchObject({
@@ -359,20 +257,10 @@ describe('Successfully simulates cArtio shortcuts for', () => {
   describe('dolomite', () => {
     it('deth', async () => {
       // Arrange
-      const args = [
-        MOCKED_PATH_TO_NODE,
-        MOCKED_PATH_TO_SCRIPT,
-        'cartio',
-        'dolomite',
-        'deth',
-        '100000000000000',
-        '--mode=forge',
-        '--block=3490796',
-      ];
-      process.argv = args;
+      const args = ['dolomite', 'deth', '100000000000000', '--mode=forge', '--block=3490796'];
 
       // Act
-      const report = await main_(args);
+      const report = await main_([...DEFAULT_ARGS, ...args]);
 
       // Assert
       expect(report).toMatchObject({
@@ -387,20 +275,10 @@ describe('Successfully simulates cArtio shortcuts for', () => {
 
     it('dhoney', async () => {
       // Arrange
-      const args = [
-        MOCKED_PATH_TO_NODE,
-        MOCKED_PATH_TO_SCRIPT,
-        'cartio',
-        'dolomite',
-        'dhoney',
-        '100000000000000',
-        '--mode=forge',
-        '--block=3490928',
-      ];
-      process.argv = args;
+      const args = ['dolomite', 'dhoney', '100000000000000', '--mode=forge', '--block=3490928'];
 
       // Act
-      const report = await main_(args);
+      const report = await main_([...DEFAULT_ARGS, ...args]);
 
       // Assert
       expect(report).toMatchObject({
@@ -420,20 +298,10 @@ describe('Successfully simulates cArtio shortcuts for', () => {
 
     it('dusdc', async () => {
       // Arrange
-      const args = [
-        MOCKED_PATH_TO_NODE,
-        MOCKED_PATH_TO_SCRIPT,
-        'cartio',
-        'dolomite',
-        'dusdc',
-        '100000000000000',
-        '--mode=forge',
-        '--block=3490975',
-      ];
-      process.argv = args;
+      const args = ['dolomite', 'dusdc', '100000000000000', '--mode=forge', '--block=3490975'];
 
       // Act
-      const report = await main_(args);
+      const report = await main_([...DEFAULT_ARGS, ...args]);
 
       // Assert
       expect(report).toMatchObject({
@@ -448,20 +316,10 @@ describe('Successfully simulates cArtio shortcuts for', () => {
 
     it('dusdt', async () => {
       // Arrange
-      const args = [
-        MOCKED_PATH_TO_NODE,
-        MOCKED_PATH_TO_SCRIPT,
-        'cartio',
-        'dolomite',
-        'dusdt',
-        '100000000000000',
-        '--mode=forge',
-        '--block=3491008',
-      ];
-      process.argv = args;
+      const args = ['dolomite', 'dusdt', '100000000000000', '--mode=forge', '--block=3491008'];
 
       // Act
-      const report = await main_(args);
+      const report = await main_([...DEFAULT_ARGS, ...args]);
 
       // Assert
       expect(report).toMatchObject({
@@ -476,20 +334,10 @@ describe('Successfully simulates cArtio shortcuts for', () => {
 
     it('dwbtc', async () => {
       // Arrange
-      const args = [
-        MOCKED_PATH_TO_NODE,
-        MOCKED_PATH_TO_SCRIPT,
-        'cartio',
-        'dolomite',
-        'dwbtc',
-        '100000000000000',
-        '--mode=forge',
-        '--block=3491079',
-      ];
-      process.argv = args;
+      const args = ['dolomite', 'dwbtc', '100000000000000', '--mode=forge', '--block=3491079'];
 
       // Act
-      const report = await main_(args);
+      const report = await main_([...DEFAULT_ARGS, ...args]);
 
       // Assert
       expect(report).toMatchObject({
@@ -520,20 +368,10 @@ describe('Successfully simulates cArtio shortcuts for', () => {
   describe('infrared', () => {
     it('weth-wbtc', async () => {
       // Arrange
-      const args = [
-        MOCKED_PATH_TO_NODE,
-        MOCKED_PATH_TO_SCRIPT,
-        'cartio',
-        'infrared',
-        'weth-wbtc',
-        '1000000000,100000',
-        '--mode=forge',
-        '--block=3491563',
-      ];
-      process.argv = args;
+      const args = ['infrared', 'weth-wbtc', '1000000000,100000', '--mode=forge', '--block=3491563'];
 
       // Act
-      const report = await main_(args);
+      const report = await main_([...DEFAULT_ARGS, ...args]);
 
       // Assert
       expect(report).toMatchObject({
@@ -554,20 +392,10 @@ describe('Successfully simulates cArtio shortcuts for', () => {
   describe('kodiak', () => {
     it('honey-usdc', async () => {
       // Arrange
-      const args = [
-        MOCKED_PATH_TO_NODE,
-        MOCKED_PATH_TO_SCRIPT,
-        'cartio',
-        'kodiak',
-        'honey-usdc',
-        '100000000',
-        '--mode=forge',
-        '--block=3491718',
-      ];
-      process.argv = args;
+      const args = ['kodiak', 'honey-usdc', '100000000', '--mode=forge', '--block=3491718'];
 
       // Act
-      const report = await main_(args);
+      const report = await main_([...DEFAULT_ARGS, ...args]);
 
       // Assert
       expect(report).toMatchObject({
@@ -585,21 +413,10 @@ describe('Successfully simulates cArtio shortcuts for', () => {
 
     it('honey-usdc (with slippage)', async () => {
       // Arrange
-      const args = [
-        MOCKED_PATH_TO_NODE,
-        MOCKED_PATH_TO_SCRIPT,
-        'cartio',
-        'kodiak',
-        'honey-usdc',
-        '100000000',
-        '--mode=forge',
-        '--slippage=3',
-        '--block=3491718',
-      ];
-      process.argv = args;
+      const args = ['kodiak', 'honey-usdc', '100000000', '--mode=forge', '--slippage=3', '--block=3491718'];
 
       // Act
-      const report = await main_(args);
+      const report = await main_([...DEFAULT_ARGS, ...args]);
 
       // Assert
       expect(report).toMatchObject({
@@ -617,20 +434,10 @@ describe('Successfully simulates cArtio shortcuts for', () => {
 
     it('honey-weth', async () => {
       // Arrange
-      const args = [
-        MOCKED_PATH_TO_NODE,
-        MOCKED_PATH_TO_SCRIPT,
-        'cartio',
-        'kodiak',
-        'honey-weth',
-        '100000000,1000000',
-        '--mode=forge',
-        '--block=3491974',
-      ];
-      process.argv = args;
+      const args = ['kodiak', 'honey-weth', '100000000,1000000', '--mode=forge', '--block=3491974'];
 
       // Act
-      const report = await main_(args);
+      const report = await main_([...DEFAULT_ARGS, ...args]);
 
       // Assert
       expect(report).toMatchObject({
@@ -649,21 +456,10 @@ describe('Successfully simulates cArtio shortcuts for', () => {
 
     it('honey-weth (with slippage)', async () => {
       // Arrange
-      const args = [
-        MOCKED_PATH_TO_NODE,
-        MOCKED_PATH_TO_SCRIPT,
-        'cartio',
-        'kodiak',
-        'honey-weth',
-        '100000000,1000000',
-        '--mode=forge',
-        '--slippage=3',
-        '--block=3491974',
-      ];
-      process.argv = args;
+      const args = ['kodiak', 'honey-weth', '100000000,1000000', '--mode=forge', '--slippage=3', '--block=3491974'];
 
       // Act
-      const report = await main_(args);
+      const report = await main_([...DEFAULT_ARGS, ...args]);
 
       // Assert
       expect(report).toMatchObject({
@@ -682,20 +478,10 @@ describe('Successfully simulates cArtio shortcuts for', () => {
 
     it('weth-wbtc', async () => {
       // Arrange
-      const args = [
-        MOCKED_PATH_TO_NODE,
-        MOCKED_PATH_TO_SCRIPT,
-        'cartio',
-        'kodiak',
-        'weth-wbtc',
-        '1000000000,100000',
-        '--mode=forge',
-        '--block=3492136',
-      ];
-      process.argv = args;
+      const args = ['kodiak', 'weth-wbtc', '1000000000,100000', '--mode=forge', '--block=3492136'];
 
       // Act
-      const report = await main_(args);
+      const report = await main_([...DEFAULT_ARGS, ...args]);
 
       // Assert
       expect(report).toMatchObject({
@@ -713,21 +499,10 @@ describe('Successfully simulates cArtio shortcuts for', () => {
 
     it('weth-wbtc (with slippage)', async () => {
       // Arrange
-      const args = [
-        MOCKED_PATH_TO_NODE,
-        MOCKED_PATH_TO_SCRIPT,
-        'cartio',
-        'kodiak',
-        'weth-wbtc',
-        '1000000000,100000',
-        '--mode=forge',
-        '--slippage=3',
-        '--block=3492136',
-      ];
-      process.argv = args;
+      const args = ['kodiak', 'weth-wbtc', '1000000000,100000', '--mode=forge', '--slippage=3', '--block=3492136'];
 
       // Act
-      const report = await main_(args);
+      const report = await main_([...DEFAULT_ARGS, ...args]);
 
       // Assert
       expect(report).toMatchObject({
@@ -747,20 +522,10 @@ describe('Successfully simulates cArtio shortcuts for', () => {
   describe('moby', () => {
     it('spv-usdc', async () => {
       // Arrange
-      const args = [
-        MOCKED_PATH_TO_NODE,
-        MOCKED_PATH_TO_SCRIPT,
-        'cartio',
-        'moby',
-        'spv-usdc',
-        '100000000000000',
-        '--mode=forge',
-        '--block=3492354',
-      ];
-      process.argv = args;
+      const args = ['moby', 'spv-usdc', '100000000000000', '--mode=forge', '--block=3492354'];
 
       // Act
-      const report = await main_(args);
+      const report = await main_([...DEFAULT_ARGS, ...args]);
 
       // Assert
       expect(report).toMatchObject({
@@ -781,20 +546,10 @@ describe('Successfully simulates cArtio shortcuts for', () => {
 
     it('wolp-honey', async () => {
       // Arrange
-      const args = [
-        MOCKED_PATH_TO_NODE,
-        MOCKED_PATH_TO_SCRIPT,
-        'cartio',
-        'moby',
-        'wolp-honey',
-        '100000000000000',
-        '--mode=forge',
-        '--block=3492413',
-      ];
-      process.argv = args;
+      const args = ['moby', 'wolp-honey', '100000000000000', '--mode=forge', '--block=3492413'];
 
       // Act
-      const report = await main_(args);
+      const report = await main_([...DEFAULT_ARGS, ...args]);
 
       // Assert
       expect(report).toMatchObject({
@@ -809,20 +564,10 @@ describe('Successfully simulates cArtio shortcuts for', () => {
 
     it('wolp-usdc', async () => {
       // Arrange
-      const args = [
-        MOCKED_PATH_TO_NODE,
-        MOCKED_PATH_TO_SCRIPT,
-        'cartio',
-        'moby',
-        'wolp-usdc',
-        '1000000000',
-        '--mode=forge',
-        '--block=3492695',
-      ];
-      process.argv = args;
+      const args = ['moby', 'wolp-usdc', '1000000000', '--mode=forge', '--block=3492695'];
 
       // Act
-      const report = await main_(args);
+      const report = await main_([...DEFAULT_ARGS, ...args]);
 
       // Assert
       expect(report).toMatchObject({
@@ -839,20 +584,10 @@ describe('Successfully simulates cArtio shortcuts for', () => {
 
     it('wolp-wbtc', async () => {
       // Arrange
-      const args = [
-        MOCKED_PATH_TO_NODE,
-        MOCKED_PATH_TO_SCRIPT,
-        'cartio',
-        'moby',
-        'wolp-wbtc',
-        '1000000000',
-        '--mode=forge',
-        '--block=3492741',
-      ];
-      process.argv = args;
+      const args = ['moby', 'wolp-wbtc', '1000000000', '--mode=forge', '--block=3492741'];
 
       // Act
-      const report = await main_(args);
+      const report = await main_([...DEFAULT_ARGS, ...args]);
 
       // Assert
       expect(report).toMatchObject({
@@ -869,20 +604,10 @@ describe('Successfully simulates cArtio shortcuts for', () => {
 
     it('wolp-weth', async () => {
       // Arrange
-      const args = [
-        MOCKED_PATH_TO_NODE,
-        MOCKED_PATH_TO_SCRIPT,
-        'cartio',
-        'moby',
-        'wolp-weth',
-        '1000000000',
-        '--mode=forge',
-        '--block=3492793',
-      ];
-      process.argv = args;
+      const args = ['moby', 'wolp-weth', '1000000000', '--mode=forge', '--block=3492793'];
 
       // Act
-      const report = await main_(args);
+      const report = await main_([...DEFAULT_ARGS, ...args]);
 
       // Assert
       expect(report).toMatchObject({
@@ -899,20 +624,10 @@ describe('Successfully simulates cArtio shortcuts for', () => {
   describe('origami', () => {
     it('oboy-honey', async () => {
       // Arrange
-      const args = [
-        MOCKED_PATH_TO_NODE,
-        MOCKED_PATH_TO_SCRIPT,
-        'cartio',
-        'origami',
-        'oboy-honey',
-        '10000000',
-        '--mode=forge',
-        '--block=3492994',
-      ];
-      process.argv = args;
+      const args = ['origami', 'oboy-honey', '10000000', '--mode=forge', '--block=3492994'];
 
       // Act
-      const report = await main_(args);
+      const report = await main_([...DEFAULT_ARGS, ...args]);
 
       // Assert
       expect(report).toMatchObject({
@@ -931,20 +646,10 @@ describe('Successfully simulates cArtio shortcuts for', () => {
   describe('satlayer', () => {
     it('pumpbtc', async () => {
       // Arrange
-      const args = [
-        MOCKED_PATH_TO_NODE,
-        MOCKED_PATH_TO_SCRIPT,
-        'cartio',
-        'satlayer',
-        'pumpbtc',
-        '10000000',
-        '--mode=forge',
-        '--block=3493063',
-      ];
-      process.argv = args;
+      const args = ['satlayer', 'pumpbtc', '10000000', '--mode=forge', '--block=3493063'];
 
       // Act
-      const report = await main_(args);
+      const report = await main_([...DEFAULT_ARGS, ...args]);
 
       // Assert
       expect(report).toMatchObject({
@@ -961,20 +666,10 @@ describe('Successfully simulates cArtio shortcuts for', () => {
   describe('thj', () => {
     it('usdc', async () => {
       // Arrange
-      const args = [
-        MOCKED_PATH_TO_NODE,
-        MOCKED_PATH_TO_SCRIPT,
-        'cartio',
-        'thj',
-        'usdc',
-        '10000000',
-        '--mode=forge',
-        '--block=3493135',
-      ];
-      process.argv = args;
+      const args = ['thj', 'usdc', '10000000', '--mode=forge', '--block=3493135'];
 
       // Act
-      const report = await main_(args);
+      const report = await main_([...DEFAULT_ARGS, ...args]);
 
       // Assert
       expect(report).toMatchObject({
