@@ -15,9 +15,10 @@ const erc20Interface = new Interface(['function balanceOf(address) external view
 
 async function main() {
   try {
-    const { shortcut, chainId } = await getShortcut();
-
     const args: string[] = process.argv;
+
+    const { shortcut, chainId } = await getShortcut(args.slice(2));
+
     const privateKey = getPrivateKeyFromArgs(args);
     const wallet = getWalletFromArgs(args);
 

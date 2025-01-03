@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "generate": "pnpm ts-node scripts/getShortcut.ts",
+    "generate:all": "pnpm ts-node scripts/getAllShortcuts.ts",
     "lint:check": "eslint .",
     "lint:fix": "eslint . --fix",
     "prettier:check": "prettier --check \"**/*.{mjs,js,json,md,ts,yml}\"",

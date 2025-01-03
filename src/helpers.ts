@@ -5,6 +5,7 @@ import { Interface, defaultAbiCoder } from '@ethersproject/abi';
 import { BigNumber } from '@ethersproject/bignumber';
 import { keccak256 } from '@ethersproject/keccak256';
 import { StaticJsonRpcProvider } from '@ethersproject/providers';
+import crypto from 'crypto';
 import dotenv from 'dotenv';
 import { execSync } from 'node:child_process';
 
@@ -48,7 +49,7 @@ import type { Campaign, SimulationRoles } from './types';
 
 dotenv.config();
 
-const shortcuts: Record<string, Record<string, Shortcut>> = {
+export const shortcuts: Record<string, Record<string, Shortcut>> = {
   abracadabra: {
     'honey-mim': new AbracadabraMimHoneyhortcut(),
   },
@@ -111,9 +112,7 @@ const shortcuts: Record<string, Record<string, Shortcut>> = {
   },
 };
 
-export async function getShortcut() {
-  const args: string[] = process.argv.slice(2);
-
+export async function getShortcut(args: string[]) {
   if (args.length < 3) throw 'Error: Please pass chain, protocol, and market';
   const chain = args[0];
   const protocol = args[1];
@@ -381,4 +380,8 @@ export async function buildShortcutsHashMap(chainId: number): Promise<Record<str
     shortcutsHashMap[hashArray[i]] = shortcutsArray[i];
   }
   return shortcutsHashMap;
+}
+
+export function hashContent(content: crypto.BinaryLike): string {
+  return crypto.createHash('sha256').update(content).digest('hex');
 }

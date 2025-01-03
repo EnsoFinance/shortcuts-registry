@@ -30,7 +30,19 @@ pnpm registryup
 
 ## Generate
 
-Pass the chain name (e.g., cartio), the protocol (e.g., dolomite) and the market (e.g., dhoney)
+The generated outputs file path will be `shortcuts-registry/outputs/<protocol>/<market>.json`.
+
+### All Protocols & Markets
+
+Pass the chain name (e.g., cartio):
+
+```sh
+pnpm generate:all cartio
+```
+
+### Single Protocol & Market
+
+Pass the chain name (e.g., cartio), the protocol (e.g., dolomite) and the market (e.g., dhoney):
 
 ```sh
 pnpm generate cartio dolomite dhoney
@@ -63,9 +75,7 @@ Default output example:
 }
 ```
 
-The generated output will be saved to the `shortcuts-registry/outputs` directory.
-
-Optionally, get a full output by adding `--output=full`:
+Optionally, get a full output by adding `--output=full` (this output won't be saved as JSON):
 
 ```sh
 pnpm generate cartio dolomite dhoney --output=full

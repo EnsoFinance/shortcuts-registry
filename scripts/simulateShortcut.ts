@@ -435,7 +435,7 @@ async function simulateShortcutOnForge(
 }
 
 export async function main_(args: string[]): Promise<Report> {
-  const { shortcut, chainId } = await getShortcut();
+  const { shortcut, chainId } = await getShortcut(args.slice(2));
 
   const simulatonMode = getSimulationModeFromArgs(args);
   const blockNumber = getBlockNumberFromArgs(args);
