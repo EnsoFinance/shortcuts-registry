@@ -12,6 +12,7 @@
     "registryup": "pnpm install && forge soldeer update && forge remappings",
     "simulate": "pnpm ts-node scripts/simulateShortcut.ts",
     "execute": "pnpm ts-node scripts/executeShortcut.ts",
+    "verify": "pnpm ts-node scripts/verifyCampaign.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prepare": "husky"
   },
@@ -25,6 +26,7 @@
     "@ethersproject/address": "^5.7.0",
     "@ethersproject/bignumber": "^5.7.0",
     "@ethersproject/constants": "^5.7.0",
+    "@ethersproject/keccak256": "^5.7.0",
     "@ethersproject/providers": "^5.7.2",
     "@ethersproject/units": "^5.7.0",
     "@ethersproject/wallet": "^5.7.0",

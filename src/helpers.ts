@@ -1,7 +1,10 @@
 import { getChainName } from '@ensofinance/shortcuts-builder/helpers';
-import { ChainIds } from '@ensofinance/shortcuts-builder/types';
-import { Interface } from '@ethersproject/abi';
+import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
+import { isNullAddress } from '@ensofinance/shortcuts-standards/helpers';
+import { Interface, defaultAbiCoder } from '@ethersproject/abi';
 import { BigNumber } from '@ethersproject/bignumber';
+import { keccak256 } from '@ethersproject/keccak256';
+import { StaticJsonRpcProvider } from '@ethersproject/providers';
 import dotenv from 'dotenv';
 import { execSync } from 'node:child_process';
 
@@ -41,7 +44,7 @@ import { MobyWolpWethShortcut } from './shortcuts/moby/wolp-weth';
 import { OrigamiBoycoHoneyShortcut } from './shortcuts/origami/oboy-HONEY-a';
 import { SatlayerPumpBtcShortcut } from './shortcuts/satlayer/pumpbtc';
 import { ThjUsdcShortcut } from './shortcuts/thj/usdc';
-import type { SimulationRoles } from './types';
+import type { Campaign, SimulationRoles } from './types';
 
 dotenv.config();
 
@@ -133,7 +136,7 @@ export function getShortcutExecutionMode(shortcut: Shortcut, chainId: number): S
   return ShortcutExecutionMode.WEIROLL_WALLET__EXECUTE_WEIROLL;
 }
 
-function getChainId(chainName: string) {
+export function getChainId(chainName: string) {
   chainName = chainName.toLowerCase(); // ensure consistent
   const key = (chainName.charAt(0).toUpperCase() + chainName.slice(1)) as keyof typeof ChainIds;
   return ChainIds[key];
@@ -283,4 +286,99 @@ export function getEncodedData(commands: string[], state: string[]): string {
     'function executeWeiroll(bytes32[] calldata commands, bytes[] calldata state) external payable returns (bytes[] memory)',
   ]);
   return weirollWalletInterface.encodeFunctionData('executeWeiroll', [commands, state]);
+}
+
+export function buildVerificationHash(script: WeirollScript, receiptToken: AddressArg, inputTokens: AddressArg[]) {
+  // TODO: confirm token order for encoding hash
+  return keccak256(
+    defaultAbiCoder.encode(
+      ['address[]', 'address', 'tuple(bytes32[], bytes[])'],
+      [inputTokens, receiptToken, [script.commands, script.state]],
+    ),
+  );
+}
+
+export async function getCampaignVerificationHash(
+  provider: StaticJsonRpcProvider,
+  chainId: number,
+  marketHash: string,
+): Promise<string> {
+  const depositExecutorInterface = new Interface([
+    'function getCampaignVerificationHash(bytes32 marketHash) external view returns (bytes32 verificationHash)',
+  ]);
+  const roles = getSimulationRolesByChainId(chainId);
+  const data = await provider.call({
+    to: roles.depositExecutor.address,
+    data: depositExecutorInterface.encodeFunctionData('getCampaignVerificationHash', [marketHash]),
+  });
+  return depositExecutorInterface.decodeFunctionResult('getCampaignVerificationHash', data).verificationHash as string;
+}
+
+export async function getCampaign(
+  provider: StaticJsonRpcProvider,
+  chainId: number,
+  marketHash: string,
+): Promise<Campaign> {
+  const depositExecutorInterface = new Interface([
+    'function sourceMarketHashToDepositCampaign(bytes32 marketHash) external view returns (address owner, bool verified, uint8 numInputTokens, address receiptToken, uint256 unlockTimestamp, tuple(bytes32[] commands, bytes[] state) depositRecipe)',
+  ]);
+  const roles = getSimulationRolesByChainId(chainId);
+  const data = await provider.call({
+    to: roles.depositExecutor.address,
+    data: depositExecutorInterface.encodeFunctionData('sourceMarketHashToDepositCampaign', [marketHash]),
+  });
+  return depositExecutorInterface.decodeFunctionResult(
+    'sourceMarketHashToDepositCampaign',
+    data,
+  ) as unknown as Campaign;
+}
+
+export async function getWeirollWallets(
+  provider: StaticJsonRpcProvider,
+  chainId: number,
+  marketHash: string,
+): Promise<AddressArg[]> {
+  const depositExecutorInterface = new Interface([
+    'function getWeirollWalletByCcdmNonce(bytes32 marketHash, uint256 ccdmNonce) external view returns (address wallet)',
+  ]);
+  const roles = getSimulationRolesByChainId(chainId);
+
+  const wallets: AddressArg[] = [];
+  let foundLastWallet = false;
+  while (!foundLastWallet) {
+    const data = await provider.call({
+      to: roles.depositExecutor.address,
+      data: depositExecutorInterface.encodeFunctionData('getWeirollWalletByCcdmNonce', [
+        marketHash,
+        wallets.length + 1,
+      ]),
+    });
+    const { wallet } = depositExecutorInterface.decodeFunctionResult('getWeirollWalletByCcdmNonce', data);
+    if (!isNullAddress(wallet)) {
+      wallets.push(wallet as AddressArg);
+    } else {
+      foundLastWallet = true;
+    }
+  }
+  return wallets;
+}
+
+export async function buildShortcutsHashMap(chainId: number): Promise<Record<string, Shortcut>> {
+  const shortcutsArray = [];
+  for (const protocol in shortcuts) {
+    for (const market in shortcuts[protocol]) {
+      shortcutsArray.push(shortcuts[protocol][market]);
+    }
+  }
+  const hashArray = await Promise.all(
+    shortcutsArray.map(async (shortcut) => {
+      const { script, metadata } = await shortcut.build(chainId);
+      return buildVerificationHash(script, metadata.tokensOut![0], []);
+    }),
+  );
+  const shortcutsHashMap: Record<string, Shortcut> = {};
+  for (const i in shortcutsArray) {
+    shortcutsHashMap[hashArray[i]] = shortcutsArray[i];
+  }
+  return shortcutsHashMap;
 }
