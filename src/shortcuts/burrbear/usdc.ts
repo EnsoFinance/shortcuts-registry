@@ -9,14 +9,15 @@ import { chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
 import { balanceOf } from '../../utils';
 
-export class DahliaUsdcShortcut implements Shortcut {
+export class BurrbearUsdcShortcut implements Shortcut {
   name = 'usdc';
   description = '';
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
       usdc: TokenAddresses.cartio.usdc,
-      vault: '0x95B0de63dbbe5D92BD05B7c0C12A32673f490A42',
+      vault: '0x86b22E0236d4789a22EC5ca0356Fcc14E076D559', // Zap
+      bexLp: '0xFbb99BAD8eca0736A9ab2a7f566dEbC9acb607f0', //Honey-USDC-NECT
     },
   };
 
@@ -24,19 +25,22 @@ export class DahliaUsdcShortcut implements Shortcut {
     const client = new RoycoClient();
 
     const inputs = this.inputs[chainId];
-    const { usdc, vault } = inputs;
+    const { usdc, vault, bexLp } = inputs;
 
     const builder = new Builder(chainId, client, {
       tokensIn: [usdc],
-      tokensOut: [vault],
+      tokensOut: [bexLp],
     });
+
+    // Get the amount of token in wallet
     const amountIn = builder.add(balanceOf(usdc, walletAddress()));
 
-    const vaultVault = getStandardByProtocol('erc4626', chainId);
-    await vaultVault.deposit.addToBuilder(builder, {
-      tokenIn: [usdc],
-      tokenOut: vault,
-      amountIn: [amountIn],
+    //Mint
+    const burrbearZap = getStandardByProtocol('erc4626', chainId);
+    await burrbearZap.deposit.addToBuilder(builder, {
+      tokenIn: usdc,
+      tokenOut: bexLp,
+      amountIn,
       primaryAddress: vault,
     });
 
@@ -56,12 +60,14 @@ export class DahliaUsdcShortcut implements Shortcut {
       case ChainIds.Cartio:
         return new Map([
           [this.inputs[ChainIds.Cartio].usdc, { label: 'ERC20:USDC' }],
-          [this.inputs[ChainIds.Cartio].vault, { label: 'ERC20:Dahlia Vault' }],
+          [this.inputs[ChainIds.Cartio].vault, { label: 'ERC20:Burrbear ZAP' }],
+          [this.inputs[ChainIds.Cartio].bexLp, { label: 'ERC20:BEX LP HONEY-USDC-NECT' }],
         ]);
       default:
         throw new Error(`Unsupported chainId: ${chainId}`);
     }
   }
+
   getTokenHolder(chainId: number): Map<AddressArg, AddressArg> {
     const tokenToHolder = chainIdToTokenHolder.get(chainId);
     if (!tokenToHolder) throw new Error(`Unsupported 'chainId': ${chainId}`);

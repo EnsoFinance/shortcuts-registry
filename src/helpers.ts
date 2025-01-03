@@ -20,9 +20,9 @@ import {
 import { Shortcut } from '../src/types';
 import { AbracadabraMimHoneyhortcut } from './shortcuts/abracadabra/mim-honey';
 import { BeraborrowNectHoneyShortcut } from './shortcuts/beraborrow/nect-honey';
-import { BeraborrowSbtcVaultShortcut } from './shortcuts/beraborrow/sbtc';
-import { BeraborrowWethVaultShortcut } from './shortcuts/beraborrow/weth';
-import { BurrbearUsdcVaultShortcut } from './shortcuts/burrbear/usdc-vault';
+import { BeraborrowSbtcShortcut } from './shortcuts/beraborrow/sbtc';
+import { BeraborrowWethShortcut } from './shortcuts/beraborrow/weth';
+import { BurrbearUsdcShortcut } from './shortcuts/burrbear/usdc';
 import { ConcreteUsdcShortcut } from './shortcuts/concrete/usdc';
 import { ConcreteWethShortcut } from './shortcuts/concrete/weth';
 import { D2UsdcShortcut } from './shortcuts/d2/usdc';
@@ -55,16 +55,16 @@ export const shortcuts: Record<string, Record<string, Shortcut>> = {
   },
   beraborrow: {
     'nect-honey': new BeraborrowNectHoneyShortcut(),
-    'sbtc-vault': new BeraborrowSbtcVaultShortcut(),
-    'weth-vault': new BeraborrowWethVaultShortcut(),
+    sbtc: new BeraborrowSbtcShortcut(),
+    weth: new BeraborrowWethShortcut(),
   },
   burrbear: {
-    'usdc-vault': new BurrbearUsdcVaultShortcut(),
+    usdc: new BurrbearUsdcShortcut(),
   },
   concrete: {
-    'usdc-vault': new ConcreteUsdcShortcut(),
-    'weth-vault': new ConcreteWethShortcut(),
-    'wbtc-vault': new ConcreteWethShortcut(),
+    usdc: new ConcreteUsdcShortcut(),
+    weth: new ConcreteWethShortcut(),
+    wbtc: new ConcreteWethShortcut(),
   },
   dahlia: {
     usdc: new DahliaUsdcShortcut(),
@@ -82,7 +82,7 @@ export const shortcuts: Record<string, Record<string, Shortcut>> = {
     usdc: new D2UsdcShortcut(),
   },
   // TODO: uncomment out and move import up once Goldilocks is ready
-  // import { GoldilocksEbtcShortcut } from './shortcuts/goldilocks/ebtc-vault';
+  // import { GoldilocksEbtcShortcut } from './shortcuts/goldilocks/ebtc';
   // goldilocks: {
   //   ebtc: new GoldilocksEbtcShortcut(),
   // },
@@ -108,7 +108,7 @@ export const shortcuts: Record<string, Record<string, Shortcut>> = {
     'weth-wbtc': new InfraredWethWbtcShortcut(),
   },
   thj: {
-    'usdc-vault': new ThjUsdcShortcut(),
+    usdc: new ThjUsdcShortcut(),
   },
 };
 

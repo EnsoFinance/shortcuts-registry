@@ -10,7 +10,7 @@ import type { AddressData, Input, Output, Shortcut } from '../../types';
 import { balanceOf } from '../../utils';
 
 export class ConcretewbtcShortcut implements Shortcut {
-  name = 'wbtc-vault';
+  name = 'wbtc';
   description = '';
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {

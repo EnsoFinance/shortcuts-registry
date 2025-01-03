@@ -8,6 +8,7 @@ import { buildRoycoMarketShortcut } from '../src/utils';
 
 export async function main_(args: string[]) {
   try {
+    const chain = args[0];
     const protocol = args[1];
     const market = args[2];
 
@@ -32,7 +33,7 @@ export async function main_(args: string[]) {
 
     // Save output to file in ROYCO format
     const outputHash = hashContent(JSON.stringify(output, null, 2));
-    const outputDir = path.join(__dirname, '../outputs', protocol);
+    const outputDir = path.join(__dirname, `../outputs/${chain}`, protocol);
     const outputFile = path.join(outputDir, `${market}.json`);
 
     if (fs.existsSync(outputFile)) {

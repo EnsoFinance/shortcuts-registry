@@ -5,7 +5,7 @@ import { main_ } from '../../scripts/simulateShortcut';
 const MOCKED_PATH_TO_NODE = '/path/to/node';
 const MOCKED_PATH_TO_SCRIPT = '/path/to/script';
 
-describe('Successfully simulates shortcuts for', () => {
+describe('Successfully simulates cArtio shortcuts for', () => {
   beforeAll(() => {
     // Disable console methods during tests
     console.log = vi.fn();
@@ -85,14 +85,14 @@ describe('Successfully simulates shortcuts for', () => {
 
     it.skip('nect-honey (with slippage)', async () => {});
 
-    it('sbtc-vault', async () => {
+    it('sbtc', async () => {
       // Arrange
       const args = [
         MOCKED_PATH_TO_NODE,
         MOCKED_PATH_TO_SCRIPT,
         'cartio',
         'beraborrow',
-        'sbtc-vault',
+        'sbtc',
         '10000000',
         '--mode=forge',
         '--block=3444841',
@@ -113,14 +113,14 @@ describe('Successfully simulates shortcuts for', () => {
       });
     });
 
-    it('weth-vault', async () => {
+    it('weth', async () => {
       // Arrange
       const args = [
         MOCKED_PATH_TO_NODE,
         MOCKED_PATH_TO_SCRIPT,
         'cartio',
         'beraborrow',
-        'weth-vault',
+        'weth',
         '100000000000',
         '--mode=forge',
         '--block=3444966',
@@ -143,14 +143,14 @@ describe('Successfully simulates shortcuts for', () => {
   });
 
   describe('burrbear', () => {
-    it('usdc-vault', async () => {
+    it('usdc', async () => {
       // Arrange
       const args = [
         MOCKED_PATH_TO_NODE,
         MOCKED_PATH_TO_SCRIPT,
         'cartio',
         'burrbear',
-        'usdc-vault',
+        'usdc',
         '100000000',
         '--mode=forge',
         '--block=3445254',
@@ -175,14 +175,14 @@ describe('Successfully simulates shortcuts for', () => {
   });
 
   describe('concrete', () => {
-    it('usdc-vault', async () => {
+    it('usdc', async () => {
       // Arrange
       const args = [
         MOCKED_PATH_TO_NODE,
         MOCKED_PATH_TO_SCRIPT,
         'cartio',
         'concrete',
-        'usdc-vault',
+        'usdc',
         '100000000',
         '--mode=forge',
         '--block=3445321',
@@ -205,14 +205,14 @@ describe('Successfully simulates shortcuts for', () => {
       });
     });
 
-    it('wbtc-vault', async () => {
+    it('wbtc', async () => {
       // Arrange
       const args = [
         MOCKED_PATH_TO_NODE,
         MOCKED_PATH_TO_SCRIPT,
         'cartio',
         'concrete',
-        'wbtc-vault',
+        'wbtc',
         '100000000',
         '--mode=forge',
         '--block=3445478',
@@ -235,14 +235,14 @@ describe('Successfully simulates shortcuts for', () => {
       });
     });
 
-    it('weth-vault', async () => {
+    it('weth', async () => {
       // Arrange
       const args = [
         MOCKED_PATH_TO_NODE,
         MOCKED_PATH_TO_SCRIPT,
         'cartio',
         'concrete',
-        'weth-vault',
+        'weth',
         '100000000',
         '--mode=forge',
         '--block=3445524',
@@ -959,14 +959,14 @@ describe('Successfully simulates shortcuts for', () => {
   });
 
   describe('thj', () => {
-    it('usdc-vault', async () => {
+    it('usdc', async () => {
       // Arrange
       const args = [
         MOCKED_PATH_TO_NODE,
         MOCKED_PATH_TO_SCRIPT,
         'cartio',
         'thj',
-        'usdc-vault',
+        'usdc',
         '10000000',
         '--mode=forge',
         '--block=3493135',

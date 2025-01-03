@@ -30,7 +30,7 @@ pnpm registryup
 
 ## Generate
 
-The generated outputs file path will be `shortcuts-registry/outputs/<protocol>/<market>.json`.
+The generated outputs file path will be `shortcuts-registry/outputs/<chain>/<protocol>/<market>.json`.
 
 ### All Protocols & Markets
 
