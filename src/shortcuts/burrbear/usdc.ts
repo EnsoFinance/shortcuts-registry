@@ -9,8 +9,8 @@ import { chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
 import { balanceOf } from '../../utils';
 
-export class BurrbearUsdcVaultShortcut implements Shortcut {
-  name = 'burrbear-usdc-vault';
+export class BurrbearUsdcShortcut implements Shortcut {
+  name = 'usdc';
   description = '';
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {

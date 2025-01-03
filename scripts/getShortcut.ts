@@ -2,14 +2,18 @@ import fs from 'fs';
 import path from 'path';
 
 import { ShortcutOutputFormat } from '../src/constants';
-import { getShortcut, getShortcutOutputFormatFromArgs } from '../src/helpers';
+import { getShortcut, getShortcutOutputFormatFromArgs, hashContent } from '../src/helpers';
 import { Output, RoycoOutput } from '../src/types';
 import { buildRoycoMarketShortcut } from '../src/utils';
 
-async function main() {
+export async function main_(args: string[]) {
   try {
-    const { shortcut, chainId } = await getShortcut();
-    const outputFmt = getShortcutOutputFormatFromArgs(process.argv);
+    const chain = args[0];
+    const protocol = args[1];
+    const market = args[2];
+
+    const { shortcut, chainId } = await getShortcut(args);
+    const outputFmt = getShortcutOutputFormatFromArgs(args);
     let output: RoycoOutput | Output;
 
     switch (outputFmt) {
@@ -23,21 +27,33 @@ async function main() {
         throw new Error(`Unsupported '--output=' format: ${outputFmt}`);
     }
 
-    console.log(output);
+    console.log(output, '\n');
 
-    const market = process.argv[4];
-    const protocol = process.argv[3];
+    if ([ShortcutOutputFormat.FULL].includes(outputFmt)) return;
 
-    const outputDir = path.join(__dirname, '../outputs', protocol);
+    // Save output to file in ROYCO format
+    const outputHash = hashContent(JSON.stringify(output, null, 2));
+    const outputDir = path.join(__dirname, `../outputs/${chain}`, protocol);
     const outputFile = path.join(outputDir, `${market}.json`);
 
+    if (fs.existsSync(outputFile)) {
+      const existingOutput = fs.readFileSync(outputFile, 'utf-8');
+      const existingHash = hashContent(existingOutput);
+      if (existingHash === outputHash) {
+        console.log(`Output file '${outputFile}' already exists and is up-to-date`);
+        return;
+      }
+    }
     fs.mkdirSync(outputDir, { recursive: true });
-
     fs.writeFileSync(outputFile, JSON.stringify(output, null, 2), 'utf-8');
-    console.log(`Output saved to ${outputFile}`);
+    console.log(`Output saved to '${outputFile}'`);
   } catch (e) {
     console.error(e);
   }
+}
+
+async function main() {
+  await main_(process.argv.slice(2));
 }
 
 main();

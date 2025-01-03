@@ -9,12 +9,15 @@
     "0x70a082310107ffffffffff00015fd589f4f1a33ce4487e12714e1b15129c9329",
     "0x095ea7b3010100ffffffffff015fd589f4f1a33ce4487e12714e1b15129c9329",
     "0x328ebaf70102000703ffff00a81f0019d442f19f66880bcf2698b4e5d5ec249a",
+    "0x0ff4c9160103ffffffffff0167d0b6e109b82b51706dc4d71b42bf19cdfc8d1e",
     "0x095ea7b3010408ffffffffff08b918dd18e087893bb9d711d9e0bbaa7a63ef63",
     "0x095ea7b3010400ffffffffffd137593cdb341ccc78426c54fb98435c60da193c",
     "0x74dbc248c1000000000000ffec724f7e3f49bb03d7e539dc9f9bcbf85999cda6",
-    "0x05080006060307ffffffffffffffffffffffffffffffffffffffffffffffffff",
+    "0x05080006060107ffffffffffffffffffffffffffffffffffffffffffffffffff",
     "0x095ea7b3010403ffffffffff08b918dd18e087893bb9d711d9e0bbaa7a63ef63",
-    "0x095ea7b3010403ffffffffffd137593cdb341ccc78426c54fb98435c60da193c"
+    "0x095ea7b3010403ffffffffffd137593cdb341ccc78426c54fb98435c60da193c",
+    "0x70a082310107ffffffffff04d137593cdb341ccc78426c54fb98435c60da193c",
+    "0xed5963150102040703ffffffa81f0019d442f19f66880bcf2698b4e5d5ec249a"
   ],
   "weirollState": [
     "0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",

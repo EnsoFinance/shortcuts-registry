@@ -11,7 +11,7 @@ import type { AddressData, Input, Output, Shortcut } from '../../types';
 import { balanceOf } from '../../utils';
 
 export class ConcreteWethShortcut implements Shortcut {
-  name = 'weth-vault';
+  name = 'weth';
   description = '';
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {

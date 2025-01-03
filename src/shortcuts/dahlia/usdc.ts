@@ -10,7 +10,7 @@ import type { AddressData, Input, Output, Shortcut } from '../../types';
 import { balanceOf } from '../../utils';
 
 export class DahliaUsdcShortcut implements Shortcut {
-  name = 'usdc-vault';
+  name = 'usdc';
   description = '';
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
