@@ -122,12 +122,7 @@ export async function depositKodiak(
   };
   const amount0Min = setMinAmount ? percentMul(amount0, 9900, builder) : 1;
   const amount1Min = setMinAmount ? percentMul(amount1, 9900, builder) : 1;
-  const amountSharesMin = builder.add({
-    address: chainIdToSimulationRoles.get(builder.chainId)!.setter.address!,
-    abi: ['function getValue(uint256 index) external view returns (uint256)'],
-    functionName: 'getValue',
-    args: [findPositionInSetterInputs(setterInputs, 'minAmountOut')],
-  });
+  const amountSharesMin = getSetterValue(builder, setterInputs, 'minAmountOut');
   addAction({
     builder,
     action: {
@@ -153,6 +148,15 @@ export async function buildRoycoMarketShortcut(shortcut: Shortcut, chainId: Chai
     weirollCommands: output.script.commands,
     weirollState: output.script.state,
   };
+}
+
+export function getSetterValue(builder: Builder, set: Set<string>, item: string) {
+  return builder.add({
+    address: chainIdToSimulationRoles.get(builder.chainId)!.setter.address!,
+    abi: ['function getValue(uint256 index) external view returns (uint256)'],
+    functionName: 'getValue',
+    args: [findPositionInSetterInputs(set, item)],
+  });
 }
 
 function findPositionInSetterInputs(set: Set<string>, item: string) {
