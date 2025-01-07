@@ -113,21 +113,41 @@ describe('Successfully simulates cArtio shortcuts for', () => {
   describe('burrbear', () => {
     it('usdc', async () => {
       // Arrange
-      const args = ['burrbear', 'usdc', '100000000', '--mode=forge', '--block=3445254'];
+      const args = ['burrbear', 'usdc', '100000000', '--mode=forge', '--block=3804853'];
 
       // Act
       const report = await main_([...DEFAULT_ARGS, ...args]);
 
       // Assert
       expect(report).toMatchObject({
-        weirollWallet: '0xBa8F5f80C41BF5e169d9149Cd4977B1990Fc2736',
-        minAmountOut: undefined,
-        minAmountOutHex: undefined,
+        weirollWallet: '0x79141B00251E4E08D5463e4e0622E4065692fB3B',
+        minAmountOut: '1',
+        minAmountOutHex: '0x01',
         quote: {
-          '0xFbb99BAD8eca0736A9ab2a7f566dEbC9acb607f0': '99933244415981602324',
+          '0xFbb99BAD8eca0736A9ab2a7f566dEbC9acb607f0': '99933244325720999959',
         },
         dust: { '0x015fd589F4f1A33ce4487E12714e1B15129c9329': '0' },
-        gas: '840782',
+        gas: '1080293',
+      });
+    });
+
+    it('usdc (with slippage)', async () => {
+      // Arrange
+      const args = ['burrbear', 'usdc', '100000000', '--mode=forge', '--slippage=3', '--block=3804853'];
+
+      // Act
+      const report = await main_([...DEFAULT_ARGS, ...args]);
+
+      // Assert
+      expect(report).toMatchObject({
+        weirollWallet: '0x79141B00251E4E08D5463e4e0622E4065692fB3B',
+        minAmountOut: '99903264352423283659',
+        minAmountOutHex: '0x056a6fb19e4c228bcb',
+        quote: {
+          '0xFbb99BAD8eca0736A9ab2a7f566dEbC9acb607f0': '99933244325720999959',
+        },
+        dust: { '0x015fd589F4f1A33ce4487E12714e1B15129c9329': '0' },
+        gas: '1080293',
       });
     });
   });
