@@ -102,7 +102,6 @@ export async function depositKodiak(
   island: AddressArg,
   primary: AddressArg,
   setterInputs: Set<string>,
-  setMinAmount: boolean,
 ) {
   const rpcUrl = PUBLIC_RPC_URLS[builder.chainId].rpcUrls.public;
   const provider = new StaticJsonRpcProvider(rpcUrl);
@@ -120,8 +119,10 @@ export async function depositKodiak(
     amounts: amountsIn,
     spender: primary,
   };
-  const amount0Min = setMinAmount ? percentMul(amount0, 9900, builder) : 1;
-  const amount1Min = setMinAmount ? percentMul(amount1, 9900, builder) : 1;
+  const minAmount0Bps = getSetterValue(builder, setterInputs, 'minAmount0Bps');
+  const minAmount1Bps = getSetterValue(builder, setterInputs, 'minAmount1Bps');
+  const amount0Min = percentMul(amount0, minAmount0Bps, builder);
+  const amount1Min = percentMul(amount1, minAmount1Bps, builder);
   const amountSharesMin = getSetterValue(builder, setterInputs, 'minAmountOut');
   addAction({
     builder,

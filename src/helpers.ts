@@ -11,7 +11,7 @@ import { execSync } from 'node:child_process';
 
 import {
   DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE,
-  DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR,
+  MAX_BPS,
   PRECISION,
   ShortcutExecutionMode,
   ShortcutOutputFormat,
@@ -232,30 +232,30 @@ export function getAmountsInFromArgs(args: string[]): string[] {
   return filteredArg.split(',');
 }
 
-export function getSlippageFromArgs(args: string[]): BigNumber {
-  const slippageIdx = args.findIndex((arg) => arg.startsWith('--slippage='));
-  let slippageRaw: string;
-  if (slippageIdx === -1) {
-    slippageRaw = '0';
+export function getBasisPointsFromArgs(args: string[], label: string, defaultVal: string): BigNumber {
+  const idx = args.findIndex((arg) => arg.startsWith(`--${label}=`));
+  let raw: string;
+  if (idx === -1) {
+    raw = defaultVal;
   } else {
-    slippageRaw = args[slippageIdx].split('=')[1] as ShortcutOutputFormat;
-    args.splice(slippageIdx, 1);
+    raw = args[idx].split('=')[1] as ShortcutOutputFormat;
+    args.splice(idx, 1);
   }
 
-  let slippage: BigNumber;
+  let value: BigNumber;
   try {
-    slippage = BigNumber.from(slippageRaw);
+    value = BigNumber.from(raw);
   } catch (error) {
-    throw new Error(`Invalid slippage: ${slippageRaw}. Required a BigNumber type as BIPS. Reason: ${error}`);
+    throw new Error(`Invalid ${label}: ${raw}. Required a BigNumber type as BIPS. Reason: ${error}`);
   }
 
-  if (slippage.lt(DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE) || slippage.gt(DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR)) {
+  if (value.lt(DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE) || value.gt(MAX_BPS)) {
     throw new Error(
-      `invalid slippage: ${slippageRaw}. BIPS is out of range [${DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE.toString()},${DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR.toString()}]`,
+      `invalid ${label}: ${raw}. BIPS is out of range [${DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE.toString()},${MAX_BPS.toString()}]`,
     );
   }
 
-  return slippage;
+  return value;
 }
 
 export function getIsCalldataLoggedFromArgs(args: string[]): boolean {
@@ -304,6 +304,7 @@ export async function getUsdcToMintHoney(
   chainId: number,
   amountIn: BigNumberish,
   island: AddressArg,
+  skewRatio: BigNumber,
 ): Promise<BigNumber> {
   // TODO: generalize to other islands that support honey? ensure the correct token order?
 
@@ -323,7 +324,7 @@ export async function getUsdcToMintHoney(
 
   const totalUsdcWithPrecision = usdcWithPrecision.add(honeyWithPrecision.mul('1000000').div(honeyExchangeRate));
   const relativeUsdc = BigNumber.from(amountIn).mul(usdcWithPrecision).div(totalUsdcWithPrecision);
-  return BigNumber.from(amountIn).sub(relativeUsdc);
+  return BigNumber.from(amountIn).sub(relativeUsdc).mul(skewRatio).div(MAX_BPS);
 }
 
 export async function getHoneyExchangeRate(
