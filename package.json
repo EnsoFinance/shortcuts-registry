@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "generate": "pnpm ts-node scripts/getShortcut.ts",
+    "generate:all": "pnpm ts-node scripts/getAllShortcuts.ts",
     "lint:check": "eslint .",
     "lint:fix": "eslint . --fix",
     "prettier:check": "prettier --check \"**/*.{mjs,js,json,md,ts,yml}\"",
@@ -14,6 +15,7 @@
     "execute": "pnpm ts-node scripts/executeShortcut.ts",
     "verify": "pnpm ts-node scripts/verifyCampaign.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
+    "test:simulations": "pnpm vitest run test/integration/simulateShortcut.test.ts",
     "prepare": "husky"
   },
   "keywords": [],
@@ -45,7 +47,8 @@
     "prettier": "3.4.2",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.2",
-    "typescript-eslint": "^8.18.0"
+    "typescript-eslint": "^8.18.0",
+    "vitest": "^2.1.8"
   },
   "lint-staged": {
     "**/*": [

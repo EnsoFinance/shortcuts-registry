@@ -9,8 +9,8 @@ import { chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
 import { balanceOf } from '../../utils';
 
-export class BeraborrowWethVaultShortcut implements Shortcut {
-  name = 'weth-vault';
+export class BeraborrowWethShortcut implements Shortcut {
+  name = 'weth';
   description = '';
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
