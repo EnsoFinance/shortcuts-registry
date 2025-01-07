@@ -1,7 +1,6 @@
 import { Builder } from '@ensofinance/shortcuts-builder';
-import { contractCall, walletAddress } from '@ensofinance/shortcuts-builder/helpers';
+import { contractCall, getChainName, walletAddress } from '@ensofinance/shortcuts-builder/helpers';
 import {
-  AccountArg,
   AddressArg,
   ChainIds,
   FromContractCallArg,
@@ -68,9 +67,11 @@ export async function redeemHoney(asset: AddressArg, amount: NumberArg, builder:
 }
 
 export async function depositBurrbear(builder: Builder, amountIn: NumberArg, setterInputs: Set<string>) {
-  const primary = '0xd39e7aa57CB0703cE74Bc96dA005dFceE2Ac4F56' as AccountArg;
+  const primary = chainIdToDeFiAddresses[builder.chainId].burrbearZap;
+  const chainName = getChainName(builder.chainId);
+
   const approvals = {
-    tokens: [TokenAddresses.cartio.usdc],
+    tokens: [TokenAddresses[chainName].usdc],
     amounts: [amountIn],
     spender: primary,
   };
@@ -85,7 +86,7 @@ export async function depositBurrbear(builder: Builder, amountIn: NumberArg, set
   addAction({
     builder,
     action: {
-      address: chainIdToDeFiAddresses[builder.chainId].burrbearZap,
+      address: primary,
       abi: ['function deposit(uint256 amount, address receiver, uint256 minBptOut)'],
       functionName: 'deposit',
       args: [amountIn, walletAddress(), amountSharesMin],
