@@ -1,6 +1,6 @@
 import { getChainName } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
-import { isNullAddress, percentMul } from '@ensofinance/shortcuts-standards/helpers';
+import { isNullAddress } from '@ensofinance/shortcuts-standards/helpers';
 import { Interface, defaultAbiCoder } from '@ethersproject/abi';
 import { BigNumber, BigNumberish } from '@ethersproject/bignumber';
 import { keccak256 } from '@ethersproject/keccak256';
@@ -317,12 +317,6 @@ export async function getUsdcToMintHoney(
     honeyMintAmount.toString(),
   ]);
   const { amount0, amount1 } = islandMintAmounts;
-  const amount0IsLess = amount0.lt(percentMul(halfAmountIn, '9999') as string);
-  const amount1IsLess = amount1.lt(percentMul(honeyMintAmount, '9999') as string);
-  if (!amount0IsLess && !amount1IsLess) {
-    // amount is accurate, return half amountIn as usdcToMintHoney
-    return halfAmountIn;
-  }
   // recalculate using the known ratio between amount0 and amount1
   const usdcWithPrecision = amount0.mul(PRECISION);
   const honeyWithPrecision = amount1.mul(PRECISION);
