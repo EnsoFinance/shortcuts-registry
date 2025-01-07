@@ -15,6 +15,7 @@ import {
   ShortcutExecutionMode,
   ShortcutOutputFormat,
   SimulationMode,
+  chainIdToDeFiAddresses,
   chainIdToSimulationRoles,
 } from '../src/constants';
 import { Shortcut } from '../src/types';
@@ -295,6 +296,40 @@ export function buildVerificationHash(script: WeirollScript, receiptToken: Addre
       [inputTokens, receiptToken, [script.commands, script.state]],
     ),
   );
+}
+
+export async function getHoneyExchangeRate(
+  provider: StaticJsonRpcProvider,
+  chainId: number,
+  underlyingToken: AddressArg,
+): Promise<BigNumber> {
+  const honeyFactoryInterface = new Interface(['function mintRates(address) external view returns (uint256)']);
+  const honeyFactory = chainIdToDeFiAddresses[chainId]!.honeyFactory;
+  const data = await provider.call({
+    to: honeyFactory,
+    data: honeyFactoryInterface.encodeFunctionData('mintRates', [underlyingToken]),
+  });
+  return honeyFactoryInterface.decodeFunctionResult('mintRates', data)[0] as BigNumber;
+}
+
+export async function getIslandMintAmounts(
+  provider: StaticJsonRpcProvider,
+  island: AddressArg,
+  amounts: string[],
+): Promise<{ amount0: BigNumber; amount1: BigNumber; mintAmount: BigNumber }> {
+  const islandInterface = new Interface([
+    'function getMintAmounts(uint256, uint256) external view returns (uint256 amount0, uint256 amount1, uint256 mintAmount)',
+  ]);
+  const data = await provider.call({
+    to: island,
+    data: islandInterface.encodeFunctionData('getMintAmounts', amounts),
+  });
+  const mintAmounts = islandInterface.decodeFunctionResult('getMintAmounts', data);
+  return {
+    amount0: mintAmounts.amount0,
+    amount1: mintAmounts.amount1,
+    mintAmount: mintAmounts.mintAmount,
+  };
 }
 
 export async function getCampaignVerificationHash(

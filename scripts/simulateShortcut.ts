@@ -1,5 +1,5 @@
 import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
-import { getAddress } from '@ensofinance/shortcuts-standards/helpers';
+import { getAddress, percentMul } from '@ensofinance/shortcuts-standards/helpers';
 import { Interface } from '@ethersproject/abi';
 import { BigNumber } from '@ethersproject/bignumber';
 import type { BigNumberish } from '@ethersproject/bignumber';
@@ -11,15 +11,19 @@ import {
   DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR,
   DEFAULT_SETTER_MIN_AMOUNT_OUT,
   FUNCTION_ID_ERC20_APPROVE,
+  PRECISION,
   ShortcutExecutionMode,
   SimulationMode,
+  chainIdToDeFiAddresses,
 } from '../src/constants';
 import {
   getAmountsInFromArgs,
   getBlockNumberFromArgs,
   getEncodedData,
   getForgePath,
+  getHoneyExchangeRate,
   getIsCalldataLoggedFromArgs,
+  getIslandMintAmounts,
   getRpcUrlByChainId,
   getShortcut,
   getShortcutExecutionMode,
@@ -59,15 +63,16 @@ async function generateMulticallTxData(
   state: string[],
   setterAddr: AddressArg,
   recipeMarketHubAddr: AddressArg,
-  inputToValue: Record<string, BigNumberish>,
+  inputToValue: Record<string, BigNumberish | undefined>,
 ): Promise<MultiCallData> {
   let setterData: [AddressArg, string][] = [];
   const setterInputData: SetterInputData = {};
   const calls: [AddressArg, string][] = [];
   [...setterInputToIndex].forEach((input, index) => {
     const value = inputToValue[input];
+    if (!value) throw `Input not set: ${input}`;
     const setterData = setterInterface.encodeFunctionData('setValue', [index, value]);
-    setterInputData[input] = { value, index: Number(index) };
+    setterInputData[input] = { value: value.toString(), index: Number(index) };
     calls.push([setterAddr, setterData]);
   });
 
@@ -113,36 +118,76 @@ async function simulateShortcutOnQuoter(
   switch (shortcutExecutionMode) {
     case ShortcutExecutionMode.MULTICALL__AGGREGATE: {
       const provider = new StaticJsonRpcProvider(rpcUrl);
-      let minAmountOut = DEFAULT_SETTER_MIN_AMOUNT_OUT;
-      // NB: simulate first with `minAmountOut` set to '1' wei and get the actual `amountOut` from quoter.
-      // Then, calculate the expected `minAmountOut` after applying maximum slippage, and finally simulate again.
-      if (isRecursiveCall) {
-        const report = await simulateShortcutOnQuoter(
-          shortcut,
-          chainId,
-          amountsIn,
-          script,
-          tokensIn,
-          tokensOut,
-          slippage,
-          rpcUrl,
-          roles,
-          shortcutExecutionMode,
-          !isRecursiveCall,
-          { ...simulationLogConfig, isReportLogged: false, isCalldataLogged: false },
-        );
-        const receiptTokenAddr = tokensOut[0]; // NB: Royco campaign shortcuts expect a single receipt token
-        const amountOut = report.quote[receiptTokenAddr];
-        minAmountOut = BigNumber.from(amountOut)
-          .mul(DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR.sub(slippage))
-          .div(DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR);
-      }
-
       const weirollWallet = await getNextWeirollWalletFromRecipeMarketHub(provider, roles.recipeMarketHub.address!);
       roles.weirollWallet = { address: weirollWallet, label: 'WeirollWallet' };
       roles.callee = roles.multiCall;
-      reportPre.minAmountOut = minAmountOut.toString();
-      reportPre.minAmountOutHex = minAmountOut.toHexString();
+
+      const setterInputs = shortcut.setterInputs?.[chainId];
+      if (!setterInputs) throw 'Error: Setter inputs not found, how did we get here?';
+
+      let minAmountOut, usdcToMintHoney;
+      if (setterInputs.has('minAmountOut')) {
+        minAmountOut = DEFAULT_SETTER_MIN_AMOUNT_OUT;
+        // NB: simulate first with `minAmountOut` set to '1' wei and get the actual `amountOut` from quoter.
+        // Then, calculate the expected `minAmountOut` after applying maximum slippage, and finally simulate again.
+        if (isRecursiveCall) {
+          const report = await simulateShortcutOnQuoter(
+            shortcut,
+            chainId,
+            amountsIn,
+            script,
+            tokensIn,
+            tokensOut,
+            slippage,
+            rpcUrl,
+            roles,
+            shortcutExecutionMode,
+            !isRecursiveCall,
+            { ...simulationLogConfig, isReportLogged: false, isCalldataLogged: false },
+          );
+          const receiptTokenAddr = tokensOut[0]; // NB: Royco campaign shortcuts expect a single receipt token
+          const amountOut = report.quote[receiptTokenAddr];
+          minAmountOut = BigNumber.from(amountOut)
+            .mul(DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR.sub(slippage))
+            .div(DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR);
+        }
+
+        reportPre.minAmountOut = minAmountOut.toString();
+        reportPre.minAmountOutHex = minAmountOut.toHexString();
+      }
+
+      if (setterInputs.has('usdcToMintHoney')) {
+        const usdcAmountIn = amountsIn[0]; // this assumes a single-sided deposit
+        const island = shortcut.inputs[chainId].island; // assumes we are minting honey for a kodiak island
+        if (!island) throw 'Error: Shortcut not supported for calculating usdc to mint';
+
+        const honeyExchangeRate = await getHoneyExchangeRate(provider, chainId, chainIdToDeFiAddresses[chainId]!.usdc);
+        // test 50/50 split
+        const halfAmountIn = BigNumber.from(usdcAmountIn).div(2);
+        const honeyMintAmount = halfAmountIn.mul(honeyExchangeRate).div('1000000'); // div by usdc decimals precision
+        // calculate min
+        const islandMintAmounts = await getIslandMintAmounts(provider, island, [
+          halfAmountIn.toString(),
+          honeyMintAmount.toString(),
+        ]);
+        const { amount0, amount1 } = islandMintAmounts;
+        const amount0IsLess = amount0.lt(percentMul(halfAmountIn, '9999') as string);
+        const amount1IsLess = amount1.lt(percentMul(honeyMintAmount, '9999') as string);
+        if (!amount0IsLess && !amount1IsLess) {
+          // amount is accurate, return half amountIn as usdcToMintHoney
+          usdcToMintHoney = halfAmountIn;
+        } else {
+          // recalculate using the known ratio between amount0 and amount1
+          const usdcWithPrecision = amount0.mul(PRECISION);
+          const honeyWithPrecision = amount1.mul(PRECISION);
+
+          const totalUsdcWithPrecision = usdcWithPrecision.add(
+            honeyWithPrecision.mul('1000000').div(honeyExchangeRate),
+          );
+          const relativeUsdc = BigNumber.from(usdcAmountIn).mul(usdcWithPrecision).div(totalUsdcWithPrecision);
+          usdcToMintHoney = BigNumber.from(usdcAmountIn).sub(relativeUsdc);
+        }
+      }
 
       const multiCallData = await generateMulticallTxData(
         shortcut.setterInputs![chainId],
@@ -150,7 +195,7 @@ async function simulateShortcutOnQuoter(
         state,
         roles.setter.address!,
         roles.recipeMarketHub.address!,
-        { minAmountOut },
+        { minAmountOut, usdcToMintHoney },
       );
       txData = multiCallData.txData;
 

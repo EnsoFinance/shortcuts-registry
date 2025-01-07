@@ -22,7 +22,7 @@ export class KodiakHoneyUsdcShortcut implements Shortcut {
     },
   };
   setterInputs: Record<number, Set<string>> = {
-    [ChainIds.Cartio]: new Set(['minAmountOut', 'usdcToMint']),
+    [ChainIds.Cartio]: new Set(['minAmountOut', 'usdcToMintHoney']),
   };
 
   async build(chainId: number): Promise<Output> {
@@ -36,9 +36,9 @@ export class KodiakHoneyUsdcShortcut implements Shortcut {
       tokensOut: [island],
     });
     const amountIn = builder.add(balanceOf(usdc, walletAddress()));
-    const usdcToMint = getSetterValue(builder, this.setterInputs[chainId], 'usdcToMint');
-    const remainingUsdc = sub(amountIn, usdcToMint, builder);
-    const mintedAmount = await mintHoney(usdc, usdcToMint, builder);
+    const usdcToMintHoney = getSetterValue(builder, this.setterInputs[chainId], 'usdcToMintHoney');
+    const remainingUsdc = sub(amountIn, usdcToMintHoney, builder);
+    const mintedAmount = await mintHoney(usdc, usdcToMintHoney, builder);
 
     await depositKodiak(
       builder,
