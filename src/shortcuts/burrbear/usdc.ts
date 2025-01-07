@@ -2,12 +2,11 @@ import { Builder } from '@ensofinance/shortcuts-builder';
 import { RoycoClient } from '@ensofinance/shortcuts-builder/client/implementations/roycoClient';
 import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
-import { getStandardByProtocol } from '@ensofinance/shortcuts-standards';
 import { TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
 
-import { chainIdToTokenHolder } from '../../constants';
+import { chainIdToDeFiAddresses, chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
-import { balanceOf } from '../../utils';
+import { balanceOf, depositBurrbear } from '../../utils';
 
 export class BurrbearUsdcShortcut implements Shortcut {
   name = 'usdc';
@@ -16,16 +15,19 @@ export class BurrbearUsdcShortcut implements Shortcut {
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
       usdc: TokenAddresses.cartio.usdc,
-      vault: '0x86b22E0236d4789a22EC5ca0356Fcc14E076D559', // Zap
+      vault: chainIdToDeFiAddresses[ChainIds.Cartio].burrbearZap,
       bexLp: '0xFbb99BAD8eca0736A9ab2a7f566dEbC9acb607f0', //Honey-USDC-NECT
     },
+  };
+  setterInputs: Record<number, Set<string>> = {
+    [ChainIds.Cartio]: new Set(['minAmountOut']),
   };
 
   async build(chainId: number): Promise<Output> {
     const client = new RoycoClient();
 
     const inputs = this.inputs[chainId];
-    const { usdc, vault, bexLp } = inputs;
+    const { usdc, bexLp } = inputs;
 
     const builder = new Builder(chainId, client, {
       tokensIn: [usdc],
@@ -36,13 +38,7 @@ export class BurrbearUsdcShortcut implements Shortcut {
     const amountIn = builder.add(balanceOf(usdc, walletAddress()));
 
     //Mint
-    const burrbearZap = getStandardByProtocol('erc4626', chainId);
-    await burrbearZap.deposit.addToBuilder(builder, {
-      tokenIn: usdc,
-      tokenOut: bexLp,
-      amountIn,
-      primaryAddress: vault,
-    });
+    await depositBurrbear(builder, amountIn, this.setterInputs[chainId]);
 
     const payload = await builder.build({
       requireWeiroll: true,

@@ -130,6 +130,7 @@ export const chainIdToDeFiAddresses: Record<number, Record<string, AddressArg>> 
     honeyFactory: Standards.Berachain_Honey.protocol.addresses!.cartio!.honeyFactory,
     kodiakRouter: Standards.Kodiak_Islands.protocol.addresses!.cartio!.router,
     kodiakQuoterV2: Standards.Kodiak_Islands.protocol.addresses!.cartio!.quoterV2,
+    burrbearZap: '0xd39e7aa57CB0703cE74Bc96dA005dFceE2Ac4F56',
   },
 };
 
