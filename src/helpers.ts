@@ -322,15 +322,14 @@ export async function getUsdcToMintHoney(
   if (!amount0IsLess && !amount1IsLess) {
     // amount is accurate, return half amountIn as usdcToMintHoney
     return halfAmountIn;
-  } else {
-    // recalculate using the known ratio between amount0 and amount1
-    const usdcWithPrecision = amount0.mul(PRECISION);
-    const honeyWithPrecision = amount1.mul(PRECISION);
-
-    const totalUsdcWithPrecision = usdcWithPrecision.add(honeyWithPrecision.mul('1000000').div(honeyExchangeRate));
-    const relativeUsdc = BigNumber.from(amountIn).mul(usdcWithPrecision).div(totalUsdcWithPrecision);
-    return BigNumber.from(amountIn).sub(relativeUsdc);
   }
+  // recalculate using the known ratio between amount0 and amount1
+  const usdcWithPrecision = amount0.mul(PRECISION);
+  const honeyWithPrecision = amount1.mul(PRECISION);
+
+  const totalUsdcWithPrecision = usdcWithPrecision.add(honeyWithPrecision.mul('1000000').div(honeyExchangeRate));
+  const relativeUsdc = BigNumber.from(amountIn).mul(usdcWithPrecision).div(totalUsdcWithPrecision);
+  return BigNumber.from(amountIn).sub(relativeUsdc);
 }
 
 export async function getHoneyExchangeRate(

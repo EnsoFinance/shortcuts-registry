@@ -67,7 +67,7 @@ async function generateMulticallTxData(
   const calls: [AddressArg, string][] = [];
   [...setterInputToIndex].forEach((input, index) => {
     const value = inputToValue[input];
-    if (!value) throw `Input not set: ${input}`;
+    if (value === undefined) throw `Input not set: ${input}`;
     const setterData = setterInterface.encodeFunctionData('setValue', [index, value]);
     setterInputData[input] = { value: value.toString(), index: Number(index) };
     calls.push([setterAddr, setterData]);

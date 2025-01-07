@@ -5,7 +5,7 @@ import { BigNumber } from '@ethersproject/bignumber';
 
 import type { SimulationRoles } from './types';
 
-export const PRECISION = '100000000000000000';
+export const PRECISION = BigNumber.from(10).pow(18);
 
 export enum SimulationMode {
   ANVIL = 'anvil',
