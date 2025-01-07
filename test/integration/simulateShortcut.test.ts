@@ -34,7 +34,7 @@ describe('Successfully simulates cArtio shortcuts for', () => {
           '0x015fd589F4f1A33ce4487E12714e1B15129c9329': '99600399',
           '0xd137593CDB341CcC78426c54Fb98435C60Da193c': '0',
         },
-        gas: '1443602',
+        gas: '1573744',
       });
     });
 
@@ -63,7 +63,7 @@ describe('Successfully simulates cArtio shortcuts for', () => {
           '0x015fd589F4f1A33ce4487E12714e1B15129c9329': '99600399',
           '0xd137593CDB341CcC78426c54Fb98435C60Da193c': '0',
         },
-        gas: '1443602',
+        gas: '1573744',
       });
     });
   });
@@ -427,7 +427,7 @@ describe('Successfully simulates cArtio shortcuts for', () => {
           '0x015fd589F4f1A33ce4487E12714e1B15129c9329': '0',
           '0xd137593CDB341CcC78426c54Fb98435C60Da193c': '0',
         },
-        gas: '1432872',
+        gas: '1571747',
       });
     });
 
@@ -448,7 +448,7 @@ describe('Successfully simulates cArtio shortcuts for', () => {
           '0x015fd589F4f1A33ce4487E12714e1B15129c9329': '0',
           '0xd137593CDB341CcC78426c54Fb98435C60Da193c': '0',
         },
-        gas: '1432872',
+        gas: '1571747',
       });
     });
 
@@ -470,7 +470,7 @@ describe('Successfully simulates cArtio shortcuts for', () => {
           '0x015fd589F4f1A33ce4487E12714e1B15129c9329': '996002',
           '0xd137593CDB341CcC78426c54Fb98435C60Da193c': '0',
         },
-        gas: '1363035',
+        gas: '1493177',
       });
     });
 
@@ -492,7 +492,7 @@ describe('Successfully simulates cArtio shortcuts for', () => {
           '0x015fd589F4f1A33ce4487E12714e1B15129c9329': '996002',
           '0xd137593CDB341CcC78426c54Fb98435C60Da193c': '0',
         },
-        gas: '1363035',
+        gas: '1493177',
       });
     });
 
@@ -513,7 +513,7 @@ describe('Successfully simulates cArtio shortcuts for', () => {
           '0x2d93FbcE4CffC15DD385A80B3f4CC1D4E76C38b3': '206540',
           '0xFa5bf670A92AfF186E5176aA55690E0277010040': '99999',
         },
-        gas: '971870',
+        gas: '1101987',
       });
     });
 
@@ -534,7 +534,7 @@ describe('Successfully simulates cArtio shortcuts for', () => {
           '0x2d93FbcE4CffC15DD385A80B3f4CC1D4E76C38b3': '206540',
           '0xFa5bf670A92AfF186E5176aA55690E0277010040': '99999',
         },
-        gas: '971870',
+        gas: '1101987',
       });
     });
   });

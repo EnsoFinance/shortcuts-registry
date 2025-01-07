@@ -11,6 +11,7 @@ import {
   DEFAULT_SETTER_MIN_AMOUNT_OUT,
   FUNCTION_ID_ERC20_APPROVE,
   MAX_BPS,
+  MIN_BPS,
   ShortcutExecutionMode,
   SimulationMode,
 } from '../src/constants';
@@ -500,8 +501,8 @@ export async function main_(args: string[]): Promise<Report> {
   const setterArgsBps: Record<string, BigNumber> = {
     slippage: DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE,
     skewRatio: MAX_BPS,
-    minAmount0Bps: BigNumber.from('1'),
-    minAmount1Bps: BigNumber.from('1'),
+    minAmount0Bps: MIN_BPS,
+    minAmount1Bps: MIN_BPS,
   };
   let isRecursiveCall = false;
   if ([ShortcutExecutionMode.MULTICALL__AGGREGATE].includes(shortcutExecutionMode)) {
