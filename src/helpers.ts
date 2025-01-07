@@ -1,8 +1,8 @@
 import { getChainName } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
-import { isNullAddress } from '@ensofinance/shortcuts-standards/helpers';
+import { isNullAddress, percentMul } from '@ensofinance/shortcuts-standards/helpers';
 import { Interface, defaultAbiCoder } from '@ethersproject/abi';
-import { BigNumber } from '@ethersproject/bignumber';
+import { BigNumber, BigNumberish } from '@ethersproject/bignumber';
 import { keccak256 } from '@ethersproject/keccak256';
 import { StaticJsonRpcProvider } from '@ethersproject/providers';
 import crypto from 'crypto';
@@ -12,6 +12,7 @@ import { execSync } from 'node:child_process';
 import {
   DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE,
   DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR,
+  PRECISION,
   ShortcutExecutionMode,
   ShortcutOutputFormat,
   SimulationMode,
@@ -296,6 +297,40 @@ export function buildVerificationHash(script: WeirollScript, receiptToken: Addre
       [inputTokens, receiptToken, [script.commands, script.state]],
     ),
   );
+}
+
+export async function getUsdcToMintHoney(
+  provider: StaticJsonRpcProvider,
+  chainId: number,
+  amountIn: BigNumberish,
+  island: AddressArg,
+): Promise<BigNumber> {
+  // TODO: generalize to other islands that support honey? ensure the correct token order?
+
+  const honeyExchangeRate = await getHoneyExchangeRate(provider, chainId, chainIdToDeFiAddresses[chainId]!.usdc);
+  // test 50/50 split
+  const halfAmountIn = BigNumber.from(amountIn).div(2);
+  const honeyMintAmount = halfAmountIn.mul(honeyExchangeRate).div('1000000'); // div by usdc decimals precision
+  // calculate min
+  const islandMintAmounts = await getIslandMintAmounts(provider, island, [
+    halfAmountIn.toString(),
+    honeyMintAmount.toString(),
+  ]);
+  const { amount0, amount1 } = islandMintAmounts;
+  const amount0IsLess = amount0.lt(percentMul(halfAmountIn, '9999') as string);
+  const amount1IsLess = amount1.lt(percentMul(honeyMintAmount, '9999') as string);
+  if (!amount0IsLess && !amount1IsLess) {
+    // amount is accurate, return half amountIn as usdcToMintHoney
+    return halfAmountIn;
+  } else {
+    // recalculate using the known ratio between amount0 and amount1
+    const usdcWithPrecision = amount0.mul(PRECISION);
+    const honeyWithPrecision = amount1.mul(PRECISION);
+
+    const totalUsdcWithPrecision = usdcWithPrecision.add(honeyWithPrecision.mul('1000000').div(honeyExchangeRate));
+    const relativeUsdc = BigNumber.from(amountIn).mul(usdcWithPrecision).div(totalUsdcWithPrecision);
+    return BigNumber.from(amountIn).sub(relativeUsdc);
+  }
 }
 
 export async function getHoneyExchangeRate(
