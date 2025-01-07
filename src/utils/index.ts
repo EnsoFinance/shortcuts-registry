@@ -1,5 +1,5 @@
 import { Builder } from '@ensofinance/shortcuts-builder';
-import { contractCall, walletAddress } from '@ensofinance/shortcuts-builder/helpers';
+import { contractCall, getChainName, walletAddress } from '@ensofinance/shortcuts-builder/helpers';
 import {
   AddressArg,
   ChainIds,
@@ -9,6 +9,7 @@ import {
   WalletAddressArg,
 } from '@ensofinance/shortcuts-builder/types';
 import { PUBLIC_RPC_URLS, getStandardByProtocol } from '@ensofinance/shortcuts-standards';
+import { TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
 import { addAction, areAddressesEqual, percentMul, resetApprovals } from '@ensofinance/shortcuts-standards/helpers';
 import { Interface } from '@ethersproject/abi';
 import { StaticJsonRpcProvider } from '@ethersproject/providers';
@@ -63,6 +64,35 @@ export async function redeemHoney(asset: AddressArg, amount: NumberArg, builder:
   });
 
   return amountOut as FromContractCallArg;
+}
+
+export async function depositBurrbear(builder: Builder, amountIn: NumberArg, setterInputs: Set<string>) {
+  const primary = chainIdToDeFiAddresses[builder.chainId].burrbearZap;
+  const chainName = getChainName(builder.chainId);
+
+  const approvals = {
+    tokens: [TokenAddresses[chainName].usdc],
+    amounts: [amountIn],
+    spender: primary,
+  };
+
+  const amountSharesMin = builder.add({
+    address: chainIdToSimulationRoles.get(builder.chainId)!.setter.address!,
+    abi: ['function getValue(uint256 index) external view returns (uint256)'],
+    functionName: 'getValue',
+    args: [findPositionInSetterInputs(setterInputs, 'minAmountOut')],
+  });
+
+  addAction({
+    builder,
+    action: {
+      address: primary,
+      abi: ['function deposit(uint256 amount, address receiver, uint256 minBptOut)'],
+      functionName: 'deposit',
+      args: [amountIn, walletAddress(), amountSharesMin],
+    },
+    approvals,
+  });
 }
 
 export async function depositKodiak(
