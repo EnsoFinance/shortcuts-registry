@@ -213,6 +213,7 @@ async function simulateShortcutOnQuoter(
   if (quote.status === 'Error') throw quote.error;
   const report: Report = {
     weirollWallet: getAddress(roles.weirollWallet.address!),
+    amountsIn,
     minAmountOut: reportPre.minAmountOut,
     minAmountOutHex: reportPre.minAmountOutHex,
     quote: {},
@@ -454,6 +455,7 @@ async function simulateShortcutOnForge(
   // Instantiate Report
   const report = {
     weirollWallet: getAddress(roles.weirollWallet.address!),
+    amountsIn,
     minAmountOut: reportPre.minAmountOut,
     minAmountOutHex: reportPre.minAmountOutHex,
     quote: Object.fromEntries(
