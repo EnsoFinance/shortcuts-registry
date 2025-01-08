@@ -1,4 +1,4 @@
-import { getChainName } from '@ensofinance/shortcuts-builder/helpers';
+import { getChainName, isAddressEqual } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 import { isNullAddress } from '@ensofinance/shortcuts-standards/helpers';
 import { Interface, defaultAbiCoder } from '@ethersproject/abi';
@@ -111,6 +111,14 @@ export const shortcuts: Record<string, Record<string, Shortcut>> = {
   },
   thj: {
     usdc: new ThjUsdcShortcut(),
+  },
+};
+
+// TODO: this may have to support on-chain getter functions
+const usdcExchangeRates: Record<number, Record<AddressArg, BigNumber>> = {
+  [ChainIds.Cartio]: {
+    [chainIdToDeFiAddresses[ChainIds.Cartio]!.usdc]: BigNumber.from(10).pow(6),
+    [chainIdToDeFiAddresses[ChainIds.Cartio]!.nect]: BigNumber.from(10).pow(18),
   },
 };
 
@@ -321,24 +329,37 @@ export async function getUsdcToMintHoney(
   skewRatio: BigNumber,
 ): Promise<BigNumber> {
   // TODO: generalize to other islands that support honey? ensure the correct token order?
+  const honey = chainIdToDeFiAddresses[chainId]!.honey!;
+  const { token0, token1 } = await getIslandTokens(provider, island);
+  if (!isAddressEqual(token0, honey) && !isAddressEqual(token1, honey)) throw 'Error: Honey is not on this island';
+  const zeroToOne = isAddressEqual(token0, honey);
+  const pair = zeroToOne ? token1 : token0;
+  const pairExchangeRate = usdcExchangeRates[chainId][pair];
+  if (!pairExchangeRate) throw 'Error: Pair exchange rate cannot be found';
 
   const honeyExchangeRate = await getHoneyExchangeRate(provider, chainId, chainIdToDeFiAddresses[chainId]!.usdc);
   // test 50/50 split
   const halfAmountIn = BigNumber.from(amountIn).div(2);
   const honeyMintAmount = halfAmountIn.mul(honeyExchangeRate).div('1000000'); // div by usdc decimals precision
+  const pairAmount = halfAmountIn.mul(pairExchangeRate).div('1000000'); // div by usdc decimals precision
   // calculate min
   const islandMintAmounts = await getIslandMintAmounts(provider, island, [
-    halfAmountIn.toString(),
+    pairAmount.toString(),
     honeyMintAmount.toString(),
   ]);
   const { amount0, amount1 } = islandMintAmounts;
   // recalculate using the known ratio between amount0 and amount1
-  const usdcWithPrecision = amount0.mul(PRECISION);
+  const pairWithPrecision = amount0.mul(PRECISION);
   const honeyWithPrecision = amount1.mul(PRECISION);
 
-  const totalUsdcWithPrecision = usdcWithPrecision.add(honeyWithPrecision.mul('1000000').div(honeyExchangeRate));
-  const relativeUsdc = BigNumber.from(amountIn).mul(usdcWithPrecision).div(totalUsdcWithPrecision);
-  return BigNumber.from(amountIn).sub(relativeUsdc).mul(skewRatio).div(MAX_BPS);
+  const relativeUsdcInHoneyWithPrecision = honeyWithPrecision.mul('1000000').div(honeyExchangeRate);
+  const totalUsdcWithPrecision = pairWithPrecision
+    .mul('1000000')
+    .div(pairExchangeRate)
+    .add(relativeUsdcInHoneyWithPrecision);
+
+  const usdcToMintHoney = BigNumber.from(amountIn).mul(relativeUsdcInHoneyWithPrecision).div(totalUsdcWithPrecision);
+  return usdcToMintHoney.mul(skewRatio).div(MAX_BPS);
 }
 
 export async function getHoneyExchangeRate(
