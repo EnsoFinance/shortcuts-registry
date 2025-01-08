@@ -114,6 +114,20 @@ export const shortcuts: Record<string, Record<string, Shortcut>> = {
   },
 };
 
+async function call(
+  provider: StaticJsonRpcProvider,
+  iface: Interface,
+  target: string,
+  method: string,
+  args: ReadonlyArray<BigNumberish>,
+) {
+  const data = await provider.call({
+    to: target,
+    data: iface.encodeFunctionData(method, args),
+  });
+  return iface.decodeFunctionResult(method, data);
+}
+
 export async function getShortcut(args: string[]) {
   if (args.length < 3) throw 'Error: Please pass chain, protocol, and market';
   const chain = args[0];
@@ -334,11 +348,7 @@ export async function getHoneyExchangeRate(
 ): Promise<BigNumber> {
   const honeyFactoryInterface = new Interface(['function mintRates(address) external view returns (uint256)']);
   const honeyFactory = chainIdToDeFiAddresses[chainId]!.honeyFactory;
-  const data = await provider.call({
-    to: honeyFactory,
-    data: honeyFactoryInterface.encodeFunctionData('mintRates', [underlyingToken]),
-  });
-  return honeyFactoryInterface.decodeFunctionResult('mintRates', data)[0] as BigNumber;
+  return (await call(provider, honeyFactoryInterface, honeyFactory, 'mintRates', [underlyingToken]))[0] as BigNumber;
 }
 
 export async function getIslandMintAmounts(
@@ -349,15 +359,32 @@ export async function getIslandMintAmounts(
   const islandInterface = new Interface([
     'function getMintAmounts(uint256, uint256) external view returns (uint256 amount0, uint256 amount1, uint256 mintAmount)',
   ]);
-  const data = await provider.call({
-    to: island,
-    data: islandInterface.encodeFunctionData('getMintAmounts', amounts),
-  });
-  const mintAmounts = islandInterface.decodeFunctionResult('getMintAmounts', data);
+  const mintAmounts = await call(provider, islandInterface, island, 'getMintAmounts', amounts);
   return {
     amount0: mintAmounts.amount0,
     amount1: mintAmounts.amount1,
     mintAmount: mintAmounts.mintAmount,
+  };
+}
+
+export async function getIslandTokens(
+  provider: StaticJsonRpcProvider,
+  island: AddressArg,
+): Promise<{ token0: AddressArg; token1: AddressArg }> {
+  const islandInterface = new Interface([
+    'function token0() external view returns (address token)',
+    'function token1() external view returns (address token)',
+  ]);
+  const [token0, token1] = (
+    await Promise.all([
+      call(provider, islandInterface, island, 'token0', []),
+      call(provider, islandInterface, island, 'token1', []),
+    ])
+  ).map((response) => response.token);
+
+  return {
+    token0,
+    token1,
   };
 }
 
@@ -370,11 +397,11 @@ export async function getCampaignVerificationHash(
     'function getCampaignVerificationHash(bytes32 marketHash) external view returns (bytes32 verificationHash)',
   ]);
   const roles = getSimulationRolesByChainId(chainId);
-  const data = await provider.call({
-    to: roles.depositExecutor.address,
-    data: depositExecutorInterface.encodeFunctionData('getCampaignVerificationHash', [marketHash]),
-  });
-  return depositExecutorInterface.decodeFunctionResult('getCampaignVerificationHash', data).verificationHash as string;
+  return (
+    await call(provider, depositExecutorInterface, roles.depositExecutor.address!, 'getCampaignVerificationHash', [
+      marketHash,
+    ])
+  ).verificationHash as string;
 }
 
 export async function getCampaign(
@@ -386,14 +413,13 @@ export async function getCampaign(
     'function sourceMarketHashToDepositCampaign(bytes32 marketHash) external view returns (address owner, bool verified, uint8 numInputTokens, address receiptToken, uint256 unlockTimestamp, tuple(bytes32[] commands, bytes[] state) depositRecipe)',
   ]);
   const roles = getSimulationRolesByChainId(chainId);
-  const data = await provider.call({
-    to: roles.depositExecutor.address,
-    data: depositExecutorInterface.encodeFunctionData('sourceMarketHashToDepositCampaign', [marketHash]),
-  });
-  return depositExecutorInterface.decodeFunctionResult(
+  return (await call(
+    provider,
+    depositExecutorInterface,
+    roles.depositExecutor.address!,
     'sourceMarketHashToDepositCampaign',
-    data,
-  ) as unknown as Campaign;
+    [marketHash],
+  )) as unknown as Campaign;
 }
 
 export async function getWeirollWallets(
@@ -409,14 +435,13 @@ export async function getWeirollWallets(
   const wallets: AddressArg[] = [];
   let foundLastWallet = false;
   while (!foundLastWallet) {
-    const data = await provider.call({
-      to: roles.depositExecutor.address,
-      data: depositExecutorInterface.encodeFunctionData('getWeirollWalletByCcdmNonce', [
-        marketHash,
-        wallets.length + 1,
-      ]),
-    });
-    const { wallet } = depositExecutorInterface.decodeFunctionResult('getWeirollWalletByCcdmNonce', data);
+    const { wallet } = await call(
+      provider,
+      depositExecutorInterface,
+      roles.depositExecutor.address!,
+      'getWeirollWalletByCcdmNonce',
+      [marketHash, wallets.length + 1],
+    );
     if (!isNullAddress(wallet)) {
       wallets.push(wallet as AddressArg);
     } else {
