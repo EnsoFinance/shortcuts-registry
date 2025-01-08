@@ -5,6 +5,8 @@ import { BigNumber } from '@ethersproject/bignumber';
 
 import type { SimulationRoles } from './types';
 
+export const PRECISION = BigNumber.from(10).pow(18);
+
 export enum SimulationMode {
   ANVIL = 'anvil',
   FORGE = 'forge',
@@ -37,8 +39,9 @@ export enum TraceItemPhase {
 export const FUNCTION_ID_ERC20_APPROVE = '0x095ea7b3';
 
 export const DEFAULT_SETTER_MIN_AMOUNT_OUT = BigNumber.from('1');
-export const DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR = BigNumber.from('10000'); // NB: 100%
-export const DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE = BigNumber.from('0'); // NB: 0%
+export const MAX_BPS = BigNumber.from('10000'); // NB: 100%
+export const MIN_BPS = BigNumber.from('0');
+export const DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE = MIN_BPS; // NB: 0%
 
 export const CONTRCT_SIMULATION_FORK_TEST_EVENTS_ABI = [
   {

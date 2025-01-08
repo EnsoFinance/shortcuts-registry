@@ -21,7 +21,7 @@ export class AbracadabraMimHoneyhortcut implements Shortcut {
     },
   };
   setterInputs: Record<number, Set<string>> = {
-    [ChainIds.Cartio]: new Set(['minAmountOut']),
+    [ChainIds.Cartio]: new Set(['minAmountOut', 'minAmount0Bps', 'minAmount1Bps']),
   };
 
   async build(chainId: number): Promise<Output> {
@@ -39,15 +39,7 @@ export class AbracadabraMimHoneyhortcut implements Shortcut {
     const usdcAmount = builder.add(balanceOf(usdc, walletAddress()));
     const mintedAmount = await mintHoney(usdc, usdcAmount, builder);
 
-    await depositKodiak(
-      builder,
-      [mim, honey],
-      [mimAmount, mintedAmount],
-      island,
-      primary,
-      this.setterInputs[chainId],
-      false,
-    );
+    await depositKodiak(builder, [mim, honey], [mimAmount, mintedAmount], island, primary, this.setterInputs[chainId]);
 
     const leftoverAmount = builder.add(balanceOf(honey, walletAddress()));
     await redeemHoney(usdc, leftoverAmount, builder);

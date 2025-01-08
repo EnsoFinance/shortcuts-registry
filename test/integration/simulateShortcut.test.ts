@@ -34,7 +34,7 @@ describe('Successfully simulates cArtio shortcuts for', () => {
           '0x015fd589F4f1A33ce4487E12714e1B15129c9329': '99600399',
           '0xd137593CDB341CcC78426c54Fb98435C60Da193c': '0',
         },
-        gas: '1443602',
+        gas: '1573744',
       });
     });
 
@@ -63,7 +63,7 @@ describe('Successfully simulates cArtio shortcuts for', () => {
           '0x015fd589F4f1A33ce4487E12714e1B15129c9329': '99600399',
           '0xd137593CDB341CcC78426c54Fb98435C60Da193c': '0',
         },
-        gas: '1443602',
+        gas: '1573744',
       });
     });
   });
@@ -422,12 +422,12 @@ describe('Successfully simulates cArtio shortcuts for', () => {
         weirollWallet: '0x79141B00251E4E08D5463e4e0622E4065692fB3B',
         minAmountOut: '1',
         minAmountOutHex: '0x01',
-        quote: { '0x7b26b6C57014eAaA4042FfCF7c701E38F4bc2c5C': '41305286436538' },
+        quote: { '0x7b26b6C57014eAaA4042FfCF7c701E38F4bc2c5C': '49957000035799' },
         dust: {
-          '0x015fd589F4f1A33ce4487E12714e1B15129c9329': '17249117',
+          '0x015fd589F4f1A33ce4487E12714e1B15129c9329': '0',
           '0xd137593CDB341CcC78426c54Fb98435C60Da193c': '0',
         },
-        gas: '1388164',
+        gas: '1571747',
       });
     });
 
@@ -441,14 +441,14 @@ describe('Successfully simulates cArtio shortcuts for', () => {
       // Assert
       expect(report).toMatchObject({
         weirollWallet: '0x79141B00251E4E08D5463e4e0622E4065692fB3B',
-        minAmountOut: '41292894850607',
-        minAmountOutHex: '0x258e40544e2f',
-        quote: { '0x7b26b6C57014eAaA4042FfCF7c701E38F4bc2c5C': '41305286436538' },
+        minAmountOut: '49942012935788',
+        minAmountOutHex: '0x2d6c07f0be6c',
+        quote: { '0x7b26b6C57014eAaA4042FfCF7c701E38F4bc2c5C': '49957000035799' },
         dust: {
-          '0x015fd589F4f1A33ce4487E12714e1B15129c9329': '17249117',
+          '0x015fd589F4f1A33ce4487E12714e1B15129c9329': '0',
           '0xd137593CDB341CcC78426c54Fb98435C60Da193c': '0',
         },
-        gas: '1388164',
+        gas: '1571747',
       });
     });
 
@@ -470,7 +470,7 @@ describe('Successfully simulates cArtio shortcuts for', () => {
           '0x015fd589F4f1A33ce4487E12714e1B15129c9329': '996002',
           '0xd137593CDB341CcC78426c54Fb98435C60Da193c': '0',
         },
-        gas: '1363035',
+        gas: '1493177',
       });
     });
 
@@ -492,7 +492,7 @@ describe('Successfully simulates cArtio shortcuts for', () => {
           '0x015fd589F4f1A33ce4487E12714e1B15129c9329': '996002',
           '0xd137593CDB341CcC78426c54Fb98435C60Da193c': '0',
         },
-        gas: '1363035',
+        gas: '1493177',
       });
     });
 
@@ -513,7 +513,7 @@ describe('Successfully simulates cArtio shortcuts for', () => {
           '0x2d93FbcE4CffC15DD385A80B3f4CC1D4E76C38b3': '206540',
           '0xFa5bf670A92AfF186E5176aA55690E0277010040': '99999',
         },
-        gas: '971870',
+        gas: '1101987',
       });
     });
 
@@ -534,7 +534,7 @@ describe('Successfully simulates cArtio shortcuts for', () => {
           '0x2d93FbcE4CffC15DD385A80B3f4CC1D4E76C38b3': '206540',
           '0xFa5bf670A92AfF186E5176aA55690E0277010040': '99999',
         },
-        gas: '971870',
+        gas: '1101987',
       });
     });
   });

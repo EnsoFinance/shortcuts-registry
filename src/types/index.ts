@@ -53,6 +53,7 @@ export interface SimulationResult {
 
 export type Report = {
   weirollWallet: AddressArg;
+  amountsIn: string[];
   minAmountOut?: string;
   minAmountOutHex?: string;
   quote: Record<string, string>;

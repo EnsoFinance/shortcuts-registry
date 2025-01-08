@@ -8,14 +8,16 @@ import { StaticJsonRpcProvider } from '@ethersproject/providers';
 import {
   CONTRCT_SIMULATION_FORK_TEST_EVENTS_ABI,
   DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE,
-  DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR,
   DEFAULT_SETTER_MIN_AMOUNT_OUT,
   FUNCTION_ID_ERC20_APPROVE,
+  MAX_BPS,
+  MIN_BPS,
   ShortcutExecutionMode,
   SimulationMode,
 } from '../src/constants';
 import {
   getAmountsInFromArgs,
+  getBasisPointsFromArgs,
   getBlockNumberFromArgs,
   getEncodedData,
   getForgePath,
@@ -25,7 +27,7 @@ import {
   getShortcutExecutionMode,
   getSimulationModeFromArgs,
   getSimulationRolesByChainId,
-  getSlippageFromArgs,
+  getUsdcToMintHoney,
 } from '../src/helpers';
 import { simulateTransactionOnForge } from '../src/simulations/simulateOnForge';
 import { APITransaction, QuoteRequest, simulateTransactionOnQuoter } from '../src/simulations/simulateOnQuoter';
@@ -59,15 +61,16 @@ async function generateMulticallTxData(
   state: string[],
   setterAddr: AddressArg,
   recipeMarketHubAddr: AddressArg,
-  inputToValue: Record<string, BigNumberish>,
+  inputToValue: Record<string, BigNumberish | undefined>,
 ): Promise<MultiCallData> {
   let setterData: [AddressArg, string][] = [];
   const setterInputData: SetterInputData = {};
   const calls: [AddressArg, string][] = [];
   [...setterInputToIndex].forEach((input, index) => {
     const value = inputToValue[input];
+    if (value === undefined) throw `Input not set: ${input}`;
     const setterData = setterInterface.encodeFunctionData('setValue', [index, value]);
-    setterInputData[input] = { value, index: Number(index) };
+    setterInputData[input] = { value: value.toString(), index: Number(index) };
     calls.push([setterAddr, setterData]);
   });
 
@@ -99,7 +102,7 @@ async function simulateShortcutOnQuoter(
   script: WeirollScript,
   tokensIn: AddressArg[],
   tokensOut: AddressArg[],
-  slippage: BigNumber,
+  setterArgsBps: Record<string, BigNumber>,
   rpcUrl: string,
   roles: SimulationRoles,
   shortcutExecutionMode: ShortcutExecutionMode,
@@ -113,36 +116,53 @@ async function simulateShortcutOnQuoter(
   switch (shortcutExecutionMode) {
     case ShortcutExecutionMode.MULTICALL__AGGREGATE: {
       const provider = new StaticJsonRpcProvider(rpcUrl);
-      let minAmountOut = DEFAULT_SETTER_MIN_AMOUNT_OUT;
-      // NB: simulate first with `minAmountOut` set to '1' wei and get the actual `amountOut` from quoter.
-      // Then, calculate the expected `minAmountOut` after applying maximum slippage, and finally simulate again.
-      if (isRecursiveCall) {
-        const report = await simulateShortcutOnQuoter(
-          shortcut,
-          chainId,
-          amountsIn,
-          script,
-          tokensIn,
-          tokensOut,
-          slippage,
-          rpcUrl,
-          roles,
-          shortcutExecutionMode,
-          !isRecursiveCall,
-          { ...simulationLogConfig, isReportLogged: false, isCalldataLogged: false },
-        );
-        const receiptTokenAddr = tokensOut[0]; // NB: Royco campaign shortcuts expect a single receipt token
-        const amountOut = report.quote[receiptTokenAddr];
-        minAmountOut = BigNumber.from(amountOut)
-          .mul(DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR.sub(slippage))
-          .div(DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR);
-      }
-
       const weirollWallet = await getNextWeirollWalletFromRecipeMarketHub(provider, roles.recipeMarketHub.address!);
       roles.weirollWallet = { address: weirollWallet, label: 'WeirollWallet' };
       roles.callee = roles.multiCall;
-      reportPre.minAmountOut = minAmountOut.toString();
-      reportPre.minAmountOutHex = minAmountOut.toHexString();
+
+      const setterInputs = shortcut.setterInputs?.[chainId];
+      if (!setterInputs) throw 'Error: Setter inputs not found, how did we get here?';
+
+      let minAmountOut, minAmount0Bps, minAmount1Bps, usdcToMintHoney;
+      if (setterInputs.has('minAmountOut')) {
+        minAmountOut = DEFAULT_SETTER_MIN_AMOUNT_OUT;
+        // NB: simulate first with `minAmountOut` set to '1' wei and get the actual `amountOut` from quoter.
+        // Then, calculate the expected `minAmountOut` after applying maximum slippage, and finally simulate again.
+        if (isRecursiveCall) {
+          const report = await simulateShortcutOnQuoter(
+            shortcut,
+            chainId,
+            amountsIn,
+            script,
+            tokensIn,
+            tokensOut,
+            setterArgsBps,
+            rpcUrl,
+            roles,
+            shortcutExecutionMode,
+            !isRecursiveCall,
+            { ...simulationLogConfig, isReportLogged: false, isCalldataLogged: false },
+          );
+          const receiptTokenAddr = tokensOut[0]; // NB: Royco campaign shortcuts expect a single receipt token
+          const amountOut = report.quote[receiptTokenAddr];
+          minAmountOut = BigNumber.from(amountOut).mul(MAX_BPS.sub(setterArgsBps.slippage)).div(MAX_BPS);
+        }
+
+        reportPre.minAmountOut = minAmountOut.toString();
+        reportPre.minAmountOutHex = minAmountOut.toHexString();
+      }
+
+      if (setterInputs.has('minAmount0Bps')) minAmount0Bps = setterArgsBps.minAmount0Bps;
+
+      if (setterInputs.has('minAmount1Bps')) minAmount1Bps = setterArgsBps.minAmount1Bps;
+
+      if (setterInputs.has('usdcToMintHoney')) {
+        const usdcAmountIn = amountsIn[0]; // this assumes a single-sided deposit
+        const island = shortcut.inputs[chainId].island; // assumes we are minting honey for a kodiak island
+        if (!island) throw 'Error: Shortcut not supported for calculating usdc to mint';
+
+        usdcToMintHoney = await getUsdcToMintHoney(provider, chainId, usdcAmountIn, island, setterArgsBps.skewRatio);
+      }
 
       const multiCallData = await generateMulticallTxData(
         shortcut.setterInputs![chainId],
@@ -150,7 +170,7 @@ async function simulateShortcutOnQuoter(
         state,
         roles.setter.address!,
         roles.recipeMarketHub.address!,
-        { minAmountOut },
+        { minAmountOut, minAmount0Bps, minAmount1Bps, usdcToMintHoney },
       );
       txData = multiCallData.txData;
 
@@ -193,6 +213,7 @@ async function simulateShortcutOnQuoter(
   if (quote.status === 'Error') throw quote.error;
   const report: Report = {
     weirollWallet: getAddress(roles.weirollWallet.address!),
+    amountsIn,
     minAmountOut: reportPre.minAmountOut,
     minAmountOutHex: reportPre.minAmountOutHex,
     quote: {},
@@ -223,7 +244,7 @@ async function simulateShortcutOnForge(
   script: WeirollScript,
   tokensIn: AddressArg[],
   tokensOut: AddressArg[],
-  slippage: BigNumber,
+  setterArgsBps: Record<string, BigNumber>,
   forgePath: string,
   rpcUrl: string,
   blockNumber: number,
@@ -243,38 +264,56 @@ async function simulateShortcutOnForge(
   switch (shortcutExecutionMode) {
     case ShortcutExecutionMode.MULTICALL__AGGREGATE: {
       const provider = new StaticJsonRpcProvider(rpcUrl);
-      let minAmountOut = DEFAULT_SETTER_MIN_AMOUNT_OUT;
-      // NB: simulate first with `minAmountOut` set to '1' wei and get the actual `amountOut` from quoter.
-      // Then, calculate the expected `minAmountOut` after applying maximum slippage, and finally simulate again.
-      if (isRecursiveCall) {
-        const report = await simulateShortcutOnForge(
-          shortcut,
-          chainId,
-          amountsIn,
-          script,
-          tokensIn,
-          tokensOut,
-          slippage,
-          forgePath,
-          rpcUrl,
-          blockNumber,
-          roles,
-          shortcutExecutionMode,
-          !isRecursiveCall,
-          { ...simulationLogConfig, isReportLogged: false, isCalldataLogged: false },
-        );
-        const receiptTokenAddr = tokensOut[0]; // NB: Royco campaign shortcuts expect a single receipt token
-        const amountOut = report.quote[receiptTokenAddr]; // NB: decoded events use lowercase
-        minAmountOut = BigNumber.from(amountOut)
-          .mul(DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR.sub(slippage))
-          .div(DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR);
-      }
 
       const weirollWallet = await getNextWeirollWalletFromRecipeMarketHub(provider, roles.recipeMarketHub.address!);
       roles.weirollWallet = { address: weirollWallet, label: 'WeirollWallet' };
       roles.callee = roles.multiCall;
-      reportPre.minAmountOut = minAmountOut.toString();
-      reportPre.minAmountOutHex = minAmountOut.toHexString();
+
+      const setterInputs = shortcut.setterInputs?.[chainId];
+      if (!setterInputs) throw 'Error: Setter inputs not found, how did we get here?';
+
+      let minAmountOut, minAmount0Bps, minAmount1Bps, usdcToMintHoney;
+      if (setterInputs.has('minAmountOut')) {
+        minAmountOut = DEFAULT_SETTER_MIN_AMOUNT_OUT;
+        // NB: simulate first with `minAmountOut` set to '1' wei and get the actual `amountOut` from quoter.
+        // Then, calculate the expected `minAmountOut` after applying maximum slippage, and finally simulate again.
+        if (isRecursiveCall) {
+          const report = await simulateShortcutOnForge(
+            shortcut,
+            chainId,
+            amountsIn,
+            script,
+            tokensIn,
+            tokensOut,
+            setterArgsBps,
+            forgePath,
+            rpcUrl,
+            blockNumber,
+            roles,
+            shortcutExecutionMode,
+            !isRecursiveCall,
+            { ...simulationLogConfig, isReportLogged: false, isCalldataLogged: false },
+          );
+          const receiptTokenAddr = tokensOut[0]; // NB: Royco campaign shortcuts expect a single receipt token
+          const amountOut = report.quote[receiptTokenAddr]; // NB: decoded events use lowercase
+          minAmountOut = BigNumber.from(amountOut).mul(MAX_BPS.sub(setterArgsBps.slippage)).div(MAX_BPS);
+        }
+
+        reportPre.minAmountOut = minAmountOut.toString();
+        reportPre.minAmountOutHex = minAmountOut.toHexString();
+      }
+
+      if (setterInputs.has('minAmount0Bps')) minAmount0Bps = setterArgsBps.minAmount0Bps;
+
+      if (setterInputs.has('minAmount1Bps')) minAmount1Bps = setterArgsBps.minAmount1Bps;
+
+      if (setterInputs.has('usdcToMintHoney')) {
+        const usdcAmountIn = amountsIn[0]; // this assumes a single-sided deposit
+        const island = shortcut.inputs[chainId].island; // assumes we are minting honey for a kodiak island
+        if (!island) throw 'Error: Shortcut not supported for calculating usdc to mint';
+
+        usdcToMintHoney = await getUsdcToMintHoney(provider, chainId, usdcAmountIn, island, setterArgsBps.skewRatio);
+      }
 
       const multiCallData = await generateMulticallTxData(
         shortcut.setterInputs![chainId],
@@ -282,7 +321,7 @@ async function simulateShortcutOnForge(
         state,
         roles.setter.address!,
         roles.recipeMarketHub.address!,
-        { minAmountOut },
+        { minAmountOut, minAmount0Bps, minAmount1Bps, usdcToMintHoney },
       );
       txData = multiCallData.txData;
 
@@ -416,6 +455,7 @@ async function simulateShortcutOnForge(
   // Instantiate Report
   const report = {
     weirollWallet: getAddress(roles.weirollWallet.address!),
+    amountsIn,
     minAmountOut: reportPre.minAmountOut,
     minAmountOutHex: reportPre.minAmountOutHex,
     quote: Object.fromEntries(
@@ -460,11 +500,19 @@ export async function main_(args: string[]): Promise<Report> {
   // Validate slippage
   // NB: currently only a single slippage is supported due Royco campaign shortcuts expecting a single receipt token
   const shortcutExecutionMode = getShortcutExecutionMode(shortcut, chainId);
-  let slippage = DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE;
+  const setterArgsBps: Record<string, BigNumber> = {
+    slippage: DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE,
+    skewRatio: MAX_BPS,
+    minAmount0Bps: MIN_BPS,
+    minAmount1Bps: MIN_BPS,
+  };
   let isRecursiveCall = false;
   if ([ShortcutExecutionMode.MULTICALL__AGGREGATE].includes(shortcutExecutionMode)) {
-    slippage = getSlippageFromArgs(args);
-    isRecursiveCall = !slippage.eq(DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE);
+    // adjust default values with user inputted values
+    Object.keys(setterArgsBps).forEach((key) => {
+      setterArgsBps[key] = getBasisPointsFromArgs(args, key, setterArgsBps[key].toString());
+    });
+    isRecursiveCall = !setterArgsBps.slippage.eq(DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE);
   }
 
   let report: Report;
@@ -478,7 +526,7 @@ export async function main_(args: string[]): Promise<Report> {
         script,
         tokensIn,
         tokensOut,
-        slippage,
+        setterArgsBps,
         forgePath,
         rpcUrl,
         blockNumber,
@@ -497,7 +545,7 @@ export async function main_(args: string[]): Promise<Report> {
         script,
         tokensIn,
         tokensOut,
-        slippage,
+        setterArgsBps,
         rpcUrl,
         roles,
         shortcutExecutionMode,

@@ -2,7 +2,7 @@ import { getChainName } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 import { isNullAddress } from '@ensofinance/shortcuts-standards/helpers';
 import { Interface, defaultAbiCoder } from '@ethersproject/abi';
-import { BigNumber } from '@ethersproject/bignumber';
+import { BigNumber, BigNumberish } from '@ethersproject/bignumber';
 import { keccak256 } from '@ethersproject/keccak256';
 import { StaticJsonRpcProvider } from '@ethersproject/providers';
 import crypto from 'crypto';
@@ -11,10 +11,12 @@ import { execSync } from 'node:child_process';
 
 import {
   DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE,
-  DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR,
+  MAX_BPS,
+  PRECISION,
   ShortcutExecutionMode,
   ShortcutOutputFormat,
   SimulationMode,
+  chainIdToDeFiAddresses,
   chainIdToSimulationRoles,
 } from '../src/constants';
 import { Shortcut } from '../src/types';
@@ -230,30 +232,30 @@ export function getAmountsInFromArgs(args: string[]): string[] {
   return filteredArg.split(',');
 }
 
-export function getSlippageFromArgs(args: string[]): BigNumber {
-  const slippageIdx = args.findIndex((arg) => arg.startsWith('--slippage='));
-  let slippageRaw: string;
-  if (slippageIdx === -1) {
-    slippageRaw = '0';
+export function getBasisPointsFromArgs(args: string[], label: string, defaultVal: string): BigNumber {
+  const idx = args.findIndex((arg) => arg.startsWith(`--${label}=`));
+  let raw: string;
+  if (idx === -1) {
+    raw = defaultVal;
   } else {
-    slippageRaw = args[slippageIdx].split('=')[1] as ShortcutOutputFormat;
-    args.splice(slippageIdx, 1);
+    raw = args[idx].split('=')[1] as ShortcutOutputFormat;
+    args.splice(idx, 1);
   }
 
-  let slippage: BigNumber;
+  let value: BigNumber;
   try {
-    slippage = BigNumber.from(slippageRaw);
+    value = BigNumber.from(raw);
   } catch (error) {
-    throw new Error(`Invalid slippage: ${slippageRaw}. Required a BigNumber type as BIPS. Reason: ${error}`);
+    throw new Error(`Invalid ${label}: ${raw}. Required a BigNumber type as BIPS. Reason: ${error}`);
   }
 
-  if (slippage.lt(DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE) || slippage.gt(DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR)) {
+  if (value.lt(DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE) || value.gt(MAX_BPS)) {
     throw new Error(
-      `invalid slippage: ${slippageRaw}. BIPS is out of range [${DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE.toString()},${DEFAULT_MIN_AMOUNT_OUT_SLIPPAGE_DIVISOR.toString()}]`,
+      `invalid ${label}: ${raw}. BIPS is out of range [${DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE.toString()},${MAX_BPS.toString()}]`,
     );
   }
 
-  return slippage;
+  return value;
 }
 
 export function getIsCalldataLoggedFromArgs(args: string[]): boolean {
@@ -295,6 +297,68 @@ export function buildVerificationHash(script: WeirollScript, receiptToken: Addre
       [inputTokens, receiptToken, [script.commands, script.state]],
     ),
   );
+}
+
+export async function getUsdcToMintHoney(
+  provider: StaticJsonRpcProvider,
+  chainId: number,
+  amountIn: BigNumberish,
+  island: AddressArg,
+  skewRatio: BigNumber,
+): Promise<BigNumber> {
+  // TODO: generalize to other islands that support honey? ensure the correct token order?
+
+  const honeyExchangeRate = await getHoneyExchangeRate(provider, chainId, chainIdToDeFiAddresses[chainId]!.usdc);
+  // test 50/50 split
+  const halfAmountIn = BigNumber.from(amountIn).div(2);
+  const honeyMintAmount = halfAmountIn.mul(honeyExchangeRate).div('1000000'); // div by usdc decimals precision
+  // calculate min
+  const islandMintAmounts = await getIslandMintAmounts(provider, island, [
+    halfAmountIn.toString(),
+    honeyMintAmount.toString(),
+  ]);
+  const { amount0, amount1 } = islandMintAmounts;
+  // recalculate using the known ratio between amount0 and amount1
+  const usdcWithPrecision = amount0.mul(PRECISION);
+  const honeyWithPrecision = amount1.mul(PRECISION);
+
+  const totalUsdcWithPrecision = usdcWithPrecision.add(honeyWithPrecision.mul('1000000').div(honeyExchangeRate));
+  const relativeUsdc = BigNumber.from(amountIn).mul(usdcWithPrecision).div(totalUsdcWithPrecision);
+  return BigNumber.from(amountIn).sub(relativeUsdc).mul(skewRatio).div(MAX_BPS);
+}
+
+export async function getHoneyExchangeRate(
+  provider: StaticJsonRpcProvider,
+  chainId: number,
+  underlyingToken: AddressArg,
+): Promise<BigNumber> {
+  const honeyFactoryInterface = new Interface(['function mintRates(address) external view returns (uint256)']);
+  const honeyFactory = chainIdToDeFiAddresses[chainId]!.honeyFactory;
+  const data = await provider.call({
+    to: honeyFactory,
+    data: honeyFactoryInterface.encodeFunctionData('mintRates', [underlyingToken]),
+  });
+  return honeyFactoryInterface.decodeFunctionResult('mintRates', data)[0] as BigNumber;
+}
+
+export async function getIslandMintAmounts(
+  provider: StaticJsonRpcProvider,
+  island: AddressArg,
+  amounts: string[],
+): Promise<{ amount0: BigNumber; amount1: BigNumber; mintAmount: BigNumber }> {
+  const islandInterface = new Interface([
+    'function getMintAmounts(uint256, uint256) external view returns (uint256 amount0, uint256 amount1, uint256 mintAmount)',
+  ]);
+  const data = await provider.call({
+    to: island,
+    data: islandInterface.encodeFunctionData('getMintAmounts', amounts),
+  });
+  const mintAmounts = islandInterface.decodeFunctionResult('getMintAmounts', data);
+  return {
+    amount0: mintAmounts.amount0,
+    amount1: mintAmounts.amount1,
+    mintAmount: mintAmounts.mintAmount,
+  };
 }
 
 export async function getCampaignVerificationHash(

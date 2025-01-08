@@ -21,7 +21,7 @@ export class KodiakHoneyWethShortcut implements Shortcut {
     },
   };
   setterInputs: Record<number, Set<string>> = {
-    [ChainIds.Cartio]: new Set(['minAmountOut']),
+    [ChainIds.Cartio]: new Set(['minAmountOut', 'minAmount0Bps', 'minAmount1Bps']),
   };
 
   async build(chainId: number): Promise<Output> {
@@ -45,7 +45,6 @@ export class KodiakHoneyWethShortcut implements Shortcut {
       island,
       primary,
       this.setterInputs[chainId],
-      false,
     );
 
     const leftoverAmount = builder.add(balanceOf(honey, walletAddress()));
