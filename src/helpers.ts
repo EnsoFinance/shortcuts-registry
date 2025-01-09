@@ -343,14 +343,17 @@ export async function getUsdcToMintHoney(
   const honeyMintAmount = halfAmountIn.mul(honeyExchangeRate).div('1000000'); // div by usdc decimals precision
   const pairAmount = halfAmountIn.mul(pairExchangeRate).div('1000000'); // div by usdc decimals precision
   // calculate min
-  const islandMintAmounts = await getIslandMintAmounts(provider, island, [
-    pairAmount.toString(),
-    honeyMintAmount.toString(),
-  ]);
+  const islandMintAmounts = await getIslandMintAmounts(
+    provider,
+    island,
+    zeroToOne
+      ? [honeyMintAmount.toString(), pairAmount.toString()]
+      : [pairAmount.toString(), honeyMintAmount.toString()],
+  );
   const { amount0, amount1 } = islandMintAmounts;
   // recalculate using the known ratio between amount0 and amount1
-  const pairWithPrecision = amount0.mul(PRECISION);
-  const honeyWithPrecision = amount1.mul(PRECISION);
+  const honeyWithPrecision = zeroToOne ? amount0.mul(PRECISION) : amount1.mul(PRECISION);
+  const pairWithPrecision = zeroToOne ? amount1.mul(PRECISION) : amount0.mul(PRECISION);
 
   const relativeUsdcInHoneyWithPrecision = honeyWithPrecision.mul('1000000').div(honeyExchangeRate);
   const totalUsdcWithPrecision = pairWithPrecision
