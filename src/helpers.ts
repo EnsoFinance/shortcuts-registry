@@ -329,6 +329,7 @@ export async function getUsdcToMintHoney(
   skewRatio: BigNumber,
 ): Promise<BigNumber> {
   // TODO: generalize to other islands that support honey? ensure the correct token order?
+  const usdcPrecision = BigNumber.from('1000000');
   const honey = chainIdToDeFiAddresses[chainId]!.honey!;
   const { token0, token1 } = await getIslandTokens(provider, island);
   if (!isAddressEqual(token0, honey) && !isAddressEqual(token1, honey)) throw 'Error: Honey is not on this island';
@@ -340,8 +341,8 @@ export async function getUsdcToMintHoney(
   const honeyExchangeRate = await getHoneyExchangeRate(provider, chainId, chainIdToDeFiAddresses[chainId]!.usdc);
   // test 50/50 split
   const halfAmountIn = BigNumber.from(amountIn).div(2);
-  const honeyMintAmount = halfAmountIn.mul(honeyExchangeRate).div('1000000'); // div by usdc decimals precision
-  const pairAmount = halfAmountIn.mul(pairExchangeRate).div('1000000'); // div by usdc decimals precision
+  const honeyMintAmount = halfAmountIn.mul(honeyExchangeRate).div(usdcPrecision); // div by usdc decimals precision
+  const pairAmount = halfAmountIn.mul(pairExchangeRate).div(usdcPrecision); // div by usdc decimals precision
   // calculate min
   const islandMintAmounts = await getIslandMintAmounts(
     provider,
@@ -355,13 +356,13 @@ export async function getUsdcToMintHoney(
   const honeyWithPrecision = zeroToOne ? amount0.mul(PRECISION) : amount1.mul(PRECISION);
   const pairWithPrecision = zeroToOne ? amount1.mul(PRECISION) : amount0.mul(PRECISION);
 
-  const relativeUsdcInHoneyWithPrecision = honeyWithPrecision.mul('1000000').div(honeyExchangeRate);
-  const totalUsdcWithPrecision = pairWithPrecision
-    .mul('1000000')
-    .div(pairExchangeRate)
-    .add(relativeUsdcInHoneyWithPrecision);
+  const relativeUsdcInHoneyWithPrecision = honeyWithPrecision.mul(usdcPrecision).div(honeyExchangeRate);
+  const relativeUsdcInPairWithPrecision = pairWithPrecision.mul(usdcPrecision).div(pairExchangeRate);
+  const totalUsdcWithPrecision = relativeUsdcInPairWithPrecision.add(relativeUsdcInHoneyWithPrecision);
 
-  const usdcToMintHoney = BigNumber.from(amountIn).mul(relativeUsdcInHoneyWithPrecision).div(totalUsdcWithPrecision);
+  // Calculate the relative pair usdc amount and the subtract is from the amountIn to get honey. With this approach any rounding favours honey
+  const relativeUsdc = BigNumber.from(amountIn).mul(relativeUsdcInPairWithPrecision).div(totalUsdcWithPrecision);
+  const usdcToMintHoney = BigNumber.from(amountIn).sub(relativeUsdc);
   return usdcToMintHoney.mul(skewRatio).div(MAX_BPS);
 }
 
