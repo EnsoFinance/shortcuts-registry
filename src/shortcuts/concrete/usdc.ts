@@ -4,20 +4,19 @@ import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 import { getStandardByProtocol } from '@ensofinance/shortcuts-standards';
 import { TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
-import { getAddress } from '@ethersproject/address';
 
 import { chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
 import { balanceOf } from '../../utils';
 
 export class ConcreteUsdcShortcut implements Shortcut {
-  name = 'usdc-vault';
+  name = 'usdc';
   description = '';
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
       usdc: TokenAddresses.cartio.usdc,
-      vault: getAddress('0x9c5285F076C6c1D8471E2625aB5c2257547bCe86') as AddressArg,
+      vault: '0x9c5285F076C6c1D8471E2625aB5c2257547bCe86',
     },
   };
 

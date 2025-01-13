@@ -3,20 +3,20 @@ import { RoycoClient } from '@ensofinance/shortcuts-builder/client/implementatio
 import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 import { getStandardByProtocol } from '@ensofinance/shortcuts-standards';
-import { getAddress } from '@ethersproject/address';
+import { TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
 
 import { chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
 import { balanceOf } from '../../utils';
 
-export class BeraborrowVaultStrategyShortcut implements Shortcut {
-  name = 'vault-strategy';
+export class DahliaUsdcShortcut implements Shortcut {
+  name = 'usdc';
   description = '';
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
-      sBtc: getAddress('0x5d417e7798208E9285b5157498bBF23A23E421E7') as AddressArg,
-      primary: getAddress('0x2A280f6769Ba2a254C3D1FeCef0280F87DB0a265') as AddressArg,
+      usdc: TokenAddresses.cartio.usdc,
+      vault: '0x95B0de63dbbe5D92BD05B7c0C12A32673f490A42',
     },
   };
 
@@ -24,20 +24,20 @@ export class BeraborrowVaultStrategyShortcut implements Shortcut {
     const client = new RoycoClient();
 
     const inputs = this.inputs[chainId];
-    const { sBtc, primary } = inputs;
+    const { usdc, vault } = inputs;
 
     const builder = new Builder(chainId, client, {
-      tokensIn: [sBtc],
-      tokensOut: [primary],
+      tokensIn: [usdc],
+      tokensOut: [vault],
     });
-    const amountIn = builder.add(balanceOf(sBtc, walletAddress()));
+    const amountIn = builder.add(balanceOf(usdc, walletAddress()));
 
-    const erc4626 = getStandardByProtocol('erc4626', chainId);
-    await erc4626.deposit.addToBuilder(builder, {
-      tokenIn: [sBtc],
-      tokenOut: primary,
+    const vaultVault = getStandardByProtocol('erc4626', chainId);
+    await vaultVault.deposit.addToBuilder(builder, {
+      tokenIn: [usdc],
+      tokenOut: vault,
       amountIn: [amountIn],
-      primaryAddress: primary,
+      primaryAddress: vault,
     });
 
     const payload = await builder.build({
@@ -55,8 +55,8 @@ export class BeraborrowVaultStrategyShortcut implements Shortcut {
     switch (chainId) {
       case ChainIds.Cartio:
         return new Map([
-          [this.inputs[ChainIds.Cartio].primary, { label: 'Beraborrow Boyco sBTC' }],
-          [this.inputs[ChainIds.Cartio].sBtc, { label: 'ERC20:SBTC' }],
+          [this.inputs[ChainIds.Cartio].usdc, { label: 'ERC20:USDC' }],
+          [this.inputs[ChainIds.Cartio].vault, { label: 'ERC20:Dahlia Vault' }],
         ]);
       default:
         throw new Error(`Unsupported chainId: ${chainId}`);

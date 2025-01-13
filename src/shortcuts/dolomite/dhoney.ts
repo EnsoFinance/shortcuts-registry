@@ -3,10 +3,8 @@ import { RoycoClient } from '@ensofinance/shortcuts-builder/client/implementatio
 import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, FromContractCallArg, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 import { getStandardByProtocol } from '@ensofinance/shortcuts-standards';
-import { TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
-import { getAddress } from '@ethersproject/address';
 
-import { chainIdToTokenHolder } from '../../constants';
+import { chainIdToDeFiAddresses, chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
 import { balanceOf, mintHoney } from '../../utils';
 
@@ -16,10 +14,10 @@ export class DolomiteDHoneyShortcut implements Shortcut {
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
-      usdc: getAddress(TokenAddresses.cartio.usdc) as AddressArg,
-      honey: getAddress(TokenAddresses.cartio.honey) as AddressArg,
-      dhoney: getAddress('0x7f2B60fDff1494A0E3e060532c9980d7fad0404B') as AddressArg,
-      infraredVault: getAddress('0x7f2B60fDff1494A0E3e060532c9980d7fad0404B') as AddressArg, // TODO: replace
+      usdc: chainIdToDeFiAddresses[ChainIds.Cartio].usdc,
+      honey: chainIdToDeFiAddresses[ChainIds.Cartio].honey,
+      dhoney: '0x7f2B60fDff1494A0E3e060532c9980d7fad0404B',
+      infraredVault: '0x7f2B60fDff1494A0E3e060532c9980d7fad0404B', // TODO: replace
     },
   };
 
@@ -35,8 +33,7 @@ export class DolomiteDHoneyShortcut implements Shortcut {
     });
 
     // Get the amount of USDC in the wallet, used to mint Honey
-    const amountToMint = await builder.add(balanceOf(usdc, walletAddress()));
-
+    const amountToMint = builder.add(balanceOf(usdc, walletAddress()));
     // Mint Honey
     const mintedAmount = await mintHoney(usdc, amountToMint, builder);
 

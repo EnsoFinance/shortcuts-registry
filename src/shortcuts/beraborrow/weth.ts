@@ -4,20 +4,19 @@ import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 import { getStandardByProtocol } from '@ensofinance/shortcuts-standards';
 import { TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
-import { getAddress } from '@ethersproject/address';
 
 import { chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
 import { balanceOf } from '../../utils';
 
-export class BeraborrowWethVaultShortcut implements Shortcut {
-  name = 'vault-strategy';
+export class BeraborrowWethShortcut implements Shortcut {
+  name = 'weth';
   description = '';
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
       weth: TokenAddresses.cartio.weth,
-      primary: getAddress('0xEdB3CD4f17b20b69Cd7bf8c1126E2759e4A710Be') as AddressArg,
+      primary: '0xEdB3CD4f17b20b69Cd7bf8c1126E2759e4A710Be',
     },
   };
 

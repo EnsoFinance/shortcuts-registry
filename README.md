@@ -30,7 +30,19 @@ pnpm registryup
 
 ## Generate
 
-Pass the chain name (e.g., cartio), the protocol (e.g., dolomite) and the market (e.g., dhoney)
+The generated outputs file path will be `shortcuts-registry/outputs/<chain>/<protocol>/<market>.json`.
+
+### All Protocols & Markets
+
+Pass the chain name (e.g., cartio):
+
+```sh
+pnpm generate:all cartio
+```
+
+### Single Protocol & Market
+
+Pass the chain name (e.g., cartio), the protocol (e.g., dolomite) and the market (e.g., dhoney):
 
 ```sh
 pnpm generate cartio dolomite dhoney
@@ -63,9 +75,7 @@ Default output example:
 }
 ```
 
-The generated output will be saved to the `shortcuts-registry/outputs` directory.
-
-Optionally, get a full output by adding `--output=full`:
+Optionally, get a full output by adding `--output=full` (this output won't be saved as JSON):
 
 ```sh
 pnpm generate cartio dolomite dhoney --output=full
@@ -75,6 +85,21 @@ pnpm generate cartio dolomite dhoney --output=full
 
 Simulation supported modes are: `forge`, and `quoter`. Simulation mode is set via `--mode=<simulationMode>`. By default
 simulation is done via the `quoter`.
+
+Shortcuts whose execution require to set a `minAmountOut` have it set to `1` by default. This amount can be fine-tuned
+via `--slippage=<numberAsBIPS>` (allowed values: [0, 10000]. Examples: 3 represents 0.03%, 25 represents 0.25%, 100
+represents 1%).
+
+Other supported CCDMSetter variables are:
+
+- `minAmount0`: sets the difference in basis points between the max amount in and min amount in for token0 in kodiak
+  vaults
+- `minAmount1`: sets the difference in basis points between the max amount in and min amount in for token1 in kodiak
+  vaults
+- `skewRatio`: for shortcuts that do an off-chain calculation for the amount of a token that gets exchanged in a
+  shortcut, you can pass this value (in basis points) to reduce the amount exchanged relative to the calculated amount
+
+Log the tx `CCDMSetter` calldata with `--calldata`.
 
 ### Forge
 
@@ -154,22 +179,23 @@ Pass the amount(s) that you want to simulate (e.g., 1000000). If you shortcut th
 amounts as comma separated values (e.g., 100,100).
 
 ```sh
-pnpm simulate cartio dolomite dhoney 1000000
+pnpm simulate cartio abracadabra honey-mim 10000000,100000000
 ```
 
 ```sh
-pnpm simulate cartio kodiak honey-usdc 10000 --mode=quoter
+pnpm simulate cartio abracadabra honey-mim 10000000,100000000 --slippage=3 --mode=quoter
 ```
 
 Output example:
 
 ```sh
 Simulation:  {
-  quote: {
-    '0x7f2B60fDff1494A0E3e060532c9980d7fad0404B': '998000000000000000'
+  quote: { '0x150683BF3f0a344e271fc1b7dac3783623e7208A': '271725' },
+  dust: {
+    '0x08B918dD18E087893bb9d711d9E0BBaA7a63Ef63': '16',
+    '0x015fd589F4f1A33ce4487E12714e1B15129c9329': '99600399'
   },
-  dust: { '0x015fd589F4f1A33ce4487E12714e1B15129c9329': '0' },
-  gas: '818424'
+  gas: '1334335'
 }
 ```
 

@@ -4,12 +4,14 @@ import {
   Transaction,
   WeirollScript,
 } from "@ensofinance/shortcuts-builder/types";
+import { BigNumber, BigNumberish } from "@ethersproject/bignumber";
 
 export interface Shortcut {
   name: string;
   description: string;
   supportedChains: number[];
   inputs: Record<number, Input>;
+  setterInputs?: Record<number, SetterInputToIndex>;
   build(chainId: number): Promise<Output>;
   getAddressData?(chainId: number): Map<AddressArg, AddressData>;
   getTokenHolder?(chainId: number): Map<AddressArg, AddressArg>;
@@ -27,6 +29,20 @@ export type RoycoOutput = {
 
 
 export type Input = Record<string, AddressArg>;
+export type SetterInputToIndex = Set<string>;
+
+export interface SetterInputData {
+  [key: string]: {
+    value: BigNumberish;
+    index: number;
+  }
+}
+
+export interface MultiCallData {
+  setterInputData: SetterInputData;
+  setterData: [AddressArg, string][];
+  txData: string;
+}
 
 export interface SimulationResult {
   /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -36,11 +52,80 @@ export interface SimulationResult {
 }
 
 export type Report = {
+  weirollWallet: AddressArg;
+  amountsIn: string[];
+  minAmountOut?: string;
+  minAmountOutHex?: string;
   quote: Record<string, string>;
   dust: Record<string, string>;
   gas: string;
 };
 
 export interface AddressData {
+  address?: AddressArg;
   label: string;
+}
+
+export interface SimulationLogConfig {
+  isReportLogged: boolean;
+  isCalldataLogged: boolean;
+}
+
+export interface SimulationRoles {
+  readonly caller: AddressData;
+  readonly defaultWeirollWallet: AddressData;
+  readonly recipeMarketHub: AddressData;
+  readonly multiCall: AddressData;
+  readonly setter: AddressData;
+  readonly nativeToken: AddressData;
+  readonly depositExecutor: AddressData;
+  weirollWallet?: AddressData;
+  callee?: AddressData;
+}
+
+export interface SimulationForgeData {
+  path: string;
+  contract: string;
+  contractABI: Record<string, unknown>[];
+  test: string;
+  testRelativePath: string;
+}
+
+export interface SimulationTokensData {
+  tokensIn: AddressArg[];
+  tokensInHolders: AddressArg[];
+  amountsIn: AddressArg[];
+  tokensOut: AddressArg[];
+  tokensDust: AddressArg[];
+}
+
+export interface ForgeTestLogJSONTest {
+  duration: { secs: number; nanos: number };
+  test_results: {
+    [test: string]: {
+      status: string;
+      reason: null | string;
+      counterexample: null | string;
+      logs: {
+        address: AddressArg;
+        topics: string[];
+        data: string;
+      }[];
+      decoded_logs: string[];
+      labeled_addresses: Record<AddressArg, string>;
+    };
+  };
+}
+
+export interface ForgeTestLogJSON {
+  [path: string]: ForgeTestLogJSONTest;
+}
+
+export type Campaign = {
+  owner: AddressArg;
+  verified: boolean;
+  numInputTokens: number;
+  receiptToken: AddressArg;
+  unlockTimestamp: BigNumber;
+  depositRecipe: WeirollScript;
 }

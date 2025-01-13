@@ -4,21 +4,19 @@ import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 import { getStandardByProtocol } from '@ensofinance/shortcuts-standards';
 import { TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
-import { getAddress } from '@ethersproject/address';
 
 import { chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
 import { balanceOf } from '../../utils';
 
-export class BurrbearUsdcVaultShortcut implements Shortcut {
-  name = 'burrbear-usdc-vault';
+export class DahliaWethShortcut implements Shortcut {
+  name = 'weth';
   description = '';
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
-      usdc: getAddress(TokenAddresses.cartio.usdc) as AddressArg,
-      vault: getAddress('0x86b22E0236d4789a22EC5ca0356Fcc14E076D559') as AddressArg, // Zap
-      bexLp: '0xFbb99BAD8eca0736A9ab2a7f566dEbC9acb607f0', //Honey-USDC-NECT
+      weth: TokenAddresses.cartio.weth,
+      vault: '0x479Df3548C4261Cb101BE33536B3D90CCA6eb327',
     },
   };
 
@@ -26,22 +24,19 @@ export class BurrbearUsdcVaultShortcut implements Shortcut {
     const client = new RoycoClient();
 
     const inputs = this.inputs[chainId];
-    const { usdc, vault, bexLp } = inputs;
+    const { weth, vault } = inputs;
 
     const builder = new Builder(chainId, client, {
-      tokensIn: [usdc],
-      tokensOut: [bexLp],
+      tokensIn: [weth],
+      tokensOut: [vault],
     });
+    const amountIn = builder.add(balanceOf(weth, walletAddress()));
 
-    // Get the amount of token in wallet
-    const amountIn = await builder.add(balanceOf(usdc, walletAddress()));
-
-    //Mint
-    const burrbearZap = getStandardByProtocol('erc4626', chainId);
-    await burrbearZap.deposit.addToBuilder(builder, {
-      tokenIn: usdc,
-      tokenOut: bexLp,
-      amountIn,
+    const erc4626 = getStandardByProtocol('erc4626', chainId);
+    await erc4626.deposit.addToBuilder(builder, {
+      tokenIn: [weth],
+      tokenOut: vault,
+      amountIn: [amountIn],
       primaryAddress: vault,
     });
 
@@ -60,15 +55,13 @@ export class BurrbearUsdcVaultShortcut implements Shortcut {
     switch (chainId) {
       case ChainIds.Cartio:
         return new Map([
-          [this.inputs[ChainIds.Cartio].usdc, { label: 'ERC20:USDC' }],
-          [this.inputs[ChainIds.Cartio].vault, { label: 'ERC20:Burrbear ZAP' }],
-          [this.inputs[ChainIds.Cartio].bexLp, { label: 'ERC20:BEX LP HONEY-USDC-NECT' }],
+          [this.inputs[ChainIds.Cartio].vault, { label: 'Dahlia Vault' }],
+          [this.inputs[ChainIds.Cartio].weth, { label: 'ERC20:WETH' }],
         ]);
       default:
         throw new Error(`Unsupported chainId: ${chainId}`);
     }
   }
-
   getTokenHolder(chainId: number): Map<AddressArg, AddressArg> {
     const tokenToHolder = chainIdToTokenHolder.get(chainId);
     if (!tokenToHolder) throw new Error(`Unsupported 'chainId': ${chainId}`);

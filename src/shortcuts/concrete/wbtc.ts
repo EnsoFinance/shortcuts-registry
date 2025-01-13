@@ -4,20 +4,19 @@ import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 import { getStandardByProtocol } from '@ensofinance/shortcuts-standards';
 import { TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
-import { getAddress } from '@ethersproject/address';
 
 import { chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
 import { balanceOf } from '../../utils';
 
 export class ConcretewbtcShortcut implements Shortcut {
-  name = 'wbtc-vault';
+  name = 'wbtc';
   description = '';
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
       wbtc: TokenAddresses.cartio.wbtc,
-      vault: getAddress('0x773E6667852030E1AcC7AEa5a0b2412Ae1A77941') as AddressArg,
+      vault: '0x773E6667852030E1AcC7AEa5a0b2412Ae1A77941',
     },
   };
 

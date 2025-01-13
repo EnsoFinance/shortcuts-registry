@@ -3,9 +3,8 @@ import { RoycoClient } from '@ensofinance/shortcuts-builder/client/implementatio
 import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 import { Standards, getStandardByProtocol } from '@ensofinance/shortcuts-standards';
-import { getAddress } from '@ethersproject/address';
 
-import { chainIdToTokenHolder } from '../../constants';
+import { chainIdToDeFiAddresses, chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
 import { balanceOf } from '../../utils';
 
@@ -15,8 +14,8 @@ export class MobyWolpUsdcShortcut implements Shortcut {
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
-      usdc: getAddress(Standards.MobyTrade_wOlp.protocol.addresses?.cartio?.usdc as string) as AddressArg,
-      wolp: getAddress(Standards.MobyTrade_wOlp.protocol.addresses?.cartio?.primary as string) as AddressArg,
+      usdc: chainIdToDeFiAddresses[ChainIds.Cartio].usdc,
+      wolp: Standards.MobyTrade_wOlp.protocol.addresses!.cartio!.primary,
     },
   };
 
