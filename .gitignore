@@ -24,5 +24,8 @@ foundry-out/
 ## Soldeer
 /dependencies
 
+# Jetbrains
+.idea
+
 ## MacOs
 .DS_Store
