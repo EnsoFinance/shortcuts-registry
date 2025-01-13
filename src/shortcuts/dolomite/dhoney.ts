@@ -29,7 +29,7 @@ export class DolomiteDHoneyShortcut implements Shortcut {
 
     const builder = new Builder(chainId, client, {
       tokensIn: [usdc],
-      tokensOut: [dhoney],
+      tokensOut: [infraredVault],
     });
 
     // Get the amount of USDC in the wallet, used to mint Honey
