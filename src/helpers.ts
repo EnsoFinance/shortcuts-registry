@@ -15,9 +15,13 @@ import { ConcreteUsdcShortcut } from './shortcuts/concrete/usdc';
 import { ConcreteWethShortcut } from './shortcuts/concrete/weth';
 import { DolomiteDEthShortcut } from './shortcuts/dolomite/deth';
 import { DolomiteDHoneyShortcut } from './shortcuts/dolomite/dhoney';
+import { DolomiteDPumpBtcShortcut } from './shortcuts/dolomite/dpumpbtc';
+import { DolomiteDRsEthShortcut } from './shortcuts/dolomite/drseth';
+import { DolomiteDSbtcShortcut } from './shortcuts/dolomite/dsbtc';
 import { DolomiteDUsdcShortcut } from './shortcuts/dolomite/dusdc';
 import { DolomiteDUsdtShortcut } from './shortcuts/dolomite/dusdt';
 import { DolomiteDWbtcShortcut } from './shortcuts/dolomite/dwbtc';
+import { DolomiteDYlPumpBtcShortcut } from './shortcuts/dolomite/dylpumpbtc';
 import { InfraredWethWbtcShortcut } from './shortcuts/infrared/weth-wbtc';
 import { KodiakHoneyUsdcShortcut } from './shortcuts/kodiak/honey-usdc';
 import { KodiakWethHoneyShortcut } from './shortcuts/kodiak/weth-honey';
@@ -52,9 +56,13 @@ const shortcuts: Record<string, Record<string, Shortcut>> = {
   dolomite: {
     deth: new DolomiteDEthShortcut(),
     dhoney: new DolomiteDHoneyShortcut(),
+    dpumpbtc: new DolomiteDPumpBtcShortcut(),
+    drseth: new DolomiteDRsEthShortcut(),
+    dsbtc: new DolomiteDSbtcShortcut(),
     dusdc: new DolomiteDUsdcShortcut(),
     dusdt: new DolomiteDUsdtShortcut(),
     dwbtc: new DolomiteDWbtcShortcut(),
+    dylpumpbtc: new DolomiteDYlPumpBtcShortcut(),
   },
   // TODO: uncomment out and move import up once Goldilocks is ready
   // import { GoldilocksEbtcShortcut } from './shortcuts/goldilocks/ebtc-vault';
