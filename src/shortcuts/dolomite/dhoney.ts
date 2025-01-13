@@ -17,7 +17,7 @@ export class DolomiteDHoneyShortcut implements Shortcut {
       usdc: chainIdToDeFiAddresses[ChainIds.Cartio].usdc,
       honey: chainIdToDeFiAddresses[ChainIds.Cartio].honey,
       dhoney: '0x7f2B60fDff1494A0E3e060532c9980d7fad0404B',
-      infraredVault: '0x7f2B60fDff1494A0E3e060532c9980d7fad0404B', // TODO: replace
+      infraredVault: '0x53fACeCc391021a69Ba79351007079536AA64C6d',
     },
   };
 

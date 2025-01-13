@@ -58,8 +58,8 @@ export class DolomiteDYlPumpBtcShortcut implements Shortcut {
     switch (chainId) {
       case ChainIds.Cartio:
         return new Map([
-          [this.inputs[ChainIds.Cartio].base, { label: 'ERC20:rsETH' }],
-          [this.inputs[ChainIds.Cartio].vault, { label: 'ERC20:drsETH' }],
+          [this.inputs[ChainIds.Cartio].base, { label: 'ERC20:yl-pumpBTC' }],
+          [this.inputs[ChainIds.Cartio].vault, { label: 'ERC20:dyl-pumpBTC' }],
         ]);
       default:
         throw new Error(`Unsupported chainId: ${chainId}`);
