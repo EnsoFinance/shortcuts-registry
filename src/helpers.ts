@@ -1,4 +1,4 @@
-import { getChainName } from '@ensofinance/shortcuts-builder/helpers';
+import { getChainName, isAddressEqual } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 import { isNullAddress } from '@ensofinance/shortcuts-standards/helpers';
 import { Interface, defaultAbiCoder } from '@ethersproject/abi';
@@ -121,6 +121,28 @@ export const shortcuts: Record<string, Record<string, Shortcut>> = {
     usdc: new ThjUsdcShortcut(),
   },
 };
+
+// TODO: this may have to support on-chain getter functions
+const usdcExchangeRates: Record<number, Record<AddressArg, BigNumber>> = {
+  [ChainIds.Cartio]: {
+    [chainIdToDeFiAddresses[ChainIds.Cartio]!.usdc]: BigNumber.from(10).pow(6),
+    [chainIdToDeFiAddresses[ChainIds.Cartio]!.nect]: BigNumber.from(10).pow(18),
+  },
+};
+
+async function call(
+  provider: StaticJsonRpcProvider,
+  iface: Interface,
+  target: string,
+  method: string,
+  args: ReadonlyArray<BigNumberish>,
+) {
+  const data = await provider.call({
+    to: target,
+    data: iface.encodeFunctionData(method, args),
+  });
+  return iface.decodeFunctionResult(method, data);
+}
 
 export async function getShortcut(args: string[]) {
   if (args.length < 3) throw 'Error: Please pass chain, protocol, and market';
@@ -315,24 +337,41 @@ export async function getUsdcToMintHoney(
   skewRatio: BigNumber,
 ): Promise<BigNumber> {
   // TODO: generalize to other islands that support honey? ensure the correct token order?
+  const usdcPrecision = BigNumber.from('1000000');
+  const honey = chainIdToDeFiAddresses[chainId]!.honey!;
+  const { token0, token1 } = await getIslandTokens(provider, island);
+  if (!isAddressEqual(token0, honey) && !isAddressEqual(token1, honey)) throw 'Error: Honey is not on this island';
+  const zeroToOne = isAddressEqual(token0, honey);
+  const pair = zeroToOne ? token1 : token0;
+  const pairExchangeRate = usdcExchangeRates[chainId][pair];
+  if (!pairExchangeRate) throw 'Error: Pair exchange rate cannot be found';
 
   const honeyExchangeRate = await getHoneyExchangeRate(provider, chainId, chainIdToDeFiAddresses[chainId]!.usdc);
   // test 50/50 split
   const halfAmountIn = BigNumber.from(amountIn).div(2);
-  const honeyMintAmount = halfAmountIn.mul(honeyExchangeRate).div('1000000'); // div by usdc decimals precision
+  const honeyMintAmount = halfAmountIn.mul(honeyExchangeRate).div(usdcPrecision); // div by usdc decimals precision
+  const pairAmount = halfAmountIn.mul(pairExchangeRate).div(usdcPrecision); // div by usdc decimals precision
   // calculate min
-  const islandMintAmounts = await getIslandMintAmounts(provider, island, [
-    halfAmountIn.toString(),
-    honeyMintAmount.toString(),
-  ]);
+  const islandMintAmounts = await getIslandMintAmounts(
+    provider,
+    island,
+    zeroToOne
+      ? [honeyMintAmount.toString(), pairAmount.toString()]
+      : [pairAmount.toString(), honeyMintAmount.toString()],
+  );
   const { amount0, amount1 } = islandMintAmounts;
   // recalculate using the known ratio between amount0 and amount1
-  const usdcWithPrecision = amount0.mul(PRECISION);
-  const honeyWithPrecision = amount1.mul(PRECISION);
+  const honeyWithPrecision = zeroToOne ? amount0.mul(PRECISION) : amount1.mul(PRECISION);
+  const pairWithPrecision = zeroToOne ? amount1.mul(PRECISION) : amount0.mul(PRECISION);
 
-  const totalUsdcWithPrecision = usdcWithPrecision.add(honeyWithPrecision.mul('1000000').div(honeyExchangeRate));
-  const relativeUsdc = BigNumber.from(amountIn).mul(usdcWithPrecision).div(totalUsdcWithPrecision);
-  return BigNumber.from(amountIn).sub(relativeUsdc).mul(skewRatio).div(MAX_BPS);
+  const relativeUsdcInHoneyWithPrecision = honeyWithPrecision.mul(usdcPrecision).div(honeyExchangeRate);
+  const relativeUsdcInPairWithPrecision = pairWithPrecision.mul(usdcPrecision).div(pairExchangeRate);
+  const totalUsdcWithPrecision = relativeUsdcInPairWithPrecision.add(relativeUsdcInHoneyWithPrecision);
+
+  // Calculate the relative pair usdc amount and the subtract is from the amountIn to get honey. With this approach any rounding favours honey
+  const relativeUsdc = BigNumber.from(amountIn).mul(relativeUsdcInPairWithPrecision).div(totalUsdcWithPrecision);
+  const usdcToMintHoney = BigNumber.from(amountIn).sub(relativeUsdc);
+  return usdcToMintHoney.mul(skewRatio).div(MAX_BPS);
 }
 
 export async function getHoneyExchangeRate(
@@ -342,11 +381,7 @@ export async function getHoneyExchangeRate(
 ): Promise<BigNumber> {
   const honeyFactoryInterface = new Interface(['function mintRates(address) external view returns (uint256)']);
   const honeyFactory = chainIdToDeFiAddresses[chainId]!.honeyFactory;
-  const data = await provider.call({
-    to: honeyFactory,
-    data: honeyFactoryInterface.encodeFunctionData('mintRates', [underlyingToken]),
-  });
-  return honeyFactoryInterface.decodeFunctionResult('mintRates', data)[0] as BigNumber;
+  return (await call(provider, honeyFactoryInterface, honeyFactory, 'mintRates', [underlyingToken]))[0] as BigNumber;
 }
 
 export async function getIslandMintAmounts(
@@ -357,15 +392,32 @@ export async function getIslandMintAmounts(
   const islandInterface = new Interface([
     'function getMintAmounts(uint256, uint256) external view returns (uint256 amount0, uint256 amount1, uint256 mintAmount)',
   ]);
-  const data = await provider.call({
-    to: island,
-    data: islandInterface.encodeFunctionData('getMintAmounts', amounts),
-  });
-  const mintAmounts = islandInterface.decodeFunctionResult('getMintAmounts', data);
+  const mintAmounts = await call(provider, islandInterface, island, 'getMintAmounts', amounts);
   return {
     amount0: mintAmounts.amount0,
     amount1: mintAmounts.amount1,
     mintAmount: mintAmounts.mintAmount,
+  };
+}
+
+export async function getIslandTokens(
+  provider: StaticJsonRpcProvider,
+  island: AddressArg,
+): Promise<{ token0: AddressArg; token1: AddressArg }> {
+  const islandInterface = new Interface([
+    'function token0() external view returns (address token)',
+    'function token1() external view returns (address token)',
+  ]);
+  const [token0, token1] = (
+    await Promise.all([
+      call(provider, islandInterface, island, 'token0', []),
+      call(provider, islandInterface, island, 'token1', []),
+    ])
+  ).map((response) => response.token);
+
+  return {
+    token0,
+    token1,
   };
 }
 
@@ -378,11 +430,11 @@ export async function getCampaignVerificationHash(
     'function getCampaignVerificationHash(bytes32 marketHash) external view returns (bytes32 verificationHash)',
   ]);
   const roles = getSimulationRolesByChainId(chainId);
-  const data = await provider.call({
-    to: roles.depositExecutor.address,
-    data: depositExecutorInterface.encodeFunctionData('getCampaignVerificationHash', [marketHash]),
-  });
-  return depositExecutorInterface.decodeFunctionResult('getCampaignVerificationHash', data).verificationHash as string;
+  return (
+    await call(provider, depositExecutorInterface, roles.depositExecutor.address!, 'getCampaignVerificationHash', [
+      marketHash,
+    ])
+  ).verificationHash as string;
 }
 
 export async function getCampaign(
@@ -394,14 +446,13 @@ export async function getCampaign(
     'function sourceMarketHashToDepositCampaign(bytes32 marketHash) external view returns (address owner, bool verified, uint8 numInputTokens, address receiptToken, uint256 unlockTimestamp, tuple(bytes32[] commands, bytes[] state) depositRecipe)',
   ]);
   const roles = getSimulationRolesByChainId(chainId);
-  const data = await provider.call({
-    to: roles.depositExecutor.address,
-    data: depositExecutorInterface.encodeFunctionData('sourceMarketHashToDepositCampaign', [marketHash]),
-  });
-  return depositExecutorInterface.decodeFunctionResult(
+  return (await call(
+    provider,
+    depositExecutorInterface,
+    roles.depositExecutor.address!,
     'sourceMarketHashToDepositCampaign',
-    data,
-  ) as unknown as Campaign;
+    [marketHash],
+  )) as unknown as Campaign;
 }
 
 export async function getWeirollWallets(
@@ -417,14 +468,13 @@ export async function getWeirollWallets(
   const wallets: AddressArg[] = [];
   let foundLastWallet = false;
   while (!foundLastWallet) {
-    const data = await provider.call({
-      to: roles.depositExecutor.address,
-      data: depositExecutorInterface.encodeFunctionData('getWeirollWalletByCcdmNonce', [
-        marketHash,
-        wallets.length + 1,
-      ]),
-    });
-    const { wallet } = depositExecutorInterface.decodeFunctionResult('getWeirollWalletByCcdmNonce', data);
+    const { wallet } = await call(
+      provider,
+      depositExecutorInterface,
+      roles.depositExecutor.address!,
+      'getWeirollWalletByCcdmNonce',
+      [marketHash, wallets.length + 1],
+    );
     if (!isNullAddress(wallet)) {
       wallets.push(wallet as AddressArg);
     } else {
