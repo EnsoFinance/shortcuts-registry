@@ -314,11 +314,12 @@ export function getEncodedData(commands: string[], state: string[]): string {
 }
 
 export function buildVerificationHash(script: WeirollScript, receiptToken: AddressArg, inputTokens: AddressArg[]) {
+  const sortedInputTokens: AddressArg[] = inputTokens.sort((a, b) => (BigNumber.from(a).gt(b) ? 1 : -1));
   // TODO: confirm token order for encoding hash
   return keccak256(
     defaultAbiCoder.encode(
       ['address[]', 'address', 'tuple(bytes32[], bytes[])'],
-      [inputTokens, receiptToken, [script.commands, script.state]],
+      [sortedInputTokens, receiptToken, [script.commands, script.state]],
     ),
   );
 }
