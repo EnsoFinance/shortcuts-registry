@@ -39,6 +39,8 @@ import { DolomiteDUsdcShortcut } from './shortcuts/dolomite/dusdc';
 import { DolomiteDUsdtShortcut } from './shortcuts/dolomite/dusdt';
 import { DolomiteDWbtcShortcut } from './shortcuts/dolomite/dwbtc';
 import { DolomiteDYlPumpBtcShortcut } from './shortcuts/dolomite/dylpumpbtc';
+import { InfraredHoneyUsdcShortcut } from './shortcuts/infrared/honey-usdc';
+import { InfraredWethHoneyShortcut } from './shortcuts/infrared/weth-honey';
 import { InfraredWethWbtcShortcut } from './shortcuts/infrared/weth-wbtc';
 import { KodiakHoneyUsdcShortcut } from './shortcuts/kodiak/honey-usdc';
 import { KodiakWethHoneyShortcut } from './shortcuts/kodiak/weth-honey';
@@ -110,6 +112,8 @@ export const shortcuts: Record<string, Record<string, Shortcut>> = {
   },
   infrared: {
     'weth-wbtc': new InfraredWethWbtcShortcut(),
+    'honey-usdc': new InfraredHoneyUsdcShortcut(),
+    'weth-honey': new InfraredWethHoneyShortcut(),
   },
   thj: {
     usdc: new ThjUsdcShortcut(),

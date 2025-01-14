@@ -3,47 +3,52 @@ import { RoycoClient } from '@ensofinance/shortcuts-builder/client/implementatio
 import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 import { Standards, getStandardByProtocol } from '@ensofinance/shortcuts-standards';
-import { TokenAddresses } from '@ensofinance/shortcuts-standards/addresses';
+import { sub } from '@ensofinance/shortcuts-standards/helpers';
 
-import { chainIdToTokenHolder } from '../../constants';
+import { chainIdToDeFiAddresses, chainIdToTokenHolder } from '../../constants';
 import type { AddressData, Input, Output, Shortcut } from '../../types';
-import { balanceOf } from '../../utils';
+import { balanceOf, depositKodiak, getSetterValue, mintHoney, redeemHoney } from '../../utils';
 
-export class InfraredWethWbtcShortcut implements Shortcut {
-  name = 'infrared-weth-wbtc';
+export class InfraredHoneyUsdcShortcut implements Shortcut {
+  name = 'infrared-honey-usdc';
   description = '';
   supportedChains = [ChainIds.Cartio];
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
-      weth: TokenAddresses.cartio.weth,
-      wbtc: TokenAddresses.cartio.wbtc,
-      island: '0x1E5FFDC9B4D69398c782608105d6e2B724063E13',
-      vault: '0xe1e4F5b13F6E87140A657222BB9D38B78ad00bf8',
-      primary: Standards.Kodiak_Islands.protocol.addresses!.cartio!.router,
+      usdc: chainIdToDeFiAddresses[ChainIds.Cartio].usdc,
+      honey: chainIdToDeFiAddresses[ChainIds.Cartio].honey,
+      island: Standards.Kodiak_Islands.protocol.addresses!.cartio!.honeyUsdcIsland,
+      vault: '0xA303Faf709bD0d8d8Fec2Ca62e5ED4708Dd94EA2',
+      primary: chainIdToDeFiAddresses[ChainIds.Cartio].kodiakRouter,
     },
+  };
+  setterInputs: Record<number, Set<string>> = {
+    [ChainIds.Cartio]: new Set(['minAmountOut', 'minAmount0Bps', 'minAmount1Bps', 'usdcToMintHoney']),
   };
 
   async build(chainId: number): Promise<Output> {
     const client = new RoycoClient();
 
     const inputs = this.inputs[chainId];
-    const { weth, wbtc, island, primary, vault } = inputs;
+    const { usdc, honey, island, primary, vault } = inputs;
 
     const builder = new Builder(chainId, client, {
-      tokensIn: [weth, wbtc],
+      tokensIn: [usdc],
       tokensOut: [vault],
     });
-    const amountInWeth = builder.add(balanceOf(weth, walletAddress()));
-    const amountInWbtc = builder.add(balanceOf(wbtc, walletAddress()));
+    const amountIn = builder.add(balanceOf(usdc, walletAddress()));
+    const usdcToMintHoney = getSetterValue(builder, this.setterInputs[chainId], 'usdcToMintHoney');
+    const remainingUsdc = sub(amountIn, usdcToMintHoney, builder);
+    const mintedAmount = await mintHoney(usdc, usdcToMintHoney, builder);
 
-    const kodiak = getStandardByProtocol('kodiak-islands', chainId);
-
-    await kodiak.deposit.addToBuilder(builder, {
-      tokenIn: [weth, wbtc],
-      tokenOut: island,
-      amountIn: [amountInWeth, amountInWbtc],
-      primaryAddress: primary,
-    });
+    await depositKodiak(
+      builder,
+      [usdc, honey],
+      [remainingUsdc, mintedAmount],
+      island,
+      primary,
+      this.setterInputs[chainId],
+    );
 
     const amountIsland = builder.add(balanceOf(island, walletAddress()));
 
@@ -54,6 +59,9 @@ export class InfraredWethWbtcShortcut implements Shortcut {
       amountIn: [amountIsland],
       primaryAddress: vault,
     });
+
+    const leftoverAmount = builder.add(balanceOf(honey, walletAddress()));
+    await redeemHoney(usdc, leftoverAmount, builder);
 
     const payload = await builder.build({
       requireWeiroll: true,
@@ -70,10 +78,10 @@ export class InfraredWethWbtcShortcut implements Shortcut {
     switch (chainId) {
       case ChainIds.Cartio:
         return new Map([
-          [this.inputs[ChainIds.Cartio].weth, { label: 'ERC20:WETH' }],
-          [this.inputs[ChainIds.Cartio].wbtc, { label: 'ERC20:WBTC' }],
+          [this.inputs[ChainIds.Cartio].usdc, { label: 'ERC20:USDC' }],
+          [this.inputs[ChainIds.Cartio].honey, { label: 'ERC20:HONEY' }],
+          [this.inputs[ChainIds.Cartio].island, { label: 'Kodiak Island-USDC-HONEY-0.5%' }],
           [this.inputs[ChainIds.Cartio].vault, { label: 'ERC20:INFRARED_VAULT' }],
-          [this.inputs[ChainIds.Cartio].island, { label: 'Kodiak Island-WETH-WBTC-0.3%' }],
           [this.inputs[ChainIds.Cartio].primary, { label: 'Kodiak Island Router' }],
         ]);
       default:
