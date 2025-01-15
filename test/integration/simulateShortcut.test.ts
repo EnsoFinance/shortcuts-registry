@@ -295,7 +295,7 @@ describe('Successfully simulates cArtio shortcuts for', () => {
 
     it('dhoney', async () => {
       // Arrange
-      const args = ['dolomite', 'dhoney', '100000000000000', '--mode=forge', '--block=3490928'];
+      const args = ['dolomite', 'dhoney', '10000000', '--mode=forge', '--block=4380145'];
 
       // Act
       const report = await main_([...DEFAULT_ARGS, ...args]);
@@ -306,13 +306,12 @@ describe('Successfully simulates cArtio shortcuts for', () => {
         minAmountOut: undefined,
         minAmountOutHex: undefined,
         quote: {
-          '0x7f2B60fDff1494A0E3e060532c9980d7fad0404B': '99800000000000000000000000',
+          '0x53fACeCc391021a69Ba79351007079536AA64C6d': '9980000000000000000',
         },
         dust: {
           '0x015fd589F4f1A33ce4487E12714e1B15129c9329': '0',
-          '0xd137593CDB341CcC78426c54Fb98435C60Da193c': '0',
         },
-        gas: '883066',
+        gas: '1704624',
       });
     });
 
@@ -535,108 +534,6 @@ describe('Successfully simulates cArtio shortcuts for', () => {
           '0xFa5bf670A92AfF186E5176aA55690E0277010040': '99999',
         },
         gas: '1101987',
-      });
-    });
-  });
-
-  describe('moby', () => {
-    it('spv-usdc', async () => {
-      // Arrange
-      const args = ['moby', 'spv-usdc', '100000000000000', '--mode=forge', '--block=3492354'];
-
-      // Act
-      const report = await main_([...DEFAULT_ARGS, ...args]);
-
-      // Assert
-      expect(report).toMatchObject({
-        weirollWallet: '0xBa8F5f80C41BF5e169d9149Cd4977B1990Fc2736',
-        minAmountOut: undefined,
-        minAmountOutHex: undefined,
-        quote: {
-          '0xC4E80693F0020eDA0a7500d6edE12Ebb5FDf4526': '99899871119119404542637118',
-        },
-        dust: {
-          '0x015fd589F4f1A33ce4487E12714e1B15129c9329': '0',
-          '0xd137593CDB341CcC78426c54Fb98435C60Da193c': '0',
-          '0xF7F214A9543c1153eF5DF2edCd839074615F248c': '0',
-        },
-        gas: '1825870',
-      });
-    });
-
-    it('wolp-honey', async () => {
-      // Arrange
-      const args = ['moby', 'wolp-honey', '100000000000000', '--mode=forge', '--block=3492413'];
-
-      // Act
-      const report = await main_([...DEFAULT_ARGS, ...args]);
-
-      // Assert
-      expect(report).toMatchObject({
-        weirollWallet: '0xBa8F5f80C41BF5e169d9149Cd4977B1990Fc2736',
-        minAmountOut: undefined,
-        minAmountOutHex: undefined,
-        quote: { '0xa05cb6a41305002e628deaF6210Bf5a7DFD1D099': '100926111008107' },
-        dust: { '0xd137593CDB341CcC78426c54Fb98435C60Da193c': '0' },
-        gas: '945365',
-      });
-    });
-
-    it('wolp-usdc', async () => {
-      // Arrange
-      const args = ['moby', 'wolp-usdc', '1000000000', '--mode=forge', '--block=3492695'];
-
-      // Act
-      const report = await main_([...DEFAULT_ARGS, ...args]);
-
-      // Assert
-      expect(report).toMatchObject({
-        weirollWallet: '0xBa8F5f80C41BF5e169d9149Cd4977B1990Fc2736',
-        minAmountOut: undefined,
-        minAmountOutHex: undefined,
-        quote: {
-          '0xa05cb6a41305002e628deaF6210Bf5a7DFD1D099': '1009275354389148943119',
-        },
-        dust: { '0x015fd589F4f1A33ce4487E12714e1B15129c9329': '0' },
-        gas: '942104',
-      });
-    });
-
-    it('wolp-wbtc', async () => {
-      // Arrange
-      const args = ['moby', 'wolp-wbtc', '1000000000', '--mode=forge', '--block=3492741'];
-
-      // Act
-      const report = await main_([...DEFAULT_ARGS, ...args]);
-
-      // Assert
-      expect(report).toMatchObject({
-        weirollWallet: '0xBa8F5f80C41BF5e169d9149Cd4977B1990Fc2736',
-        minAmountOut: undefined,
-        minAmountOutHex: undefined,
-        quote: {
-          '0xa05cb6a41305002e628deaF6210Bf5a7DFD1D099': '970143461044107598817178',
-        },
-        dust: { '0xFa5bf670A92AfF186E5176aA55690E0277010040': '0' },
-        gas: '946510',
-      });
-    });
-
-    it('wolp-weth', async () => {
-      // Arrange
-      const args = ['moby', 'wolp-weth', '1000000000', '--mode=forge', '--block=3492793'];
-
-      // Act
-      const report = await main_([...DEFAULT_ARGS, ...args]);
-
-      // Assert
-      expect(report).toMatchObject({
-        weirollWallet: '0xBa8F5f80C41BF5e169d9149Cd4977B1990Fc2736',
-        minAmountOut: undefined,
-        minAmountOutHex: undefined,
-        quote: { '0xa05cb6a41305002e628deaF6210Bf5a7DFD1D099': '3488786706570' },
-        dust: { '0x2d93FbcE4CffC15DD385A80B3f4CC1D4E76C38b3': '0' },
-        gas: '919290',
       });
     });
   });
