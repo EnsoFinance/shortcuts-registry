@@ -25,7 +25,10 @@ import { BeraborrowNectHoneyShortcut } from './shortcuts/beraborrow/nect-honey';
 import { BeraborrowSbtcShortcut } from './shortcuts/beraborrow/sbtc';
 import { BeraborrowWethShortcut } from './shortcuts/beraborrow/weth';
 import { BurrbearUsdcShortcut } from './shortcuts/burrbear/usdc';
+import { ConcreteLbtcShortcut } from './shortcuts/concrete/lbtc';
+import { ConcreteSusdeShortcut } from './shortcuts/concrete/susde';
 import { ConcreteUsdcShortcut } from './shortcuts/concrete/usdc';
+import { ConcreteUsdeShortcut } from './shortcuts/concrete/usde';
 import { ConcreteWethShortcut } from './shortcuts/concrete/weth';
 import { D2UsdcShortcut } from './shortcuts/d2/usdc';
 import { DahliaUsdcShortcut } from './shortcuts/dahlia/usdc';
@@ -71,6 +74,9 @@ export const shortcuts: Record<string, Record<string, Shortcut>> = {
     usdc: new ConcreteUsdcShortcut(),
     weth: new ConcreteWethShortcut(),
     wbtc: new ConcreteWethShortcut(),
+    lbtc: new ConcreteLbtcShortcut(),
+    susde: new ConcreteSusdeShortcut(),
+    usde: new ConcreteUsdeShortcut(),
   },
   dahlia: {
     usdc: new DahliaUsdcShortcut(),
@@ -87,7 +93,6 @@ export const shortcuts: Record<string, Record<string, Shortcut>> = {
     dwbtc: new DolomiteDWbtcShortcut(),
     dylpumpbtc: new DolomiteDYlPumpBtcShortcut(),
   },
-
   d2: {
     usdc: new D2UsdcShortcut(),
   },
