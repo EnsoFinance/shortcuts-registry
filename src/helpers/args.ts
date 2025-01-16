@@ -1,5 +1,4 @@
 import { getChainName } from '@ensofinance/shortcuts-builder/helpers';
-import { AddressArg } from '@ensofinance/shortcuts-builder/types';
 import { BigNumber } from '@ethersproject/bignumber';
 import dotenv from 'dotenv';
 import { execSync } from 'node:child_process';
@@ -82,16 +81,6 @@ export function getBlockNumberFromArgs(args: string[]): number {
   }
 
   return blockNumber;
-}
-
-export function getSafeAddressFromArgs(args: string[]): AddressArg | undefined {
-  const safeAddressIdx = args.findIndex((arg) => arg.startsWith('--safeAddress='));
-  let safeAddress: AddressArg | undefined;
-  if (safeAddressIdx > -1) {
-    safeAddress = args[safeAddressIdx].split('=')[1] as AddressArg;
-    args.splice(safeAddressIdx, 1);
-  }
-  return safeAddress;
 }
 
 export function getPrivateKeyFromArgs(args: string[]): string {

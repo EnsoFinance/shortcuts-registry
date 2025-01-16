@@ -23,6 +23,9 @@ importers:
       '@ethersproject/bignumber':
         specifier: ^5.7.0
         version: 5.7.0
+      '@ethersproject/bytes':
+        specifier: ^5.7.0
+        version: 5.7.0
       '@ethersproject/constants':
         specifier: ^5.7.0
         version: 5.7.0
@@ -35,6 +38,9 @@ importers:
       '@ethersproject/providers':
         specifier: ^5.7.2
         version: 5.7.2
+      '@ethersproject/solidity':
+        specifier: ^5.7.0
+        version: 5.7.0
       '@ethersproject/units':
         specifier: ^5.7.0
         version: 5.7.0

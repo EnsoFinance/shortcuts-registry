@@ -20,7 +20,6 @@ import {
 import { simulateTransactionOnForge } from '../simulations/simulateOnForge';
 import { APITransaction, QuoteRequest, simulateTransactionOnQuoter } from '../simulations/simulateOnQuoter';
 import type {
-  AddressData,
   Report,
   SafeTransaction,
   SetterCallData,
@@ -55,8 +54,12 @@ const usdcExchangeRates: Record<number, Record<AddressArg, BigNumber>> = {
   },
 };
 
+export function encodeMulticall(calls: [AddressArg, string][]) {
+  return multicallInterface.encodeFunctionData('aggregate', [calls]);
+}
+
 export async function generateSetterCallData(
-  setterInputToIndex: SetterInputToIndex,
+  setterInputToIndex: SetterInputToIndex | undefined,
   setterAddr: AddressArg,
   inputToValue: Record<string, BigNumberish | undefined>,
 ): Promise<SetterCallData> {
@@ -64,42 +67,44 @@ export async function generateSetterCallData(
   const setterInputData: SetterInputData = {};
   const safeTransactions: SafeTransaction[] = [];
 
-  [...setterInputToIndex].forEach((input, index) => {
-    const value = inputToValue[input];
-    if (value === undefined) throw `Input not set: ${input}`;
-    const method = 'setValue';
-    const data = setterInterface.encodeFunctionData(method, [index, value]);
+  if (setterInputToIndex) {
+    [...setterInputToIndex].forEach((input, index) => {
+      const value = inputToValue[input];
+      if (value === undefined) throw `Input not set: ${input}`;
+      const method = 'setValue';
+      const data = setterInterface.encodeFunctionData(method, [index, value]);
 
-    setterInputData[input] = { value: value.toString(), index: Number(index) };
-    setterData.push([setterAddr, data]);
+      setterInputData[input] = { value: value.toString(), index: Number(index) };
+      setterData.push([setterAddr, data]);
 
-    const safeTransaction: SafeTransaction = {
-      to: setterAddr,
-      data: null,
-      value: '0',
-      contractMethod: {
-        name: method,
-        inputs: [
-          {
-            name: 'index',
-            type: 'uint256',
-            internalType: 'uint256',
-          },
-          {
-            name: 'value',
-            type: 'uint256',
-            internalType: 'uint256',
-          },
-        ],
-        payable: false,
-      },
-      contractInputsValues: {
-        index: String(index),
-        value: String(value),
-      },
-    };
-    safeTransactions.push(safeTransaction);
-  });
+      const safeTransaction: SafeTransaction = {
+        to: setterAddr,
+        data: null,
+        value: '0',
+        contractMethod: {
+          name: method,
+          inputs: [
+            {
+              name: 'index',
+              type: 'uint256',
+              internalType: 'uint256',
+            },
+            {
+              name: 'value',
+              type: 'uint256',
+              internalType: 'uint256',
+            },
+          ],
+          payable: false,
+        },
+        contractInputsValues: {
+          index: String(index),
+          value: String(value),
+        },
+      };
+      safeTransactions.push(safeTransaction);
+    });
+  }
 
   // can call executeWeiroll on recipeMarketHub it will automatically deploy a weiroll wallet
   return { setterInputData, setterData, safeTransactions };
@@ -205,7 +210,7 @@ export async function simulateShortcutOnQuoter(
   shortcutExecutionMode: ShortcutExecutionMode,
   simulationLogConfig: SimulationLogConfig,
 ): Promise<Report> {
-  const { txData, weirollWallet, callee, reportPre } = await generateTxData(
+  const { txData, reportPre } = await generateTxData(
     shortcut,
     chainId,
     script,
@@ -219,16 +224,14 @@ export async function simulateShortcutOnQuoter(
     SimulationMode.QUOTER,
     simulationLogConfig,
   );
-  roles.callee = callee;
-  roles.weirollWallet = weirollWallet;
 
   const tx: APITransaction = {
     from: roles.caller.address!,
-    to: roles.callee.address!,
+    to: roles.callee!.address!,
     data: txData,
     value: '0',
-    receiver: roles.weirollWallet.address,
-    executor: roles.weirollWallet.address,
+    receiver: roles.weirollWallet!.address,
+    executor: roles.weirollWallet!.address,
   };
   const quoteTokens = [...tokensOut, ...tokensIn]; //find dust
 
@@ -239,11 +242,12 @@ export async function simulateShortcutOnQuoter(
     tokenOut: quoteTokens,
     amountIn: amountsIn,
   };
+  console.log('Request: ', request);
 
   const quote = (await simulateTransactionOnQuoter(request))[0];
   if (quote.status === 'Error') throw quote.error;
   const report: Report = {
-    weirollWallet: getAddress(roles.weirollWallet.address!),
+    weirollWallet: getAddress(roles.weirollWallet!.address!),
     amountsIn,
     minAmountOut: reportPre.minAmountOut,
     minAmountOutHex: reportPre.minAmountOutHex,
@@ -287,7 +291,8 @@ export async function simulateShortcutOnForge(
   const forgeTest = 'test_simulateShortcut_1';
   const forgeTestRelativePath = 'test/foundry/fork/Simulation_Fork_Test.t.sol';
   const forgeContractABI = CONTRCT_SIMULATION_FORK_TEST_EVENTS_ABI;
-  const { txData, weirollWallet, callee, reportPre } = await generateTxData(
+
+  const { txData, reportPre } = await generateTxData(
     shortcut,
     chainId,
     script,
@@ -302,8 +307,6 @@ export async function simulateShortcutOnForge(
     simulationLogConfig,
     blockNumber,
   );
-  roles.callee = callee;
-  roles.weirollWallet = weirollWallet;
 
   // Get labels for known addresses
   const addressToLabel: Map<AddressArg, string> = new Map();
@@ -409,7 +412,7 @@ export async function simulateShortcutOnForge(
 
   // Instantiate Report
   const report = {
-    weirollWallet: getAddress(roles.weirollWallet.address!),
+    weirollWallet: getAddress(roles.weirollWallet!.address!),
     amountsIn,
     minAmountOut: reportPre.minAmountOut,
     minAmountOutHex: reportPre.minAmountOutHex,
@@ -490,23 +493,14 @@ async function generateTxData(
   blockNumber?: number,
 ): Promise<{
   txData: string;
-  weirollWallet: AddressData;
-  callee: AddressData;
   reportPre: Partial<Report>;
 }> {
   const { commands, state } = script;
 
   const reportPre: Partial<Report> = {};
   let txData: string;
-  let weirollWallet: AddressData;
-  let callee: AddressData;
   switch (shortcutExecutionMode) {
     case ShortcutExecutionMode.MULTICALL__AGGREGATE: {
-      const provider = new StaticJsonRpcProvider(rpcUrl);
-      const wallet = await getNextWeirollWalletFromMockRecipeMarketHub(provider, roles.recipeMarketHub.address!);
-      weirollWallet = { address: wallet, label: 'WeirollWallet' };
-      callee = roles.multiCall;
-
       const setters = await getSetters(
         shortcut,
         chainId,
@@ -529,28 +523,34 @@ async function generateTxData(
         roles.setter.address!,
         setters,
       );
+
+      const provider = new StaticJsonRpcProvider(rpcUrl);
+      const wallet = await getNextWeirollWalletFromMockRecipeMarketHub(provider, roles.recipeMarketHub.address!);
+      roles.weirollWallet = { address: wallet, label: 'WeirollWallet' };
+      roles.callee = roles.multiCall;
+
       // can call executeWeiroll on recipeMarketHub it will automatically deploy a weiroll wallet
       const weirollData = getEncodedData(commands, state);
-      const calls = [...setterData, [roles.recipeMarketHub.address!, weirollData]];
-      txData = multicallInterface.encodeFunctionData('aggregate', [calls]);
+      const calls: [AddressArg, string][] = [...setterData, [roles.recipeMarketHub.address!, weirollData]];
+      txData = encodeMulticall(calls);
 
       if (simulationLogConfig.isCalldataLogged) {
-        console.log('Simulation (setter calldata):\n', setterData, '\n');
         console.log('Simulation (setter data):\n', setterInputData, '\n');
+        console.log('Simulation (setter calldata):\n', setterData, '\n');
       }
 
       break;
     }
     case ShortcutExecutionMode.WEIROLL_WALLET__EXECUTE_WEIROLL: {
       txData = getEncodedData(commands, state);
-      weirollWallet = roles.defaultWeirollWallet;
-      callee = roles.defaultWeirollWallet;
+      roles.weirollWallet = roles.defaultWeirollWallet;
+      roles.callee = roles.defaultWeirollWallet;
       break;
     }
     default:
       throw new Error(`Unsupported 'shortcutExecutionMode': ${shortcutExecutionMode}`);
   }
-  return { txData, weirollWallet, callee, reportPre };
+  return { txData, reportPre };
 }
 
 async function getNextWeirollWalletFromMockRecipeMarketHub(

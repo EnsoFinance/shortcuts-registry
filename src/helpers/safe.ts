@@ -1,13 +1,15 @@
-import { AddressArg } from '@ensofinance/shortcuts-builder/types';
+import { AddressArg, OperationTypes } from '@ensofinance/shortcuts-builder/types';
+import { hexDataLength } from '@ethersproject/bytes';
 import { id } from '@ethersproject/hash';
+import { pack } from '@ethersproject/solidity';
 
 import { BatchFile, SafeTransaction } from '../types';
 
-export const createBatchFile = (
+export function createBatchFile(
   chainId: number,
   safeAddess: AddressArg | undefined,
   transactions: SafeTransaction[],
-): BatchFile => {
+): BatchFile {
   return addChecksum({
     version: '1.0',
     chainId: String(chainId),
@@ -21,9 +23,9 @@ export const createBatchFile = (
     },
     transactions: transactions,
   });
-};
+}
 
-export const convertTransactions = (transactions: [AddressArg, string][]): SafeTransaction[] => {
+export function convertTransactions(transactions: [AddressArg, string][]): SafeTransaction[] {
   return transactions.map((t) => ({
     to: t[0],
     value: '0',
@@ -31,7 +33,17 @@ export const convertTransactions = (transactions: [AddressArg, string][]): SafeT
     contractMethod: null,
     contractInputsValues: null,
   }));
-};
+}
+
+export function buildMultiSendTx(transactions: [AddressArg, string][]): string {
+  const encodedTxs = transactions.map((tx) => {
+    return pack(
+      ['uint8', 'address', 'uint256', 'uint256', 'bytes'],
+      [OperationTypes.Call, tx[0], 0, hexDataLength(tx[1]), tx[1]],
+    );
+  });
+  return '0x' + encodedTxs.map((t) => t.substring(2)).join('');
+}
 
 // Taken from checksum.ts in the Transaction-Builder website and modified to use ethers.js:
 
