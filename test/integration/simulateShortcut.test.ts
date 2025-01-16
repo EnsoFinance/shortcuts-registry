@@ -583,7 +583,7 @@ describe('Successfully simulates cArtio shortcuts for', () => {
   describe('thj', () => {
     it('usdc', async () => {
       // Arrange
-      const args = ['thj', 'usdc', '10000000', '--mode=forge', '--block=3493135'];
+      const args = ['thj', 'usdc', '10000000', '--mode=forge', '--block=4485988'];
 
       // Act
       const report = await main_([...DEFAULT_ARGS, ...args]);
@@ -593,9 +593,9 @@ describe('Successfully simulates cArtio shortcuts for', () => {
         weirollWallet: '0xBa8F5f80C41BF5e169d9149Cd4977B1990Fc2736',
         minAmountOut: undefined,
         minAmountOutHex: undefined,
-        quote: { '0xE9e4E48dab982b805Ca3C80122df078B35454116': '10000000010000000' },
+        quote: { '0x46BA968312ab17A9cD667771bB2D14D8d3Ce00B9': '10000000' },
         dust: { '0x015fd589F4f1A33ce4487E12714e1B15129c9329': '0' },
-        gas: '303383',
+        gas: '310660',
       });
     });
   });
