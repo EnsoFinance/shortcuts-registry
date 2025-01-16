@@ -1,6 +1,6 @@
 import { Builder } from '@ensofinance/shortcuts-builder';
 import { RoycoClient } from '@ensofinance/shortcuts-builder/client/implementations/roycoClient';
-import { walletAddress } from '@ensofinance/shortcuts-builder/helpers';
+import { contractCall, walletAddress } from '@ensofinance/shortcuts-builder/helpers';
 import { AddressArg, ChainIds, FromContractCallArg, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 import { Standards, getStandardByProtocol } from '@ensofinance/shortcuts-standards';
 import { sub } from '@ensofinance/shortcuts-standards/helpers/math';
@@ -63,7 +63,7 @@ export class BeraborrowNectHoneyShortcut implements Shortcut {
 
     const honeyLeftoverAmount = builder.add(balanceOf(honey, walletAddress()));
     await redeemHoney(usdc, honeyLeftoverAmount, builder);
-    /*
+
     const nectLeftoversAmount = builder.add(balanceOf(nect, walletAddress()));
     const withdrawLeftovers = contractCall({
       address: usdcPsmBond,
@@ -73,7 +73,7 @@ export class BeraborrowNectHoneyShortcut implements Shortcut {
     });
 
     builder.add(withdrawLeftovers);
-    */
+
     const payload = await builder.build({
       requireWeiroll: true,
       returnWeirollScript: true,

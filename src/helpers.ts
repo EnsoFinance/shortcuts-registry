@@ -21,6 +21,7 @@ import {
 } from '../src/constants';
 import { Shortcut } from '../src/types';
 import { AbracadabraMimHoneyhortcut } from './shortcuts/abracadabra/mim-honey';
+import { BeraborrowBeraethShortcut } from './shortcuts/beraborrow/beraEth';
 import { BeraborrowNectHoneyShortcut } from './shortcuts/beraborrow/nect-honey';
 import { BeraborrowSbtcShortcut } from './shortcuts/beraborrow/sbtc';
 import { BeraborrowWethShortcut } from './shortcuts/beraborrow/weth';
@@ -66,6 +67,7 @@ export const shortcuts: Record<string, Record<string, Shortcut>> = {
     'nect-honey': new BeraborrowNectHoneyShortcut(),
     sbtc: new BeraborrowSbtcShortcut(),
     weth: new BeraborrowWethShortcut(),
+    beraEth: new BeraborrowBeraethShortcut(),
   },
   burrbear: {
     usdc: new BurrbearUsdcShortcut(),
