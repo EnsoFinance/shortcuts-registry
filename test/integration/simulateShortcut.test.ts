@@ -18,7 +18,7 @@ describe('Successfully simulates cArtio shortcuts for', () => {
   describe('abracadabra', () => {
     it('mim-honey', async () => {
       // Arrange
-      const args = ['abracadabra', 'honey-mim', '10000000,100000000', '--mode=forge', '--block=3443800'];
+      const args = ['abracadabra', 'honey-mim', '10000000,100000000', '--mode=forge', '--block=4465664'];
 
       // Act
       const report = await main_([...DEFAULT_ARGS, ...args]);
@@ -34,7 +34,7 @@ describe('Successfully simulates cArtio shortcuts for', () => {
           '0x015fd589F4f1A33ce4487E12714e1B15129c9329': '99600399',
           '0xd137593CDB341CcC78426c54Fb98435C60Da193c': '0',
         },
-        gas: '1573744',
+        gas: '1497635',
       });
     });
 
@@ -46,7 +46,7 @@ describe('Successfully simulates cArtio shortcuts for', () => {
         '10000000,100000000',
         '--mode=forge',
         '--slippage=3',
-        '--block=3443800',
+        '--block=4465664',
       ];
 
       // Act
@@ -63,7 +63,7 @@ describe('Successfully simulates cArtio shortcuts for', () => {
           '0x015fd589F4f1A33ce4487E12714e1B15129c9329': '99600399',
           '0xd137593CDB341CcC78426c54Fb98435C60Da193c': '0',
         },
-        gas: '1573744',
+        gas: '1497635',
       });
     });
   });
@@ -411,7 +411,7 @@ describe('Successfully simulates cArtio shortcuts for', () => {
   describe('kodiak', () => {
     it('honey-usdc', async () => {
       // Arrange
-      const args = ['kodiak', 'honey-usdc', '100000000', '--mode=forge', '--block=3491718'];
+      const args = ['kodiak', 'honey-usdc', '100000000', '--mode=forge', '--block=4465664'];
 
       // Act
       const report = await main_([...DEFAULT_ARGS, ...args]);
@@ -421,18 +421,18 @@ describe('Successfully simulates cArtio shortcuts for', () => {
         weirollWallet: '0x79141B00251E4E08D5463e4e0622E4065692fB3B',
         minAmountOut: '1',
         minAmountOutHex: '0x01',
-        quote: { '0x7b26b6C57014eAaA4042FfCF7c701E38F4bc2c5C': '49957000035799' },
+        quote: { '0x7b26b6C57014eAaA4042FfCF7c701E38F4bc2c5C': '49972071356310' },
         dust: {
-          '0x015fd589F4f1A33ce4487E12714e1B15129c9329': '0',
+          '0x015fd589F4f1A33ce4487E12714e1B15129c9329': '1',
           '0xd137593CDB341CcC78426c54Fb98435C60Da193c': '0',
         },
-        gas: '1571747',
+        gas: '1572777',
       });
     });
 
     it('honey-usdc (with slippage)', async () => {
       // Arrange
-      const args = ['kodiak', 'honey-usdc', '100000000', '--mode=forge', '--slippage=3', '--block=3491718'];
+      const args = ['kodiak', 'honey-usdc', '100000000', '--mode=forge', '--slippage=3', '--block=4465664'];
 
       // Act
       const report = await main_([...DEFAULT_ARGS, ...args]);
@@ -440,20 +440,20 @@ describe('Successfully simulates cArtio shortcuts for', () => {
       // Assert
       expect(report).toMatchObject({
         weirollWallet: '0x79141B00251E4E08D5463e4e0622E4065692fB3B',
-        minAmountOut: '49942012935788',
-        minAmountOutHex: '0x2d6c07f0be6c',
-        quote: { '0x7b26b6C57014eAaA4042FfCF7c701E38F4bc2c5C': '49957000035799' },
+        minAmountOut: '49957079734903',
+        minAmountOutHex: '0x2d6f89fdda77',
+        quote: { '0x7b26b6C57014eAaA4042FfCF7c701E38F4bc2c5C': '49972071356310' },
         dust: {
-          '0x015fd589F4f1A33ce4487E12714e1B15129c9329': '0',
+          '0x015fd589F4f1A33ce4487E12714e1B15129c9329': '1',
           '0xd137593CDB341CcC78426c54Fb98435C60Da193c': '0',
         },
-        gas: '1571747',
+        gas: '1572777',
       });
     });
 
-    it('honey-weth', async () => {
+    it('weth-honey', async () => {
       // Arrange
-      const args = ['kodiak', 'honey-weth', '100000000,1000000', '--mode=forge', '--block=3491974'];
+      const args = ['kodiak', 'weth-honey', '100000000,1000000', '--mode=forge', '--block=4465664'];
 
       // Act
       const report = await main_([...DEFAULT_ARGS, ...args]);
@@ -463,19 +463,19 @@ describe('Successfully simulates cArtio shortcuts for', () => {
         weirollWallet: '0x79141B00251E4E08D5463e4e0622E4065692fB3B',
         minAmountOut: '1',
         minAmountOutHex: '0x01',
-        quote: { '0xD4570a738675fB2c31e7b7b88998EE73E9E17d49': '11096881816' },
+        quote: { '0xD4570a738675fB2c31e7b7b88998EE73E9E17d49': '5951202271' },
         dust: {
           '0x2d93FbcE4CffC15DD385A80B3f4CC1D4E76C38b3': '0',
-          '0x015fd589F4f1A33ce4487E12714e1B15129c9329': '996002',
+          '0x015fd589F4f1A33ce4487E12714e1B15129c9329': '996003',
           '0xd137593CDB341CcC78426c54Fb98435C60Da193c': '0',
         },
-        gas: '1493177',
+        gas: '1491407',
       });
     });
 
-    it('honey-weth (with slippage)', async () => {
+    it('weth-honey (with slippage)', async () => {
       // Arrange
-      const args = ['kodiak', 'honey-weth', '100000000,1000000', '--mode=forge', '--slippage=3', '--block=3491974'];
+      const args = ['kodiak', 'weth-honey', '100000000,1000000', '--mode=forge', '--slippage=3', '--block=4465664'];
 
       // Act
       const report = await main_([...DEFAULT_ARGS, ...args]);
@@ -483,21 +483,21 @@ describe('Successfully simulates cArtio shortcuts for', () => {
       // Assert
       expect(report).toMatchObject({
         weirollWallet: '0x79141B00251E4E08D5463e4e0622E4065692fB3B',
-        minAmountOut: '11093552751',
-        minAmountOutHex: '0x02953a2e6f',
-        quote: { '0xD4570a738675fB2c31e7b7b88998EE73E9E17d49': '11096881816' },
+        minAmountOut: '5949416910',
+        minAmountOutHex: '0x01629ce5ce',
+        quote: { '0xD4570a738675fB2c31e7b7b88998EE73E9E17d49': '5951202271' },
         dust: {
           '0x2d93FbcE4CffC15DD385A80B3f4CC1D4E76C38b3': '0',
-          '0x015fd589F4f1A33ce4487E12714e1B15129c9329': '996002',
+          '0x015fd589F4f1A33ce4487E12714e1B15129c9329': '996003',
           '0xd137593CDB341CcC78426c54Fb98435C60Da193c': '0',
         },
-        gas: '1493177',
+        gas: '1491407',
       });
     });
 
     it('weth-wbtc', async () => {
       // Arrange
-      const args = ['kodiak', 'weth-wbtc', '1000000000,100000', '--mode=forge', '--block=3492136'];
+      const args = ['kodiak', 'weth-wbtc', '1000000000,100000', '--mode=forge', '--block=4465664'];
 
       // Act
       const report = await main_([...DEFAULT_ARGS, ...args]);
@@ -518,7 +518,7 @@ describe('Successfully simulates cArtio shortcuts for', () => {
 
     it('weth-wbtc (with slippage)', async () => {
       // Arrange
-      const args = ['kodiak', 'weth-wbtc', '1000000000,100000', '--mode=forge', '--slippage=3', '--block=3492136'];
+      const args = ['kodiak', 'weth-wbtc', '1000000000,100000', '--mode=forge', '--slippage=3', '--block=4465664'];
 
       // Act
       const report = await main_([...DEFAULT_ARGS, ...args]);

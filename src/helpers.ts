@@ -103,7 +103,7 @@ export const shortcuts: Record<string, Record<string, Shortcut>> = {
   // },
   kodiak: {
     'honey-usdc': new KodiakHoneyUsdcShortcut(),
-    'honey-weth': new KodiakWethHoneyShortcut(),
+    'weth-honey': new KodiakWethHoneyShortcut(),
     'weth-wbtc': new KodiakWethWbtcShortcut(),
   },
   origami: {
