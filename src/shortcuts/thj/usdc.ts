@@ -16,7 +16,7 @@ export class ThjUsdcShortcut implements Shortcut {
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
       usdc: TokenAddresses.cartio.usdc,
-      vault: '0xE9e4E48dab982b805Ca3C80122df078B35454116',
+      vault: '0x46BA968312ab17A9cD667771bB2D14D8d3Ce00B9',
     },
   };
 
