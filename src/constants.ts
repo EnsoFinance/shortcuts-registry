@@ -131,6 +131,7 @@ export const chainIdToDeFiAddresses: Record<number, Record<string, AddressArg>> 
     wbtc: TokenAddresses.cartio.wbtc,
     weth: TokenAddresses.cartio.weth,
     beraEth: Standards.Dinero_Beraeth.protocol.addresses!.cartio!.beraEth,
+    rBeraEth: Standards.Dinero_Beraeth.protocol.addresses!.cartio!.rBeraEth,
     honeyFactory: Standards.Berachain_Honey.protocol.addresses!.cartio!.honeyFactory,
     kodiakRouter: Standards.Kodiak_Islands.protocol.addresses!.cartio!.router,
     kodiakQuoterV2: Standards.Kodiak_Islands.protocol.addresses!.cartio!.quoterV2,

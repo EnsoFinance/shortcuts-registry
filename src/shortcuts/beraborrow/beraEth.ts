@@ -15,7 +15,8 @@ export class BeraborrowBeraethShortcut implements Shortcut {
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
       weth: chainIdToDeFiAddresses[ChainIds.Cartio].weth,
-      beraEth: '0xe5d95DCDC719beec21f036Ed4CA9F276C2dC6393',
+      beraEth: chainIdToDeFiAddresses[ChainIds.Cartio].beraEth,
+      rBeraEth: chainIdToDeFiAddresses[ChainIds.Cartio].rBeraEth,
       primary: '0x25189a55463d2974F6b55268A09ccEe92f8aa043',
     },
   };
@@ -24,20 +25,20 @@ export class BeraborrowBeraethShortcut implements Shortcut {
     const client = new RoycoClient();
 
     const inputs = this.inputs[chainId];
-    const { weth, beraEth, primary } = inputs;
+    const { weth, beraEth, rBeraEth, primary } = inputs;
 
     const builder = new Builder(chainId, client, {
       tokensIn: [weth],
       tokensOut: [primary],
     });
-    const amountIn = builder.add(balanceOf(beraEth, walletAddress()));
+    const amountIn = builder.add(balanceOf(weth, walletAddress()));
 
     const dineroBeraeth = getStandardByProtocol('dinero-beraEth', chainId, true);
     await dineroBeraeth.deposit.addToBuilder(builder, {
       tokenIn: [weth],
-      tokenOut: primary,
+      tokenOut: beraEth,
       amountIn: [amountIn],
-      primaryAddress: primary,
+      primaryAddress: rBeraEth,
     });
 
     const beraEthAmount = builder.add(balanceOf(beraEth, walletAddress()));
