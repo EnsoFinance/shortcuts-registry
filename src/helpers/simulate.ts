@@ -140,7 +140,7 @@ export async function getSetters(
               amountsIn,
               tokensIn,
               tokensOut,
-              setterArgsBps,
+              { ...setterArgsBps, slippage: DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE },
               forgePath,
               rpcUrl,
               blockNumber || -1,
@@ -158,7 +158,7 @@ export async function getSetters(
               amountsIn,
               tokensIn,
               tokensOut,
-              setterArgsBps,
+              { ...setterArgsBps, slippage: DEFAULT_MIN_AMOUNT_OUT_MIN_SLIPPAGE },
               rpcUrl,
               roles,
               ShortcutExecutionMode.MULTICALL__AGGREGATE,
@@ -300,6 +300,7 @@ export async function simulateShortcutOnForge(
     shortcutExecutionMode,
     SimulationMode.FORGE,
     simulationLogConfig,
+    blockNumber,
   );
   roles.callee = callee;
   roles.weirollWallet = weirollWallet;
