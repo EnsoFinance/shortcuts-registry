@@ -38,10 +38,10 @@ export interface SetterInputData {
   }
 }
 
-export interface MultiCallData {
+export interface SetterCallData {
   setterInputData: SetterInputData;
   setterData: [AddressArg, string][];
-  txData: string;
+  safeTransactions: SafeTransaction[];
 }
 
 export interface SimulationResult {
@@ -128,4 +128,39 @@ export type Campaign = {
   receiptToken: AddressArg;
   unlockTimestamp: BigNumber;
   depositRecipe: WeirollScript;
+}
+
+export type BatchFile = {
+    version: string,
+    chainId: string,
+    createdAt: number,
+    meta: {
+        name: string,
+        description: string,
+        txBuilderVersion: string,
+        createdFromSafeAddress: string,
+        createdFromOwnerAddress: string,
+        checksum?: string,
+    },
+    transactions: SafeTransaction[],
+}
+
+export type SafeTransaction = {
+    to: string;
+    value: string;
+    data: string | null;
+    contractMethod: Method | null;
+    contractInputsValues: Record<string, string> | null;
+}
+
+export type Method = {
+  name: string,
+  inputs: Param[],
+  payable: boolean,
+}
+
+export type Param = {
+  name: string,
+  type: string,
+  internalType: string,
 }
