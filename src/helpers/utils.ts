@@ -1,6 +1,5 @@
 import { AddressArg, ChainIds, WeirollScript } from '@ensofinance/shortcuts-builder/types';
 import { defaultAbiCoder } from '@ethersproject/abi';
-import { BigNumber } from '@ethersproject/bignumber';
 import { keccak256 } from '@ethersproject/keccak256';
 import crypto from 'crypto';
 
