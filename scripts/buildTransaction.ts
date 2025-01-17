@@ -57,7 +57,7 @@ async function main() {
     const campaign = await getCampaign(provider, chainId, marketHash);
     const { owner, verified, receiptToken, depositRecipe } = campaign;
     if (!verified) throw 'Error: Market is not verified';
-    const preVerificationHash = buildVerificationHash(depositRecipe, receiptToken, []);
+    const preVerificationHash = buildVerificationHash(receiptToken, depositRecipe);
 
     const shortcutHashMap = await buildShortcutsHashMap(chainId);
     const shortcut = shortcutHashMap[preVerificationHash];
@@ -67,7 +67,7 @@ async function main() {
     const { metadata, script } = await shortcut.build(chainId);
     const tokensIn = metadata.tokensIn!;
     const tokensOut = metadata.tokensOut!;
-    const verificationHash = buildVerificationHash(depositRecipe, receiptToken, tokensIn);
+    const verificationHash = buildVerificationHash(receiptToken, depositRecipe);
 
     console.log('Verification Hash: ', verificationHash);
     const campaignVerificationHash = await getCampaignVerificationHash(provider, chainId, marketHash);

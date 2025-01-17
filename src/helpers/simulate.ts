@@ -242,7 +242,6 @@ export async function simulateShortcutOnQuoter(
     tokenOut: quoteTokens,
     amountIn: amountsIn,
   };
-  console.log('Request: ', request);
 
   const quote = (await simulateTransactionOnQuoter(request))[0];
   if (quote.status === 'Error') throw quote.error;
