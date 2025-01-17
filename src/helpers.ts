@@ -52,6 +52,7 @@ import { OrigamiBoycoHoneyShortcut } from './shortcuts/origami/oboy-HONEY-a';
 import { SatlayerLbtcShortcut } from './shortcuts/satlayer/lbtc';
 import { SatlayerPumpBtcShortcut } from './shortcuts/satlayer/pumpbtc';
 import { SatlayerSbtcShortcut } from './shortcuts/satlayer/sbtc';
+import { SatlayerSolvBtcShortcut } from './shortcuts/satlayer/solvBtc';
 import { SatlayerWabtcShortcut } from './shortcuts/satlayer/wabtc';
 import { ThjUsdcShortcut } from './shortcuts/thj/usdc';
 import type { Campaign, SimulationRoles } from './types';
@@ -114,6 +115,7 @@ export const shortcuts: Record<string, Record<string, Shortcut>> = {
     sbtc: new SatlayerSbtcShortcut(),
     lbtc: new SatlayerLbtcShortcut(),
     wabtc: new SatlayerWabtcShortcut(),
+    solvbtc: new SatlayerSolvBtcShortcut(),
   },
   infrared: {
     'weth-wbtc': new InfraredWethWbtcShortcut(),
