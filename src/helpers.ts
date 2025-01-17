@@ -42,6 +42,7 @@ import { DolomiteDUsdcShortcut } from './shortcuts/dolomite/dusdc';
 import { DolomiteDUsdtShortcut } from './shortcuts/dolomite/dusdt';
 import { DolomiteDWbtcShortcut } from './shortcuts/dolomite/dwbtc';
 import { DolomiteDYlPumpBtcShortcut } from './shortcuts/dolomite/dylpumpbtc';
+import { GoldilocksUniBtcShortcut } from './shortcuts/goldilocks/unibtc';
 import { InfraredHoneyUsdcShortcut } from './shortcuts/infrared/honey-usdc';
 import { InfraredWethHoneyShortcut } from './shortcuts/infrared/weth-honey';
 import { InfraredWethWbtcShortcut } from './shortcuts/infrared/weth-wbtc';
@@ -97,11 +98,9 @@ export const shortcuts: Record<string, Record<string, Shortcut>> = {
   d2: {
     usdc: new D2UsdcShortcut(),
   },
-  // TODO: uncomment out and move import up once Goldilocks is ready
-  // import { GoldilocksEbtcShortcut } from './shortcuts/goldilocks/ebtc';
-  // goldilocks: {
-  //   ebtc: new GoldilocksEbtcShortcut(),
-  // },
+  goldilocks: {
+    unibtc: new GoldilocksUniBtcShortcut(),
+  },
   kodiak: {
     'honey-usdc': new KodiakHoneyUsdcShortcut(),
     'weth-honey': new KodiakWethHoneyShortcut(),

@@ -122,6 +122,7 @@ export const chainIdToDeFiAddresses: Record<number, Record<string, AddressArg>> 
     nativeToken: GeneralAddresses.nativeToken,
     nect: TokenAddresses.cartio.nect,
     pumpbtc: TokenAddresses.cartio.pumpBtc,
+    uniBtc: '0x16c041FB492ea3D5C70EDae9987653E4bc00B608',
     rusd: TokenAddresses.cartio.rusd,
     sbtc: '0x5d417e7798208E9285b5157498bBF23A23E421E7',
     stone: TokenAddresses.cartio.stone,
