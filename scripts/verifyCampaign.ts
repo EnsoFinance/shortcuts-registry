@@ -32,7 +32,7 @@ async function main() {
     }
     if (depositRecipe.commands.length === 0) throw 'Error: Cannot verify, recipe not set for market!';
 
-    const preVerificationHash = buildVerificationHash(depositRecipe, receiptToken, []);
+    const preVerificationHash = buildVerificationHash(receiptToken, depositRecipe);
 
     const shortcutHashMap = await buildShortcutsHashMap(chainId);
     const shortcut = shortcutHashMap[preVerificationHash];
@@ -41,8 +41,7 @@ async function main() {
     // confirm verification hash
     let verificationHash: string;
     if (verified) {
-      const { metadata } = await shortcut.build(chainId);
-      verificationHash = buildVerificationHash(depositRecipe, receiptToken, metadata.tokensIn!);
+      verificationHash = buildVerificationHash(receiptToken, depositRecipe);
     } else {
       verificationHash = preVerificationHash;
     }
