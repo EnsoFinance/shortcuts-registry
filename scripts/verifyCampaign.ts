@@ -32,20 +32,13 @@ async function main() {
     }
     if (depositRecipe.commands.length === 0) throw 'Error: Cannot verify, recipe not set for market!';
 
-    const preVerificationHash = buildVerificationHash(depositRecipe, receiptToken, []);
+    const verificationHash = buildVerificationHash(receiptToken, depositRecipe);
 
     const shortcutHashMap = await buildShortcutsHashMap(chainId);
-    const shortcut = shortcutHashMap[preVerificationHash];
+    const shortcut = shortcutHashMap[verificationHash];
     if (!shortcut) throw 'Error: Cannot find shortcut using market hash';
     console.log('Shortcut: ', shortcut.name);
-    // confirm verification hash
-    let verificationHash: string;
-    if (verified) {
-      const { metadata } = await shortcut.build(chainId);
-      verificationHash = buildVerificationHash(depositRecipe, receiptToken, metadata.tokensIn!);
-    } else {
-      verificationHash = preVerificationHash;
-    }
+
     console.log('Verification Hash: ', verificationHash);
     const campaignVerificationHash = await getCampaignVerificationHash(provider, chainId, marketHash);
     if (verificationHash !== campaignVerificationHash)
