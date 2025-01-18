@@ -15,7 +15,7 @@ export class OrigamiBoycoHoneyShortcut implements Shortcut {
   inputs: Record<number, Input> = {
     [ChainIds.Cartio]: {
       usdc: chainIdToDeFiAddresses[ChainIds.Cartio].usdc,
-      vault: '0x9d98B51B3F0E085c7BDf33f26D273B6e277a27B8', //oboy-HONEY-a
+      vault: '0xcCF6AEC56d368DE2C04686C2bDbB5E8B6557c714', //oboy-HONEY-a
     },
   };
 
