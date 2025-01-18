@@ -29,3 +29,5 @@ foundry-out/
 
 ## MacOs
 .DS_Store
+
+transaction-builder.json

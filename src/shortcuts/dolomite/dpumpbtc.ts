@@ -24,7 +24,6 @@ export class DolomiteDPumpBtcShortcut implements Shortcut {
     const client = new RoycoClient();
 
     const inputs = this.inputs[chainId];
-    console.log('inputs', inputs, chainId);
     const { base, vault } = inputs;
 
     const builder = new Builder(chainId, client, {
